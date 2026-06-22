@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HAVN PH build 2026-06-22c · OSM iframe map + mobile single-column -->
+<!-- HAVN PH build 2026-06-22d · mobile bottom-bar declutter + iframe mobile map -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -673,7 +673,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           .browse-head{flex-direction:column!important;gap:12px!important;}
           .inquiry-card{position:static!important;}
           .field-row{grid-template-columns:1fr!important;}
-          #havn-lang{top:auto!important;bottom:68px!important;right:12px!important;}
+          #havn-lang{top:auto!important;bottom:80px!important;left:12px!important;right:auto!important;}
         }
         @media(max-width:768px){
           #havn-burger{display:flex!important;}
@@ -1054,7 +1054,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg> Map view';
         btn.addEventListener('click', function() {
           ov.classList.add('show');
-          setTimeout(function() { _initMap(inner, null); }, 80);
+          if (!inner.querySelector('iframe')) {
+            var ifr = document.createElement('iframe');
+            ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;';
+            ifr.setAttribute('title', 'Map of Davao City');
+            ifr.setAttribute('loading', 'lazy');
+            ifr.src = 'https://www.openstreetmap.org/export/embed.html?bbox=125.40%2C6.95%2C125.72%2C7.18&layer=mapnik';
+            inner.appendChild(ifr);
+          }
         });
         document.body.appendChild(btn);
       }
