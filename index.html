@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HAVN PH — Find a quiet place to stay in Davao City</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
@@ -437,6 +438,24 @@ document.addEventListener('DOMContentLoaded', async function() {
           "Send inquiry":"Mag-inquire",
           "Free · You won't be charged anything":"Libre · Walay bayad",
           "Monthly rent":"Binuwanang renta",
+          "A quiet place to study, work, sleep.":"Usa ka hilom nga lugar para mag-eskwela, magtrabaho, matulog.",
+          "We focus on neighborhoods where students and young workers actually live — close to school, jeepney routes, and a sari-sari store.":"Naka-focus mi sa mga lugar nga gipuy-an gyud sa mga estudyante ug batan-ong trabahante — duol sa eskwelahan, jeepney routes, ug sari-sari store.",
+          "We do not collect rent. HAVN is just the introduction — once you sign with the owner, we step out of the way.":"Wala mi mangolekta ug abang. Ang HAVN kay pasiuna lang — kung makapirma na ka sa tag-iya, mohawa na mi.",
+          "Pick a school, a barangay, or a price ceiling. Every listing shows real walking minutes to the campus gate.":"Pagpili ug eskwelahan, barangay, o presyo. Ang matag listing nagpakita sa tinuod nga walking minutes paingon sa campus gate.",
+          "Message up to five owners at once. Ask about move-in dates, curfew, or whether you can bring a rice cooker.":"Pagmensahe ngadto sa hangtod lima ka tag-iya dungan. Pangutana bahin sa move-in dates, curfew, o kung pwede magdala ug rice cooker.",
+          "HAVN sets up the ocular. We take you ourselves on weekends if you are from out of town. Sign with the owner directly.":"Ang HAVN mag-ayo sa ocular. Among dad-on ka panahon sa weekend kung gikan ka sa gawas sa siyudad. Pagpirma direkta sa tag-iya.",
+          "Not all listings are verified yet — and we do not pretend they are. Look for the gold shield. Here is what it covers.":"Dili pa tanan nga listing verified — ug dili mi magpakaaron-ingnon. Pangitaa ang bulawan nga taming. Mao ni ang sakop niini.",
+          "List your boarding house with HAVN PH. We screen tenants, draft the room agreement, and follow up so you don't have to chase deposits over Messenger.":"I-list ang imong boarding house sa HAVN PH. Among i-screen ang mga tenant, himuon ang room agreement, ug i-follow up para dili na nimo gukdon ang deposito sa Messenger.",
+          "Find a place to stay in Davao City. HAVN PH verifies boarding houses, dorms, and bedspaces so students and workers can decide with confidence.":"Pangitaa ang lugar nga puy-an sa Davao City. Ang HAVN PH nag-verify sa mga boarding house, dorm, ug bedspace para makadesisyon nga masaligon ang mga estudyante ug trabahante.",
+          "© 2026 HAVN PH. All listings independently verified.":"© 2026 HAVN PH. Tanang listing independent nga gi-verify.",
+          "Price · low to high":"Presyo · ubos paingon taas",
+          "Price · high to low":"Presyo · taas paingon ubos",
+          "Try widening your budget or removing a school filter. New listings are added every Friday.":"Sulayi pagpalapad sa imong budget o tangtanga ang school filter. Adunay bag-ong listing matag Biyernes.",
+          "One-month deposit":"Usa ka bulan nga deposito",
+          "Advance (1 mo.)":"Advance (1 bulan)",
+          "Move-in total":"Kinatibuk-ang move-in",
+          "HAVN PH does not handle payments. You pay the owner directly after the ocular.":"Ang HAVN PH wala mag-handle ug bayad. Direkta kang mobayad sa tag-iya human sa ocular.",
+          "reviews from past tenants":"mga review gikan sa nangaging tenant",
           "Find Your Haven":"Pangitaa ang Imong Haven",
           "192 verified stays in Davao City":"192 verified nga stay sa Davao City",
           "Browse Rooms":"I-Browse ang mga Kwarto"
@@ -573,12 +592,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         _langEl.querySelectorAll('button').forEach(function(b) {
           b.classList.toggle('active', b.dataset.l === _currentLang);
         });
-        if (_currentLang === 'en') {
-          // Reload page to restore English (simplest approach)
-          window.location.reload();
-        } else {
-          _applyTranslations();
-        }
+        // Always reload so translations apply from a fresh English DOM.
+        // The dictionary is keyed by the original English strings, so switching
+        // e.g. TL->CEB on already-translated text would otherwise stay stuck on TL.
+        window.location.reload();
       });
 
       // Wait for React to render, then init
@@ -772,11 +789,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         /* Two rAFs: browser must paint before Leaflet reads offsetHeight */
         requestAnimationFrame(function() {
           requestAnimationFrame(function() {
-            /* Explicit pixel size — inset:0 can still read 0 before paint */
-            var ph = containerEl.offsetHeight || 420;
-            var pw = containerEl.offsetWidth  || 640;
-            overlay.style.width  = pw + 'px';
-            overlay.style.height = ph + 'px';
+            /* Fill the container responsively (CSS .havn-lmap is position:absolute; inset:0).
+               Fixed-pixel sizing from an early measurement could read tiny/stale and left the
+               map rendering in a small corner; invalidateSize() + ResizeObserver below keep
+               Leaflet's tiles correct as the pane sizes/changes. */
+            overlay.style.width  = '100%';
+            overlay.style.height = '100%';
 
             var listings = (typeof LISTINGS !== 'undefined') ? LISTINGS : [];
             var center = (singleListing && _COORDS[singleListing.id])
