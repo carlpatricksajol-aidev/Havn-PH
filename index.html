@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HAVN PH build 2026-06-22 · mobile + CEB + map fixes -->
+<!-- HAVN PH build 2026-06-22b · body-mounted map + OSM tiles + pins -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -703,8 +703,13 @@ document.addEventListener('DOMContentLoaded', async function() {
           .gallery .ph{aspect-ratio:16/10!important;}
           .gallery .ph:nth-child(n+3){display:none!important;}
         }
-        /* Map overlay fills parent */
+        /* Map overlay fills parent (detail-page map) */
         .havn-lmap{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:5!important;}
+        /* Browse map: mounted on <body>, positioned over the map pane (React can't touch it) */
+        #havn-browse-map{position:fixed!important;z-index:5;background:#eef2f7;}
+        #havn-browse-map .leaflet-container{width:100%!important;height:100%!important;background:#eef2f7;}
+        .hpin-ic{background:transparent!important;border:none!important;}
+        .hpin{width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);}
         /* Hide React mock map content so it does not bleed through */
         .map-pane > .map{visibility:hidden!important;}
         .map-pane .map-grid,.map-pane .map-roads,.map-pane .map-attrib,.map-pane .map-pin{display:none!important;}
@@ -915,12 +920,75 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
       }
 
+      /* ── Robust browse map: mounted on <body> so React cannot remove or duplicate it ── */
+      var _browseMap = null, _browseEl = null, _browseBound = false;
+      function _addMapMarkers(map) {
+        Object.keys(_COORDS).forEach(function(id) {
+          var c = _COORDS[id];
+          var waze = 'https://waze.com/ul?ll=' + c[0] + ',' + c[1] + '&navigate=yes';
+          var gm = 'https://www.google.com/maps/dir/?api=1&destination=' + c[0] + ',' + c[1];
+          var icon = L.divIcon({ className: 'hpin-ic', html: '<div class="hpin"></div>', iconSize: [18, 18], iconAnchor: [9, 18], popupAnchor: [0, -16] });
+          var popup = L.popup({ maxWidth: 240, minWidth: 220 }).setContent(
+            '<div class="havn-popup" style="padding:12px 14px">' +
+            '<div class="pn">Available stay</div>' +
+            '<div class="pm" style="margin-bottom:10px">Tap for details, photos, and price.</div>' +
+            '<div class="pa">' +
+            '<button class="pbtn pp-primary" onclick="window.location.hash=\'#/listing/' + id + '\'">View details</button>' +
+            '<a href="' + waze + '" target="_blank" rel="noopener" class="pbtn pp-waze">Waze</a>' +
+            '<a href="' + gm + '" target="_blank" rel="noopener" class="pbtn pp-maps">Maps</a>' +
+            '</div></div>'
+          );
+          L.marker(c, { icon: icon }).addTo(map).bindPopup(popup);
+        });
+      }
+      function _positionBrowseMap() {
+        if (!_browseEl) return;
+        var pane = document.querySelector('.map-pane');
+        if (!pane || !document.body.contains(pane) || getComputedStyle(pane).display === 'none') {
+          _browseEl.style.display = 'none';
+          return;
+        }
+        var r = pane.getBoundingClientRect();
+        var top = Math.max(r.top, 64);
+        var h = Math.min(r.bottom, window.innerHeight) - top;
+        if (h < 40 || r.width < 40) { _browseEl.style.display = 'none'; return; }
+        _browseEl.style.display = 'block';
+        _browseEl.style.left = r.left + 'px';
+        _browseEl.style.top = top + 'px';
+        _browseEl.style.width = r.width + 'px';
+        _browseEl.style.height = h + 'px';
+        if (_browseMap) _browseMap.invalidateSize();
+      }
+      function _ensureBrowseMap() {
+        if (typeof L === 'undefined') return;
+        if (!document.querySelector('.map-pane')) { if (_browseEl) _browseEl.style.display = 'none'; return; }
+        if (!_browseEl) {
+          _browseEl = document.createElement('div');
+          _browseEl.id = 'havn-browse-map';
+          document.body.appendChild(_browseEl);
+        }
+        if (!_browseMap) {
+          _positionBrowseMap();
+          _browseMap = L.map(_browseEl, { center: [7.0731, 125.6128], zoom: 12, zoomControl: false, attributionControl: false });
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_browseMap);
+          L.control.attribution({ position: 'bottomright', prefix: '' }).addAttribution('© OpenStreetMap').addTo(_browseMap);
+          L.control.zoom({ position: 'bottomright' }).addTo(_browseMap);
+          _addMapMarkers(_browseMap);
+          try { _browseMap.fitBounds(Object.keys(_COORDS).map(function(id){ return _COORDS[id]; }), { padding: [40, 40] }); } catch (e) {}
+          [60, 250, 700, 1500].forEach(function(ms) { setTimeout(_positionBrowseMap, ms); });
+        }
+        if (!_browseBound) {
+          _browseBound = true;
+          window.addEventListener('scroll', _positionBrowseMap, { passive: true });
+          window.addEventListener('resize', _positionBrowseMap, { passive: true });
+        }
+        _positionBrowseMap();
+      }
+
       function _initAllMaps() {
         if (typeof L === 'undefined') return;
-        /* Browse: init on .map-pane */
-        document.querySelectorAll('.map-pane').forEach(function(el) {
-          _initMap(el, null);
-        });
+        /* Browse: robust body-mounted map (React-proof) */
+        _ensureBrowseMap();
         /* Detail page: init on .detail-section .map */
         document.querySelectorAll('.detail-section .map').forEach(function(el) {
           var id = (window.location.hash || '').replace('#/listing/', '');
