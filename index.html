@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HAVN PH build 2026-06-22d · mobile bottom-bar declutter + iframe mobile map -->
+<!-- HAVN PH build 2026-06-22e · body-mounted mobile menu (React-proof hamburger) -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -637,6 +637,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         .havn-nav-open .nav-link{font-size:17px!important;padding:14px 4px!important;border-bottom:1px solid var(--border)!important;display:block!important;font-weight:500!important;}
         .havn-nav-open .btn-primary{width:100%!important;justify-content:center!important;margin-top:12px!important;height:52px!important;font-size:16px!important;}
+        /* Body-mounted mobile menu (React-proof) */
+        #havn-menu{position:fixed;top:64px;left:0;right:0;bottom:0;background:rgba(255,255,255,.98);backdrop-filter:blur(16px);z-index:9500;padding:20px;display:none;flex-direction:column;gap:2px;overflow-y:auto;}
+        #havn-menu.show{display:flex!important;}
+        .havn-menu-item{font:600 18px/1.2 var(--sans);color:var(--ink);padding:16px 6px;border-bottom:1px solid var(--border);text-decoration:none;cursor:pointer;}
+        .havn-menu-item:last-child{border-bottom:0;color:var(--accent);}
         @media(max-width:480px){
           .container,.container-wide{padding:0 16px!important;}
           .hero{padding:48px 0 20px!important;}
@@ -1002,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
       }
 
-      /* ── Hamburger nav ── */
+      /* ── Hamburger nav (body-mounted menu so React can't break it) ── */
       function _initHamburger() {
         var nav = document.querySelector('.nav-inner');
         if (!nav || document.getElementById('havn-burger')) return;
@@ -1010,33 +1015,49 @@ document.addEventListener('DOMContentLoaded', async function() {
         btn.id = 'havn-burger'; btn.setAttribute('aria-label', 'Menu');
         btn.innerHTML = '<span></span><span></span><span></span>';
         nav.appendChild(btn);
-        btn.addEventListener('click', function() {
-          var links = document.querySelector('.nav-links');
-          if (!links) return;
-          var open = links.classList.toggle('havn-nav-open');
-          btn.classList.toggle('open', open);
-          if (open) {
-            setTimeout(function() {
-              document.addEventListener('click', function _oc(e) {
-                if (!document.querySelector('.nav-links').contains(e.target) && e.target !== btn) {
-                  document.querySelector('.nav-links').classList.remove('havn-nav-open');
-                  btn.classList.remove('open');
-                  document.removeEventListener('click', _oc);
-                }
-              });
-            }, 10);
-          }
-        });
-        var lnks = document.querySelector('.nav-links');
-        if (lnks) {
-          lnks.addEventListener('click', function(e) {
-            if (e.target.closest('a,button')) {
-              lnks.classList.remove('havn-nav-open');
-              var b = document.getElementById('havn-burger');
-              if (b) b.classList.remove('open');
-            }
+
+        var oldMenu = document.getElementById('havn-menu');
+        if (oldMenu) oldMenu.remove();
+        var menu = document.createElement('div');
+        menu.id = 'havn-menu';
+        document.body.appendChild(menu);
+
+        function closeMenu() { menu.classList.remove('show'); btn.classList.remove('open'); }
+        function openMenu() {
+          menu.innerHTML = '';
+          var reals = document.querySelectorAll('.nav-links a, .nav-links button, .nav-link');
+          var added = 0;
+          reals.forEach(function(rl) {
+            var txt = (rl.textContent || '').trim();
+            if (!txt) return;
+            var item = document.createElement('a');
+            item.className = 'havn-menu-item';
+            item.href = 'javascript:void(0)';
+            item.textContent = txt;
+            item.addEventListener('click', function(e) { e.preventDefault(); closeMenu(); try { rl.click(); } catch (x) {} });
+            menu.appendChild(item);
+            added++;
           });
+          if (!added) {
+            [['Browse', '#/browse'], ['Areas', '#/'], ['How HAVN works', '#/'], ['List your property', '#/'], ['Sign in', '#/'], ['Find a haven', '#/browse']].forEach(function(p) {
+              var item = document.createElement('a');
+              item.className = 'havn-menu-item';
+              item.href = p[1];
+              item.textContent = p[0];
+              item.addEventListener('click', closeMenu);
+              menu.appendChild(item);
+            });
+          }
+          menu.classList.add('show'); btn.classList.add('open');
         }
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (menu.classList.contains('show')) closeMenu(); else openMenu();
+        });
+        document.addEventListener('click', function(e) {
+          if (menu.classList.contains('show') && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closeMenu();
+        });
+        window.addEventListener('hashchange', closeMenu);
       }
 
       /* ── Mobile fullscreen map overlay ── */
@@ -1074,6 +1095,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         _initHamburger();
         _initAllMaps();
       });
+      /* Hamburger must work even if Leaflet never loads — init it independently */
+      var _hbPoll = setInterval(function() {
+        if (document.querySelector('.nav-inner')) { clearInterval(_hbPoll); _initHamburger(); }
+      }, 100);
       var _v3Poll = setInterval(function() {
         var root = document.getElementById('root');
         if (root && root.children.length > 0 && typeof L !== 'undefined') {
