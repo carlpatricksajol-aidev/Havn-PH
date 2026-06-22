@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HAVN PH build 2026-06-22e · body-mounted mobile menu (React-proof hamburger) -->
+<!-- HAVN PH build 2026-06-22f · lock body scroll while mobile menu is open -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         menu.id = 'havn-menu';
         document.body.appendChild(menu);
 
-        function closeMenu() { menu.classList.remove('show'); btn.classList.remove('open'); }
+        function closeMenu() { menu.classList.remove('show'); btn.classList.remove('open'); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }
         function openMenu() {
           menu.innerHTML = '';
           var reals = document.querySelectorAll('.nav-links a, .nav-links button, .nav-link');
@@ -1049,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
           }
           menu.classList.add('show'); btn.classList.add('open');
+          document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
         }
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
