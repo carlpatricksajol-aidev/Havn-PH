@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HAVN PH build 2026-06-22f · lock body scroll while mobile menu is open -->
+<!-- HAVN PH build 2026-07-08a · grid/map toggle hides map + tighter map zoom -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -958,7 +958,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       function _positionBrowseMap() {
         if (!_browseEl) return;
         var pane = document.querySelector('.map-pane');
-        if (!pane || !document.body.contains(pane) || getComputedStyle(pane).display === 'none') {
+        var withMap = document.querySelector('.browse-shell.with-map');
+        if (!pane || !withMap || !document.body.contains(pane) || getComputedStyle(pane).display === 'none') {
           _browseEl.style.display = 'none';
           return;
         }
@@ -981,7 +982,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           ifr.id = 'havn-browse-iframe';
           ifr.setAttribute('title', 'Map of Davao City');
           ifr.setAttribute('loading', 'lazy');
-          ifr.src = 'https://www.openstreetmap.org/export/embed.html?bbox=125.40%2C6.95%2C125.72%2C7.18&layer=mapnik';
+          ifr.src = 'https://www.openstreetmap.org/export/embed.html?bbox=125.55%2C7.02%2C125.68%2C7.12&layer=mapnik';
           _browseEl.appendChild(ifr);
           document.body.appendChild(_browseEl);
         }
@@ -989,6 +990,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           _browseBound = true;
           window.addEventListener('scroll', _positionBrowseMap, { passive: true });
           window.addEventListener('resize', _positionBrowseMap, { passive: true });
+          setInterval(_positionBrowseMap, 250); // catch React Grid/Map toggle (no scroll/resize fires)
         }
         _positionBrowseMap();
         [60, 300, 800].forEach(function(ms) { setTimeout(_positionBrowseMap, ms); });
