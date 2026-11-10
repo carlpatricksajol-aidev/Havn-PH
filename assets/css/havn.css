@@ -742,7 +742,8 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .browse .results, .browse.mode-map .results { display: block; padding: 20px 24px 32px; }
   .browse .map-pane, .browse.mode-map .map-pane { display: block; position: sticky; top: var(--hdr-h); height: calc(100vh - var(--hdr-h)); left: auto; right: auto; bottom: auto; z-index: 1; }
   .results-head h1 { font-size: 20px; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px 16px; }
+  /* At most 3 rooms per row; 2 when a third would be narrower than 180px. */
+  .grid { grid-template-columns: repeat(auto-fill, minmax(max(180px, calc((100% - 32px) / 3)), 1fr)); gap: 24px 16px; }
   .browse .card-title { font-size: 14.5px; }
   .browse .card-near, .browse .card-meta { font-size: 13px; }
   .browse .card-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
