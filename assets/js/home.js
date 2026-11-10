@@ -9,7 +9,8 @@
   }
   HV.i3 = i3;
 
-  var TINTS = ['#EAF2FF', '#FFF1E6', '#E9F8EF', '#F2EDFF', '#FFF6D6', '#FDEAF1'];
+  // Brand tints: Kapibahay blue and Kapi's caramel, alternating.
+  var TINTS = ['#EAF1FF', '#FCEFE1'];
   var KIND_ICON = { mall: 'bags', hospital: 'hospital', work: 'office' };
 
   // Room types as tabs (header on computers, under the search on phones).
@@ -47,8 +48,8 @@
 
   function top(api) {
     return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
-      '<div class="top-greet"><h1 id="top-t">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</h1>' +
-        '<p>' + H.esc(t('Rooms and bedspaces in Davao, near malls, offices and schools.')) + '</p></div>' +
+      '<div class="top-greet"><p class="top-slogan">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</p>' +
+        '<h1 id="top-t">' + H.esc(t('Boarding houses, bedspaces and rooms for rent in Davao City')) + '</h1></div>' +
       '<div class="top-search">' + api.searchHtml + '</div>' +
       HV.tabs(api, 'tabs-band') +
       '<div class="capy" data-capy aria-hidden="true">' +
@@ -59,7 +60,7 @@
   }
 
   function places(api) {
-    return '<section class="h-sec" aria-labelledby="places-t"><div class="h-head"><h2 id="places-t">' + H.esc(t('Near popular places')) + '</h2></div>' +
+    return '<section class="h-sec" aria-labelledby="places-t"><div class="h-head"><h2 id="places-t">' + H.esc(t('Rooms near popular places in Davao')) + '</h2></div>' +
       '<div class="places">' + POPULAR.map(function (id, i) {
         var p = H.school(id), n = api.count({ place: 'school:' + id });
         return '<a class="place-card" href="' + api.url({ place: 'school:' + id }) + '" data-link style="--tint:' + TINTS[i % TINTS.length] + '">' +
@@ -78,6 +79,22 @@
       '</div>' +
       '<div class="hrow-track">' + list.map(function (l) { return api.card(l, false, { single: true, school: r.school }); }).join('') + '</div>' +
     '</section>';
+  }
+
+  /* Questions people ask before renting (also in index.html as FAQPage data for search and AI answers). */
+  var FAQ = [
+    ['What is Kapibahay?', 'Kapibahay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.'],
+    ['Where in Davao can I find a room?', 'Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.'],
+    ['What kinds of rooms are listed?', 'Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.'],
+    ['How do I contact a landlord?', 'Open a room and tap Contact Landlord. Kapibahay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.'],
+    ['How do I list my boarding house?', 'Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The Kapibahay team will get back to you.'],
+    ['Are the rooms on Kapibahay real?', 'The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.']
+  ];
+  function faq() {
+    return '<section class="h-sec faq" aria-labelledby="faq-t"><div class="h-head"><h2 id="faq-t">' + H.esc(t('Questions about renting a room in Davao')) + '</h2></div>' +
+      '<div class="faq-list">' + FAQ.map(function (x, i) {
+        return '<details class="faq-item"' + (i === 0 ? ' open' : '') + '><summary>' + H.esc(t(x[0])) + H.icon('chev-right') + '</summary><p>' + H.esc(t(x[1])) + '</p></details>';
+      }).join('') + '</div></section>';
   }
 
   function kapiStill() {
@@ -103,7 +120,7 @@
   function scene() {
     return '<section class="scene" aria-labelledby="scene-t">' +
       '<div class="scene-art" aria-hidden="true">' +
-        '<img class="scene-bg" src="/assets/scene/davao-friends-1280.webp" srcset="/assets/scene/davao-friends-1280.webp 1280w, /assets/scene/davao-friends-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
+        '<img class="scene-bg" src="/assets/scene/davao-sky-1280.webp" srcset="/assets/scene/davao-sky-1280.webp 1280w, /assets/scene/davao-sky-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
         '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
       '</div>' +
       '<div class="scene-copy">' +
@@ -123,6 +140,7 @@
       '<div class="home-wrap">' +
         places(api) +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
+        faq() +
       '</div>' +
       kapiNote() + scene() + api.footScene +
     '</div>';

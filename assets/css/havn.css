@@ -1,5 +1,13 @@
 /* Havn PH — styles. Tokens follow design-system.SKILL.md. Mobile first. */
 :root {
+  /* Kapibahay brand: house blue + Kapi caramel, navy ink, sand and sky tints */
+  --kapi: #C2793A;
+  --kapi-dark: #8E5530;
+  --sand: #FCEFE1;
+  --sand-line: #F1DCC4;
+  --sky: #C9DBFC;
+  --sky-soft: #EAF1FF;
+  --navy: #0B1F44;
   --blue: #0052CC;
   --blue-dark: #003A99;
   --blue-light: #E6EFFE;
@@ -390,10 +398,11 @@ img.ok { opacity: 1 !important; }
 .i3 { display: block; width: 48px; height: 48px; object-fit: contain; }
 
 /* Top band: greeting (phones), search, tabs and Kapi the capybara. */
-.top { background: linear-gradient(180deg, #fff 0%, #F2F6FD 100%); border-bottom: 1px solid var(--border); }
+.top { background: linear-gradient(180deg, #fff 0%, var(--sand) 100%); border-bottom: 1px solid var(--sand-line); }
 .top-in { position: relative; padding: 2px 16px 0; }
-.top-greet { min-height: 96px; padding: 6px 118px 0 0; }
-.top-greet h1 { font: 800 23px/1.15 var(--font-display); letter-spacing: -0.02em; color: #0B1F44; }
+.top-greet { min-height: 112px; padding: 8px 128px 0 0; }
+.top-greet h1 { margin-top: 8px; font: 700 22px/1.18 var(--font-display); letter-spacing: -0.01em; color: var(--navy); text-wrap: balance; }
+.top-slogan { display: inline-flex; padding: 4px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--sand-line); color: var(--kapi-dark); font: 700 13.5px/1.2 'Fredoka', var(--font-display); }
 .top-greet p { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
 .top-search { position: relative; z-index: 3; margin-top: 12px; }
 .top .search { margin: 0; }
@@ -460,8 +469,21 @@ img.ok { opacity: 1 !important; }
 .hrow-track .card-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 
+/* Questions and answers (also FAQPage data in index.html) */
+.faq-list { display: grid; gap: 10px; max-width: 880px; }
+.faq-item { border: 1px solid var(--border); border-radius: 16px; background: #fff; }
+.faq-item[open] { border-color: var(--sand-line); background: linear-gradient(180deg, #fff, #FFFBF6); }
+.faq-item summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; cursor: pointer; list-style: none; font: 700 16px/1.3 var(--font-display); color: var(--navy); }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary .i { flex: none; width: 18px; height: 18px; color: var(--kapi); transition: transform .2s var(--ease); }
+.faq-item[open] summary .i { transform: rotate(90deg); }
+.faq-item summary:focus-visible { outline: 3px solid rgba(0, 82, 204, .45); outline-offset: 2px; border-radius: 14px; }
+.faq-item p { padding: 0 18px 18px; color: var(--ink-2); font-size: 15px; line-height: 1.6; max-width: 70ch; }
+.js .static-home { display: none; }
+.static-home { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+
 /* A note from Kapi, with Kapi leaning in from the edge of the screen */
-.kapi-note { position: relative; overflow: hidden; margin-top: 40px; padding: 56px 16px 290px; background: linear-gradient(180deg, #fff 0%, #F1F8FB 35%, #BCF4F1 100%); }
+.kapi-note { --peek: min(92vw, 380px); position: relative; overflow: hidden; margin-top: 40px; padding: 56px 16px calc(var(--peek) - 10px); background: linear-gradient(180deg, #fff 0%, var(--sky-soft) 40%, var(--sky) 100%); }
 .note-in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; }
 .note-card {
   position: relative; width: min(470px, 100%); padding: 26px 26px 22px 54px; border-radius: 18px; transform: rotate(-2.5deg);
@@ -477,10 +499,10 @@ img.ok { opacity: 1 !important; }
 .btn-lg .i { width: 20px; height: 20px; }
 .btn-light { background: #fff; color: #0B1F44; box-shadow: 0 2px 8px rgba(11, 31, 68, .12); }
 .btn-light:hover { background: #F4F7FB; }
-.capy-peek { position: absolute; right: -58px; bottom: 8px; width: 270px; height: 270px; z-index: 1; }
+.capy-peek { position: absolute; right: calc(var(--peek) * -0.2); bottom: 0; width: var(--peek); height: var(--peek); z-index: 1; }
 
 /* The closing scene: Davao hills with Kapi and friends */
-.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: #BCF4F1; }
+.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: var(--sky); }
 .scene-art { position: absolute; bottom: 0; left: -50%; width: 200%; aspect-ratio: 2400 / 1029; will-change: transform; }
 .scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .scene-copy { position: relative; z-index: 3; max-width: 900px; margin: 0 auto; padding: 44px 20px 0; text-align: center; }
@@ -492,16 +514,17 @@ img.ok { opacity: 1 !important; }
 .foot-brand { flex-basis: 100%; display: flex; align-items: center; gap: 8px; }
 .foot-brand .logo-word { font-size: 22px; }
 .foot-tag { margin-left: 6px; font-size: 13.5px; }
-.foot-scene .lw-kapi, .foot-scene .lw-bahay { color: #fff; }
+.foot-scene .lw-kapi { color: #F0B27A; }
+.foot-scene .lw-bahay { color: #A9C8FF; }
 .capy-jump { position: absolute; left: 50%; bottom: 1.5%; width: 30%; height: auto; aspect-ratio: 1; margin-left: -15%; z-index: 2; }
 .capy-jump .capy-still { height: 62%; bottom: 6%; }
 
 /* Footer on the grass */
-.foot-scene { margin: 0; padding: 18px clamp(16px, 4vw, 80px) calc(22px + var(--nav-h)); border-top: 0; background: linear-gradient(180deg, #4F7D2A 0%, #3F6926 100%); color: rgba(255, 255, 255, .82); }
+.foot-scene { margin: 0; padding: 22px clamp(16px, 4vw, 80px) calc(26px + var(--nav-h)); border-top: 0; background: var(--navy); color: rgba(255, 255, 255, .78); }
 .foot-scene a { color: #fff; }
 .foot-scene .lang { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); }
 .foot-scene .lang button { color: rgba(255, 255, 255, .85); }
-.foot-scene .lang button[aria-pressed="true"] { background: #fff; color: #2F531C; }
+.foot-scene .lang button[aria-pressed="true"] { background: #fff; color: var(--navy); }
 
 /* The mall / hospital / office a search is "near", on the map */
 .place-pin { position: relative; width: 28px; height: 28px; pointer-events: none; z-index: 2; }
@@ -949,7 +972,7 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
 
 @media (min-width: 640px) {
-  .top-greet h1 { font-size: 28px; }
+  .top-greet h1 { font-size: 26px; }
   .hrow-track .card { flex-basis: calc((100% - 16px) / 2.3); }
 }
 
@@ -966,14 +989,16 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
   .home { padding-bottom: 0; }
   .home-wrap { padding: 0 clamp(24px, 4vw, 80px); }
-  .top-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 880px) minmax(260px, 1fr); align-items: center; min-height: 250px; padding: 0 clamp(24px, 4vw, 80px); }
-  .top-greet { position: absolute !important; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .top-search { grid-column: 2; margin: 0 0 6px; }
+  .top-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 880px) minmax(260px, 1fr); grid-template-rows: auto auto; align-items: center; min-height: 290px; padding: 0 clamp(24px, 4vw, 80px); }
+  .top-greet { grid-column: 2; grid-row: 1; align-self: end; min-height: 0; padding: 26px 0 18px; text-align: center; }
+  .top-greet h1 { margin-top: 10px; font-size: clamp(28px, 2.4vw, 36px); }
+  .top-slogan { font-size: 15px; padding: 5px 14px; }
+  .top-search { grid-column: 2; grid-row: 2; align-self: start; margin: 0 0 34px; }
   .top .search { height: 70px; max-width: none; border-radius: 18px; box-shadow: 0 2px 6px rgba(17, 24, 39, .05), 0 12px 32px rgba(17, 24, 39, .08); }
   .top .sf-go { width: auto; height: 100%; margin-left: 6px; display: inline-flex; gap: 8px; padding: 0 22px 0 18px; border-radius: 12px; font: 700 15px var(--font-display); }
   .top .sf-go span { display: inline; }
   .top .sf-go .i { width: 18px; height: 18px; }
-  .top .capy { grid-column: 3; position: relative; right: auto; top: auto; align-self: end; justify-self: start; width: 300px; height: 262px; margin: 0 0 -14px -10px; }
+  .top .capy { grid-column: 3; grid-row: 1 / span 2; position: relative; right: auto; top: auto; align-self: end; justify-self: start; width: 300px; height: 280px; margin: 0 0 -14px -10px; }
   .capy-bubble { right: 70%; top: 14%; font-size: 14px; padding: 9px 14px; }
 
   .h-sec, .hrow { margin-top: 48px; }
@@ -991,13 +1016,13 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-title { font-size: 16px; }
   .hrow .card-near, .hrow .card-meta { font-size: 14px; }
   .hrow .card-price b { font-size: 17px; }
-  .kapi-note { margin-top: 56px; padding: 88px clamp(24px, 4vw, 80px) 140px; min-height: 560px; }
+  .kapi-note { --peek: min(52vw, 780px); margin-top: 56px; padding: 96px clamp(24px, 4vw, 80px) 120px; min-height: calc(var(--peek) + 24px); }
   .note-in { max-width: 1360px; margin: 0 auto; padding-left: clamp(0px, 6vw, 120px); }
   .note-hi { font-size: 40px; }
   .note-text { font-size: 28px; line-height: 40px; }
   .note-card { width: 520px; padding: 32px 34px 26px 64px; background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 39px, #D3E2F6 39px 40px); }
   .note-card::after { left: 48px; }
-  .capy-peek { right: -120px; bottom: 10px; width: min(40vw, 540px); height: min(40vw, 540px); }
+  .capy-peek { right: calc(var(--peek) * -0.24); bottom: 0; }
   .scene { padding-bottom: 0; height: max(640px, min(calc(100vw * 1029 / 2400), 960px)); }
   .scene-art { left: 0; width: 100%; }
   .scene-copy { padding-top: clamp(56px, 6vw, 120px); }

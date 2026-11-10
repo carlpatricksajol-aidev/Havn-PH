@@ -52,3 +52,11 @@ Map + list, filter chips, a heart to save and price markers are common patterns 
 - Map price pins are blue tags whose tail points at the exact spot. The search bar is a rounded rectangle with a labelled "Search" button. Card photos are 3:2. The room page shows 3 photos and a "See all N photos" button.
 - The home page has room-type tabs with 3D icons, a big search and our own mascot (Kapi the capybara, made for Havn with Higgsfield/Meshy), then popular places as colourful cards and rows of rooms.
 - Write our own words. Don't copy another site's phrases, and don't name other companies in the code or on the site.
+
+## Brand and search
+
+- Brand: Kapibahay. Colours: house blue `#0052CC`, Kapi caramel `#C2793A`, navy `#0B1F44`, sand `#FCEFE1`, sky `#C9DBFC` (tokens at the top of `havn.css`). Logo: `assets/brand/`.
+- Keep the home H1 a keyword sentence ("Boarding houses, bedspaces and rooms for rent in Davao City"); the slogan sits above it, never in its place.
+- `index.html` carries Organization, WebSite (search box) and FAQPage data, plus a plain-HTML copy of the home content for crawlers that do not run JavaScript (hidden once the app loads). Keep the FAQ there, in `home.js` and in `llms.txt` the same.
+- `llms.txt` describes the site for AI search tools. `assets/og.jpg` is the share picture.
+- When real rooms replace the samples, update the last FAQ answer ("Are the rooms on Kapibahay real?") in all three places.

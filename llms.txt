@@ -1,0 +1,25 @@
+# Kapibahay
+
+> Kapibahay (formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City, Philippines. Slogan: "Hanap-bahay? Kapibahay!" Mascot: Kapi the capybara.
+
+Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities and its exact location on a map, plus the walking time to the nearest school or landmark. The site is in English, Tagalog and Cebuano. Note: the rooms listed now are samples with stock photos (each marked "Sample") while real boarding houses are being added.
+
+## Main pages
+- [Home](https://www.havnph.com/): search by school, mall or area; room types; popular places; questions and answers
+- [All rooms with map](https://www.havnph.com/rooms): every room, filter by budget, room type, who can stay, aircon, own CR and Wi-Fi
+- [List your place](https://www.havnph.com/list): form for landlords and boarding house owners
+
+## Search links
+- Near a school: https://www.havnph.com/rooms?near=addu (also um, um-matina, usep, spc, hcdc, ddc, upmin)
+- Near a landmark: https://www.havnph.com/rooms?near=gmall (also sm-lanang, abreeza, nccc-vp, felcris, sm-ecoland, citygate, spmc, ddh, cybergate, damosa, city-hall)
+- By area: https://www.havnph.com/rooms?area=Bajada (also Poblacion, Obrero, Matina, Ma-a, Mintal, Buhangin)
+- By room type: https://www.havnph.com/rooms?type=Bedspace (also Shared room, Private room, Studio)
+- By budget: https://www.havnph.com/rooms?max=5000 (monthly price in pesos)
+
+## Questions and answers
+- What is Kapibahay? Kapibahay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.
+- Where in Davao can I find a room? Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.
+- What kinds of rooms are listed? Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.
+- How do I contact a landlord? Open a room and tap Contact Landlord. Kapibahay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.
+- How do I list my boarding house? Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The Kapibahay team will get back to you.
+- Are the rooms on Kapibahay real? The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.

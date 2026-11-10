@@ -2,8 +2,8 @@
  * three.js draws a rigged model (/assets/capy/kapi.glb, loaded once and shared) on see-through canvases.
  * Modes (data-capy on the element):
  *   stand  next to the search: idles, waves hello, turns toward the pointer, hops when tapped
- *   peek   big, at the edge of the screen beside his note: talks with open hands, looks at the pointer, waves now and then
- *   jump   in the bottom scene: cheers with both hands up while hopping
+ *   peek   big, beside his note, facing you: talks with open hands, looks at the pointer, waves now and then
+ *   jump   in the bottom scene: happy hops, with a wave now and then
  * With "reduce motion" on, Kapi stands still. Model made for Havn with Higgsfield (Meshy). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -24,9 +24,9 @@ function loadKapi() {
 
 // Camera framing per mode, in model units (Kapi is 1 tall, feet at 0).
 const FRAMES = {
-  stand: { y: 0.62, h: 1.5, turn: 0.45, tilt: 0, face: 0 },
-  peek: { y: 0.6, h: 1.42, turn: 0.25, tilt: 0.06, face: -0.38 },
-  jump: { y: 0.66, h: 1.55, turn: 0.3, tilt: 0, face: 0 },
+  stand: { y: 0.62, h: 1.5, turn: 0.45, head: 0.5, tilt: 0, face: 0 },
+  peek: { y: 0.58, h: 1.3, turn: 0.08, head: 0.18, tilt: 0, face: 0 },
+  jump: { y: 0.66, h: 1.55, turn: 0.25, head: 0.35, tilt: 0, face: 0 },
 };
 
 const pointer = { x: 0, y: 0, seen: false };
@@ -129,7 +129,8 @@ export function mount(el) {
       });
       if (!actions.idle) actions.idle = mixer.clipAction(gltf.animations[0]);
       // Each Kapi has his own everyday movement.
-      base = mode === 'peek' && actions.talk ? 'talk' : mode === 'jump' && actions.cheer ? 'cheer' : 'idle';
+      // (Arms-up clips pull the head out of shape on this rig, so the scene Kapi hops instead of cheering.)
+      base = mode === 'peek' && actions.talk ? 'talk' : 'idle';
       mixer.addEventListener('finished', () => play(base));
       if (reduce) { actions.idle.play(); mixer.update(0.5); actions.idle.paused = true; }
       else { play(base); mixer.update(Math.random() * 3); }
@@ -176,12 +177,13 @@ export function mount(el) {
       look.y += (ty - look.y) * Math.min(1, dt * 4);
       root.rotation.y = F.face + look.x * F.turn;
       if (head) {
-        euler.set(-look.y * 0.25, look.x * 0.5, 0, 'YXZ');
+        euler.set(-look.y * 0.25 * (F.head / 0.5), look.x * F.head, 0, 'YXZ');
         extra.setFromEuler(euler);
         head.quaternion.multiply(extra);
       }
       // In the scene, hop every couple of seconds; elsewhere when tapped.
       if (mode === 'jump' && hop === 0 && t - lastHop > 1.9) { hop = 1; lastHop = t; }
+      if (mode === 'jump' && actions.wave && current === actions[base] && t - lastWave > 9) wave();
       if (hop > 0) {
         hop = Math.max(0, hop - dt * 1.6);
         const p = 1 - hop, s = Math.sin(p * Math.PI * 2) * 0.05;
@@ -203,7 +205,7 @@ export function mount(el) {
     if (!reduce) raf = requestAnimationFrame(loop);
   }
 
-  el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; if (mode !== 'jump') wave(); });
+  el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; wave(); });
 
   if (window.ResizeObserver) new ResizeObserver(() => { size(); if (ready) renderer.render(scene, camera); }).observe(el);
   if (window.IntersectionObserver) {
