@@ -39,3 +39,11 @@ Any static server that sends `/room/*` to `index.html`, for example `npx serve -
 ## Sample photos
 
 Sample listings use free stock photos (rawpixel and StockSnap, CC0; Unsplash License). Sources are listed in `assets/photos/_credits.json`.
+
+## Our own look (no copying)
+
+Map + list, filter chips, a heart to save and price markers are common patterns on many rental and property sites. Nothing here is taken from another company: no logos, brand colours, fonts, icons, photos, code or wording. Keep it that way:
+
+- Colours: Havn blue `#0052CC` and navy. Fonts: Plus Jakarta Sans + DM Sans (Google Fonts, OFL). Icons: Lucide (ISC, credited in `index.html`).
+- Map price pins are blue tags whose tail points at the exact spot. The search bar is a rounded rectangle with a labelled "Search" button. Card photos are 3:2. The room page shows 3 photos and a "See all N photos" button.
+- Write our own words. Don't copy another site's phrases, and don't name other companies in the code or on the site.

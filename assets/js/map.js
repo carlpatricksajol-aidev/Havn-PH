@@ -135,7 +135,7 @@
           el.addEventListener('mouseenter', function () { opts.onHover && opts.onHover(p.id, true); });
           el.addEventListener('mouseleave', function () { opts.onHover && opts.onHover(p.id, false); });
         }
-        return new ml.Marker({ element: el, anchor: 'center' }).setLngLat(f.geometry.coordinates);
+        return new ml.Marker({ element: el, anchor: el.classList.contains('pin') ? 'bottom' : 'center' }).setLngLat(f.geometry.coordinates);
       }
 
       function sync() {
@@ -231,7 +231,10 @@
         paintStates();
         var html = opts.cardHtml(l);
         if (window.matchMedia('(min-width: 1024px)').matches) {
-          popup = new ml.Popup({ offset: 18, closeButton: true, maxWidth: '280px', className: 'room-popup', focusAfterOpen: false })
+          // Pins stand on the exact spot (tail tip = location), so a popup above clears the pin.
+          var off = { center: [0, 0], top: [0, 10], bottom: [0, -40], left: [34, -17], right: [-34, -17],
+            'top-left': [12, 10], 'top-right': [-12, 10], 'bottom-left': [12, -40], 'bottom-right': [-12, -40] };
+          popup = new ml.Popup({ offset: off, closeButton: true, maxWidth: '280px', className: 'room-popup', focusAfterOpen: false })
             .setLngLat([l.lng, l.lat]).setHTML(html).addTo(map);
           popup.on('close', function () { if (selectedId === id) { selectedId = null; paintStates(); } popup = null; });
         } else {

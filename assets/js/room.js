@@ -68,10 +68,10 @@
             '<button type="button" class="btn btn-ghost btn-sm save-btn" data-save="' + l.id + '" aria-pressed="' + saved + '">' + H.icon('heart') + '<span data-save-label>' + H.esc(saved ? t('Saved') : t('Save')) + '</span></button>' +
           '</div>' +
         '</div>' +
-        '<div class="gallery" data-slides data-n="' + Math.min(l.photos.length, 4) + '">' +
+        '<div class="gallery" data-slides data-n="' + Math.min(l.photos.length, 3) + '">' +
           '<div class="slides">' + photos + '</div>' +
           '<span class="g-count" data-count aria-hidden="true">1 / ' + l.photos.length + '</span>' +
-          '<button type="button" class="btn btn-ghost btn-sm g-all" data-photo="0">' + H.icon('grid') + '<span>' + H.esc(t('Show all photos')) + '</span></button>' +
+          '<button type="button" class="btn btn-ghost btn-sm g-all" data-photo="0"><span>' + H.esc(t('See all {n} photos', { n: l.photos.length })) + '</span></button>' +
         '</div>' +
         '<div class="room-cols">' +
           '<div class="room-main">' +
@@ -84,7 +84,7 @@
               '</ul>' +
             '</section>' +
             '<section class="room-sec"><h2>' + H.esc(t('About this room')) + '</h2><p class="room-desc">' + H.esc(l.desc) + '</p></section>' +
-            '<section class="room-sec"><h2>' + H.esc(t('What this place offers')) + '</h2><ul class="amenities">' + amen + '</ul></section>' +
+            '<section class="room-sec"><h2>' + H.esc(t('What\'s included')) + '</h2><ul class="amenities">' + amen + '</ul></section>' +
             '<section class="room-sec"><h2>' + H.esc(t('House rules')) + '</h2><dl class="rules">' +
               '<div>' + H.icon('clock') + '<dt>' + H.esc(t('Curfew')) + '</dt><dd>' + H.esc(l.rules.curfew || t('No curfew')) + '</dd></div>' +
               '<div>' + H.icon('door') + '<dt>' + H.esc(t('Visitors')) + '</dt><dd>' + H.esc(l.rules.visitors) + '</dd></div>' +

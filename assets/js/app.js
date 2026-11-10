@@ -1,7 +1,7 @@
 /* Havn PH — app shell: header, browse (rooms + map), filters, routing. */
 (function () {
   var A = (window.App = {});
-  // bbox = the map area [west, south, east, north] once someone moves the map (Airbnb-style).
+  // bbox = the map area [west, south, east, north] once someone moves the map themselves.
   var DEFAULTS = { place: '', q: '', min: 0, max: 0, types: [], gender: '', amen: [], avail: false, saved: false, sort: 'rec', bbox: null };
   var PRICE_MIN = 1000, PRICE_MAX = 15000, PRICE_STEP = 500;
   var BUDGETS = [4000, 6000, 8000, 12000];
@@ -162,7 +162,7 @@
               '</div>' +
               '<div class="sf sf-select"><label class="sf-label" for="budget">' + H.esc(t('Budget')) + '</label><select id="budget">' + budgetOptions() + '</select></div>' +
               '<div class="sf sf-select"><label class="sf-label" for="rtype">' + H.esc(t('Room type')) + '</label><select id="rtype">' + typeOptions() + '</select></div>' +
-              '<button class="sf-go" type="submit" aria-label="' + H.esc(t('Search')) + '">' + H.icon('search') + '</button>' +
+              '<button class="sf-go" type="submit">' + H.icon('search') + '<span>' + H.esc(t('Search')) + '</span></button>' +
             '</form>' +
             '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>') +
         '<div class="hdr-actions">' +
@@ -442,7 +442,7 @@
     return list;
   }
 
-  /* The person moved the map: the list becomes the rooms inside it (like Airbnb). */
+  /* The person moved the map: the list becomes the rooms inside it. */
   function onMapMove(b) {
     if (view !== 'browse' || S.saved) return;
     var hadArea = areaMode(S);
