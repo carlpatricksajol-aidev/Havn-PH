@@ -1,4 +1,4 @@
-/* Havn PH — app shell: header, browse (rooms + map), filters, routing. */
+/* Havn PH — app shell: header, home, browse (rooms + map), filters, routing. */
 (function () {
   var A = (window.App = {});
   // bbox = the map area [west, south, east, north] once someone moves the map themselves.
@@ -10,9 +10,10 @@
 
   var S = clone(DEFAULTS);
   var mode = 'list';            // phones/tablets: 'list' | 'map'
-  var view = '';                // 'browse' | 'room'
+  var view = '';                // 'home' | 'browse' | 'room'
   var bmap = null, bmapP = null;
-  var browseScroll = 0;
+  var browseScroll = 0, homeScroll = 0;
+  var findObs = null;
   var lastBrowseUrl = '/';
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -52,8 +53,10 @@
     if (s.saved) p.set('saved', '1');
     if (s.sort !== 'rec') p.set('sort', s.sort);
     var q = p.toString();
-    return '/' + (q ? '?' + q.replace(/%2C/g, ',') : '');
+    return '/rooms' + (q ? '?' + q.replace(/%2C/g, ',') : '');
   }
+  // A browse URL for a few settings on top of the defaults (home page links).
+  function stateWith(p) { var o = clone(DEFAULTS); Object.keys(p || {}).forEach(function (k) { o[k] = p[k]; }); return o; }
 
   /* ---------------- Filtering ---------------- */
   function placeSchool(s) { return s.place.indexOf('school:') === 0 ? H.school(s.place.slice(7)) : null; }
@@ -143,15 +146,35 @@
     var hdr = $('#site-header');
     var n = activeCount(S);
     var savedN = H.saved.count();
-    var qVal = S.place ? placeLabel(S) : S.q;
-    var mapArea = areaMode(S);
-    hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '');
+    hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '') + (view === 'home' ? ' is-home' : '');
+    var middle;
+    if (view === 'room') {
+      middle = '<a class="back-link" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(lastBrowseUrl === '/' ? t('Back') : t('Back to results')) + '</span></a>';
+    } else if (view === 'home') {
+      // Appears once the big search on the home page scrolls out of view.
+      middle = '<button type="button" class="hdr-find" data-find>' + H.icon('search') + '<span>' + H.esc(t('Search by school or area')) + '</span></button>';
+    } else {
+      middle = searchHtml() +
+        '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>';
+    }
     hdr.innerHTML =
       '<div class="hdr">' +
-        '<a href="/" class="logo" data-link data-home aria-label="Havn PH, all rooms"><span class="logo-word">havn</span><span class="logo-dot"></span><span class="logo-ph">PH</span></a>' +
-        (view === 'room'
-          ? '<a class="back-link" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(t('Back to results')) + '</span></a>'
-          : '<form class="search" id="search" role="search" autocomplete="off">' +
+        '<a href="/" class="logo" data-link data-home aria-label="Havn PH, home"><span class="logo-word">havn</span><span class="logo-dot"></span><span class="logo-ph">PH</span></a>' +
+        middle +
+        '<div class="hdr-actions">' +
+          '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
+          '<a class="hdr-link list-link" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
+          langButtons() +
+        '</div>' +
+      '</div>' +
+      (view === 'browse' ? renderChips(n) : '');
+    bindHeader();
+  }
+
+  function searchHtml() {
+    var qVal = S.place ? placeLabel(S) : S.q;
+    var mapArea = areaMode(S);
+    return '<form class="search" id="search" role="search" autocomplete="off">' +
               '<div class="sf sf-where">' +
                 '<label class="sf-label" for="q">' + H.esc(t('Where')) + '</label>' +
                 '<div class="sf-input' + (mapArea ? ' is-area' : '') + '">' + H.icon(mapArea ? 'map' : 'search', 'sf-icon') +
@@ -163,16 +186,7 @@
               '<div class="sf sf-select"><label class="sf-label" for="budget">' + H.esc(t('Budget')) + '</label><select id="budget">' + budgetOptions() + '</select></div>' +
               '<div class="sf sf-select"><label class="sf-label" for="rtype">' + H.esc(t('Room type')) + '</label><select id="rtype">' + typeOptions() + '</select></div>' +
               '<button class="sf-go" type="submit">' + H.icon('search') + '<span>' + H.esc(t('Search')) + '</span></button>' +
-            '</form>' +
-            '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>') +
-        '<div class="hdr-actions">' +
-          '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
-          '<a class="hdr-link list-link" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
-          langButtons() +
-        '</div>' +
-      '</div>' +
-      (view === 'room' ? '' : renderChips(n));
-    bindHeader();
+            '</form>';
   }
 
   function chip(label, on, attrs) {
@@ -195,7 +209,18 @@
   function bindHeader() {
     var hdr = $('#site-header');
     var form = $('#search', hdr);
-    if (form) {
+    if (form) bindSearch(form);
+    bindChips(hdr);
+  }
+
+  // On the home page a search opens /rooms; on /rooms it filters in place.
+  function commit() {
+    if (view === 'home') { mode = 'list'; A.go(urlFor(S)); return; }
+    apply(true);
+  }
+
+  function bindSearch(form) {
+    {
       var input = $('#q', form), list = $('#q-list', form), clear = $('.sf-clear', form);
       var active = -1, items = [];
       var paintActive = function () {
@@ -215,7 +240,7 @@
         close();
         if (it.room) { A.go('/room/' + it.room); return; }
         S.place = it.place; S.q = ''; S.bbox = null;
-        apply(true);
+        commit();
       };
       input.addEventListener('focus', open);
       input.addEventListener('input', function () { clear.hidden = !input.value && !areaMode(S); open(); });
@@ -230,25 +255,31 @@
         var li = e.target.closest('li'); if (li) pick(items[+li.getAttribute('data-i')]);
       });
       input.addEventListener('blur', function () { setTimeout(close, 120); });
-      clear.addEventListener('click', function () { S.place = ''; S.q = ''; S.bbox = null; apply(true); $('#q').focus(); });
+      clear.addEventListener('click', function () {
+        S.place = ''; S.q = ''; S.bbox = null;
+        if (view === 'home') { input.value = ''; clear.hidden = true; input.focus(); return; }
+        apply(true); $('#q').focus();
+      });
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var v = input.value.trim();
         var sug = suggestions(v);
         if (v && sug.length && !sug[0].room && sug[0].exact) { pick(sug[0]); return; }
-        if (S.place && v === placeLabel(S)) { close(); apply(true); return; }
-        S.place = ''; S.q = v; if (v) S.bbox = null; close(); apply(true);
-        input.blur();
+        if (S.place && v === placeLabel(S)) { close(); commit(); return; }
+        S.place = ''; S.q = v; if (v) S.bbox = null; close(); input.blur(); commit();
       });
       $('#budget', form).addEventListener('change', function (e) {
         var v = e.target.value; if (v === 'custom') return;
-        S.min = 0; S.max = +v; apply(true);
+        S.min = 0; S.max = +v; if (view !== 'home') apply(true);
       });
       $('#rtype', form).addEventListener('change', function (e) {
         var v = e.target.value; if (v === 'multi') return;
-        S.types = v ? [v] : []; apply(true);
+        S.types = v ? [v] : []; if (view !== 'home') apply(true);
       });
     }
+  }
+
+  function bindChips(hdr) {
     $$('.chip', hdr).forEach(function (b) {
       b.addEventListener('click', function () {
         if (b.hasAttribute('data-type')) {
@@ -296,9 +327,10 @@
   function renderNav() {
     var nav = $('#bottom-nav');
     var savedN = H.saved.count();
-    var tab = view === 'browse' ? (S.saved ? 'saved' : mode) : '';
-    nav.hidden = view !== 'browse';
+    var tab = view === 'home' ? 'home' : view === 'browse' ? (S.saved ? 'saved' : mode) : '';
+    nav.hidden = view === 'room';
     nav.innerHTML =
+      '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
       '<button type="button" data-tab="map" aria-pressed="' + (tab === 'map') + '">' + H.icon('map') + '<span>' + H.esc(t('Map')) + '</span></button>' +
       '<button type="button" data-tab="saved" aria-pressed="' + (tab === 'saved') + '">' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</button>';
@@ -307,6 +339,12 @@
   $('#bottom-nav').addEventListener('click', function (e) {
     var b = e.target.closest('[data-tab]'); if (!b) return;
     var tab = b.getAttribute('data-tab');
+    if (tab === 'home') { if (view !== 'home') A.go('/'); else window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (view === 'home') {
+      mode = tab === 'map' ? 'map' : 'list';
+      A.go(tab === 'saved' ? '/rooms?saved=1' : '/rooms');
+      return;
+    }
     if (tab === 'saved') { S.saved = !S.saved || mode === 'map' ? true : false; S.bbox = null; setMode('list'); apply(false); window.scrollTo(0, 0); return; }
     if (S.saved) { S.saved = false; apply(false); }
     setMode(tab);
@@ -335,31 +373,41 @@
     return '<p class="sample-note">' + H.icon('info') + '<span>' + H.esc(t('Sample listings: these rooms and photos are examples while real boarding houses are being added.')) + '</span></p>';
   }
 
-  A.cardHtml = function (l, eager) {
+  A.cardHtml = function (l, eager, opts) {
+    opts = opts || {};
     var saved = H.saved.has(l.id);
     var href = '/room/' + l.id;
+    var school = opts.school || (placeSchool(S) && placeSchool(S).id);
+    if (opts.single) {
+      var img = '<img src="' + H.photo(l.photos[0], 640) + '" width="640" height="480" alt="" loading="lazy" decoding="async">';
+      return cardShell(l, saved, href, school, '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + img + '</a>', '');
+    }
     var imgs = l.photos.map(function (p, k) {
       return '<img src="' + H.photo(p, 640) + '" srcset="' + H.photo(p, 640) + ' 640w, ' + H.photo(p, 1200) + ' 1200w" sizes="(min-width: 1440px) 300px, (min-width: 1024px) 26vw, (min-width: 640px) 46vw, 94vw" width="640" height="480" alt="" ' +
         (eager && k === 0 ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async">';
     }).join('');
+    return cardShell(l, saved, href, school,
+      '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + imgs + '</a>' +
+      '<button type="button" class="slide-btn prev" data-step="-1" tabindex="-1" aria-label="' + H.esc(t('Previous photo')) + '">' + H.icon('chev-left') + '</button>' +
+      '<button type="button" class="slide-btn next" data-step="1" tabindex="-1" aria-label="' + H.esc(t('Next photo')) + '">' + H.icon('chev-right') + '</button>' +
+      '<div class="dots" aria-hidden="true">' + l.photos.map(function () { return '<i></i>'; }).join('') + '</div>', ' data-slides');
+  };
+
+  function cardShell(l, saved, href, school, media, slidesAttr) {
     var bath = l.bath === 'own' ? t('Own CR') : t('Shared CR');
     return '<article class="card' + (l.status === 'full' ? ' is-full' : '') + '" data-id="' + l.id + '">' +
-      '<div class="card-media" data-slides>' +
-        '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + imgs + '</a>' +
-        '<button type="button" class="slide-btn prev" data-step="-1" tabindex="-1" aria-label="' + H.esc(t('Previous photo')) + '">' + H.icon('chev-left') + '</button>' +
-        '<button type="button" class="slide-btn next" data-step="1" tabindex="-1" aria-label="' + H.esc(t('Next photo')) + '">' + H.icon('chev-right') + '</button>' +
-        '<div class="dots" aria-hidden="true">' + l.photos.map(function () { return '<i></i>'; }).join('') + '</div>' +
+      '<div class="card-media"' + slidesAttr + '>' + media +
         '<span class="status s-' + l.status + '"><i aria-hidden="true"></i>' + H.esc(H.statusLabel(l)) + '</span>' +
         '<button type="button" class="heart" data-save="' + l.id + '" aria-pressed="' + saved + '" aria-label="' + H.esc(saved ? t('Remove from saved') : t('Save this room')) + '">' + H.icon('heart') + '</button>' +
       '</div>' +
       '<a class="card-body" href="' + href + '" data-link>' +
         '<h2 class="card-title"><span>' + H.esc(l.name) + '</span>' + (l.sample ? '<span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h2>' +
-        '<p class="card-near">' + H.icon('walk') + '<span>' + H.esc(H.nearText(l, placeSchool(S) && placeSchool(S).id)) + '</span></p>' +
+        '<p class="card-near">' + H.icon('walk') + '<span>' + H.esc(H.nearText(l, school)) + '</span></p>' +
         '<p class="card-meta">' + H.esc(t(l.type) + ' · ' + H.genderLabel(l.gender) + ' · ' + bath) + '</p>' +
         '<p class="card-price"><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
       '</a>' +
     '</article>';
-  };
+  }
 
   function miniHtml(l) {
     return '<a class="mini" href="/room/' + l.id + '" data-link>' +
@@ -415,7 +463,7 @@
     if (!list.length) {
       if (S.saved) {
         box.innerHTML = '<div class="empty">' + EMPTY_ART + '<h2>' + H.esc(t('No saved rooms yet')) + '</h2><p>' + H.esc(t('Tap the heart on any room to keep it here.')) + '</p>' +
-          '<a class="btn btn-primary" href="/" data-link>' + H.esc(t('Browse rooms')) + '</a></div>';
+          '<a class="btn btn-primary" href="/rooms" data-link>' + H.esc(t('Browse rooms')) + '</a></div>';
       } else if (boxOn(S) && results(S, true).length) {
         var c = boxCenter(S.bbox);
         var near = results(S, true).sort(function (a, b) { return H.km(a, c) - H.km(b, c); }).slice(0, 3);
@@ -456,6 +504,64 @@
     if (desktop.matches && window.scrollY > 0 && list.map(function (l) { return l.id; }).join() !== before) window.scrollTo(0, 0);
   }
 
+  function footHtml() {
+    return '<footer class="foot">' +
+      '<p>© 2026 Havn PH · Davao City</p>' +
+      '<p><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a></p>' +
+      '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
+      langButtons('lang-foot') +
+      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + ' ' + H.esc(t('3D icons: Microsoft Fluent Emoji (MIT).')) + '</p>' +
+    '</footer>';
+  }
+
+  /* ---------------- Home ---------------- */
+  function renderHome() {
+    var host = $('#view-home');
+    HomeView.render(host, {
+      searchHtml: searchHtml(),
+      sampleNote: sampleNote(),
+      foot: footHtml(),
+      count: function (p) { return results(stateWith(p)).length; },
+      list: function (p) { return results(stateWith(p)); },
+      url: function (p) { return urlFor(stateWith(p)); },
+      card: A.cardHtml,
+    });
+    bindSearch($('#search', host));
+    // Header search button shows once the hero search has scrolled away.
+    if (findObs) findObs.disconnect();
+    var hdr = $('#site-header');
+    if (window.IntersectionObserver) {
+      findObs = new IntersectionObserver(function (es) {
+        hdr.classList.toggle('find-on', view === 'home' && !es[0].isIntersecting && es[0].boundingClientRect.top < 0);
+      }, { rootMargin: '-80px 0px 0px 0px' });
+      findObs.observe($('#search', host));
+    }
+  }
+
+  // The home page is rebuilt each visit; empty it on the way out (one search box on the page).
+  function leaveHome() {
+    if (findObs) { findObs.disconnect(); findObs = null; }
+    $('#site-header').classList.remove('find-on');
+    var h = $('#view-home'); h.hidden = true; h.innerHTML = '';
+  }
+
+  function showHome() {
+    var fromRoom = view === 'room';
+    view = 'home';
+    S = clone(DEFAULTS);
+    lastBrowseUrl = '/';
+    document.body.classList.remove('map-open');
+    $('#view-browse').hidden = true;
+    var room = $('#view-room');
+    room.hidden = true; RoomView.destroy(); room.innerHTML = '';
+    $('#view-home').hidden = false;
+    renderHeader();
+    renderHome();
+    renderNav();
+    document.title = 'Havn PH · Boarding houses, bedspaces and rooms in Davao City';
+    window.scrollTo(0, fromRoom ? homeScroll : 0);
+  }
+
   function renderBrowse() {
     var host = $('#view-browse');
     host.innerHTML =
@@ -469,12 +575,7 @@
               }).join('') +
             '</select></div></div>' +
           '<div id="results-body"></div>' +
-          '<footer class="foot">' +
-            '<p>© 2026 Havn PH · Davao City</p>' +
-            '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
-            langButtons('lang-foot') +
-            '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
-          '</footer>' +
+          footHtml() +
         '</section>' +
         '<aside class="map-pane" aria-label="' + H.esc(t('Map')) + '"><div class="map" id="bmap"><div class="map-loading"></div></div>' +
           '<button type="button" class="map-count" data-show-list>' + H.icon('list') + '<span></span></button></aside>' +
@@ -609,8 +710,10 @@
   function showRoom(id) {
     var l = H.byId(id);
     if (view === 'browse') browseScroll = window.scrollY;
+    if (view === 'home') homeScroll = window.scrollY;
     view = 'room';
     document.body.classList.remove('map-open');
+    leaveHome();
     $('#view-browse').hidden = true;
     var host = $('#view-room');
     host.hidden = false;
@@ -625,6 +728,7 @@
     readUrl();
     lastBrowseUrl = urlFor(S);
     view = 'browse';
+    leaveHome();
     var host = $('#view-room');
     host.hidden = true;
     RoomView.destroy();
@@ -643,18 +747,24 @@
     if (m) showRoom(m[1]);
     else if (/^\/list\/?$/.test(location.pathname)) {
       // havnph.com/list: the link to share with landlords opens the listing form.
-      history.replaceState(null, '', '/' + location.search);
-      showBrowse();
+      history.replaceState(null, '', '/');
+      showHome();
       Landlord.open();
-    } else {
-      if (location.pathname !== '/') history.replaceState(null, '', '/' + location.search);
+    } else if (/^\/rooms\/?$/.test(location.pathname)) {
       showBrowse();
+    } else if (location.search) {
+      // Older links put the search on "/" (e.g. /?near=addu): they open the rooms list.
+      history.replaceState(null, '', '/rooms' + location.search);
+      showBrowse();
+    } else {
+      if (location.pathname !== '/') history.replaceState(null, '', '/');
+      showHome();
     }
   }
 
   A.go = function (href) {
     if (href === location.pathname + location.search) { route(); return; }
-    history.pushState({ fromBrowse: view === 'browse' }, '', href);
+    history.pushState({ fromBrowse: view === 'browse' || view === 'home' }, '', href);
     route();
   };
   A.lastBrowseUrl = function () { return lastBrowseUrl; };
@@ -681,6 +791,11 @@
       return;
     }
     if (e.target.closest('[data-open-filters]')) { openFilters(); return; }
+    if (e.target.closest('[data-find]')) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(function () { var q = $('#view-home #q'); if (q) q.focus({ preventScroll: true }); }, 350);
+      return;
+    }
     if (e.target.closest('[data-clear-all]')) { var k = { saved: S.saved, sort: S.sort }; S = clone(DEFAULTS); S.saved = k.saved; apply(true); return; }
     if (e.target.closest('[data-clear-map]')) { S.bbox = null; apply(true); return; }
     if (e.target.closest('[data-show-list]')) { setMode('list'); window.scrollTo(0, 0); return; }
@@ -689,7 +804,7 @@
     if (lb) {
       HAVN_I18N.set(lb.getAttribute('data-lang'));
       renderHeader(); renderNav();
-      if (view === 'browse') renderBrowse(); else RoomView.render($('#view-room'), H.byId(location.pathname.split('/')[2]));
+      if (view === 'browse') renderBrowse(); else if (view === 'home') renderHome(); else RoomView.render($('#view-room'), H.byId(location.pathname.split('/')[2]));
     }
   });
 
@@ -728,7 +843,7 @@
   if (window.ResizeObserver) new ResizeObserver(measure).observe(hdrEl);
 
   /* ---------------- Boot ---------------- */
-  $('#main').innerHTML = '<div id="view-browse"></div><div id="view-room" hidden></div>';
+  $('#main').innerHTML = '<div id="view-home" hidden></div><div id="view-browse" hidden></div><div id="view-room" hidden></div>';
   HAVN_I18N.set(HAVN_I18N.get());
   route();
   measure();

@@ -26,7 +26,7 @@
     if (!l) {
       host.innerHTML = '<div class="room-missing">' +
         '<h1>' + H.esc(t('Room not found')) + '</h1><p>' + H.esc(t('This room may have been removed.')) + '</p>' +
-        '<a class="btn btn-primary" href="/" data-link data-home>' + H.esc(t('Back to all rooms')) + '</a></div>';
+        '<a class="btn btn-primary" href="/rooms" data-link data-home>' + H.esc(t('Back to all rooms')) + '</a></div>';
       setMeta(t('Room not found') + ' · Havn PH', '', '/');
       return;
     }
