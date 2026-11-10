@@ -1,5 +1,5 @@
-/* Havn PH — home page: hero search, kinds of rooms, schools, rows of rooms, how it works.
- * 3D icons: Microsoft Fluent Emoji (MIT, see /assets/3d/LICENSE). */
+/* Havn PH — home page: room-type tabs + search (with Kapi the capybara), popular places,
+ * rows of rooms, landlord band. 3D icons: Microsoft Fluent Emoji (MIT, /assets/3d/LICENSE). */
 (function () {
   var HV = (window.HomeView = {});
 
@@ -10,76 +10,60 @@
   HV.i3 = i3;
 
   var TINTS = ['#EAF2FF', '#FFF1E6', '#E9F8EF', '#F2EDFF', '#FFF6D6', '#FDEAF1'];
+  var KIND_ICON = { mall: 'bags', hospital: 'hospital', work: 'office' };
 
-  // Kinds of room → the filter they open on /rooms.
-  var KINDS = [
-    { icon: 'houses', label: 'All rooms', s: {} },
-    { icon: 'bed', label: 'Bedspace', s: { types: ['Bedspace'] } },
-    { icon: 'couch', label: 'Shared room', s: { types: ['Shared room'] } },
-    { icon: 'door', label: 'Private room', s: { types: ['Private room'] } },
-    { icon: 'house', label: 'Studio', s: { types: ['Studio'] } },
-    { icon: 'sparkles', label: 'Available now', s: { avail: true } },
-    { icon: 'woman', label: 'Female only', s: { gender: 'female' } },
-    { icon: 'man', label: 'Male only', s: { gender: 'male' } },
-    { icon: 'snowflake', label: 'Aircon', s: { amen: ['aircon'] } },
-    { icon: 'bathtub', label: 'Own CR', s: { amen: ['own-cr'] } },
-    { icon: 'laptop', label: 'Wi-Fi', s: { amen: ['wifi'] } },
+  // Room types as tabs (header on computers, under the search on phones).
+  var TABS = [
+    { icon: 'houses', label: 'All rooms', type: '' },
+    { icon: 'bed', label: 'Bedspace', type: 'Bedspace' },
+    { icon: 'couch', label: 'Shared room', type: 'Shared room' },
+    { icon: 'door', label: 'Private room', type: 'Private room' },
+    { icon: 'house', label: 'Studio', type: 'Studio' },
   ];
+  HV.tabs = function (api, cls) {
+    return '<nav class="tabs ' + (cls || '') + '" aria-label="' + H.esc(t('Room type')) + '">' + TABS.map(function (x) {
+      var on = !x.type;
+      return '<a class="tab' + (on ? ' on' : '') + '" href="' + (x.type ? api.url({ types: [x.type] }) : '/') + '" data-link' + (on ? ' aria-current="page"' : '') + '>' +
+        i3(x.icon, 40, true) + '<span>' + H.esc(t(x.label)) + '</span></a>';
+    }).join('') + '</nav>';
+  };
+
+  // The places shown on the home page (all landmarks can be searched).
+  var POPULAR = ['gmall', 'sm-lanang', 'abreeza', 'nccc-vp', 'felcris', 'spmc', 'ddh', 'cybergate'];
 
   function rows() {
+    var near = function (id) { var p = H.school(id); return { icon: p.kind ? KIND_ICON[p.kind] : 'cap', title: t('Rooms near {place}', { place: p.short }), s: { place: 'school:' + id }, school: id }; };
     return [
-      { icon: 'cap', title: t('Rooms near {place}', { place: 'AdDU' }), s: { place: 'school:addu' }, school: 'addu' },
+      near('gmall'),
       { icon: 'sparkles', title: t('Available now'), s: { avail: true } },
-      { icon: 'backpack', title: t('Rooms near {place}', { place: 'UM' }), s: { place: 'school:um' }, school: 'um' },
+      near('nccc-vp'),
       { icon: 'coin', title: t('{p} a month and below', { p: H.peso(5000) }), s: { max: 5000, sort: 'low' } },
+      near('addu'),
       { icon: 'bathtub', title: t('With their own CR'), s: { amen: ['own-cr'] } },
-      { icon: 'books', title: t('Rooms near {place}', { place: 'USeP' }), s: { place: 'school:usep' }, school: 'usep' },
     ];
   }
 
-  function roomsText(n) { return n === 1 ? t('1 room') : t('{n} rooms', { n: n }); }
   function nearbyText(n) { return !n ? t('No rooms nearby yet') : n === 1 ? t('1 room nearby') : t('{n} rooms nearby', { n: n }); }
 
-  function hero(api) {
-    var pop = ['addu', 'um', 'usep', 'spc', 'hcdc'].map(function (id) {
-      var s = H.school(id);
-      return '<a href="' + api.url({ place: 'school:' + id }) + '" data-link>' + H.esc(s.short) + '</a>';
-    }).join('');
-    // Each art piece: [icon, left %, top %, width %, tilt, float delay]
-    var art = [
-      ['house-garden', 25, 22, 50, 0, 0], ['cat', 4, 60, 19, -6, 1.2], ['dog', 76, 56, 21, 6, .4],
-      ['backpack', 8, 14, 14, -12, 2], ['books', 78, 12, 14, 8, 1.6], ['pushpin', 45, 0, 10, 0, .8],
-      ['heart', 64, 38, 9, 10, 2.4], ['paw', 30, 82, 11, -8, 1], ['plant', 58, 80, 13, 0, 1.8],
-    ].map(function (a) {
-      return '<span class="ha" style="left:' + a[1] + '%;top:' + a[2] + '%;width:' + a[3] + '%;--r:' + a[4] + 'deg;animation-delay:-' + a[5] + 's">' + i3(a[0], 192, true) + '</span>';
-    }).join('');
-    return '<section class="hero" aria-labelledby="hero-t"><div class="hero-in">' +
-      '<div class="hero-copy">' +
-        '<p class="hero-hi">' + i3('wave', 24, true) + '<span>' + H.esc(t('Hi! Looking for a room in Davao?')) + '</span></p>' +
-        '<h1 id="hero-t">' + H.esc(t('Find a home')) + ' <em>' + H.esc(t('near your school')) + '</em></h1>' +
-        '<p class="hero-sub">' + H.esc(t('Boarding houses, bedspaces and rooms in Davao City, with photos, the monthly price and the exact spot on the map.')) + '</p>' +
-        '<div class="hero-search">' + api.searchHtml + '</div>' +
-        '<p class="hero-pop"><span>' + H.esc(t('Popular:')) + '</span>' + pop + '</p>' +
+  function top(api) {
+    return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
+      '<div class="top-greet"><h1 id="top-t">' + H.esc(t('Find a room in Davao City')) + '</h1>' +
+        '<p>' + H.esc(t('Boarding houses, bedspaces and rooms near malls, offices and schools.')) + '</p></div>' +
+      '<div class="top-search">' + api.searchHtml + '</div>' +
+      HV.tabs(api, 'tabs-band') +
+      '<div class="capy" data-capy aria-hidden="true">' +
+        '<span class="capy-bubble">' + H.esc(t('Hi! Looking for a room?')) + '</span>' +
+        '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" fetchpriority="low">' +
       '</div>' +
-      '<div class="hero-art" aria-hidden="true"><span class="hero-blob"></span>' + art + '</div>' +
     '</div></section>';
   }
 
-  function kinds(api) {
-    return '<section class="h-sec" aria-labelledby="kinds-t"><div class="h-head"><h2 id="kinds-t">' + H.esc(t('What kind of room?')) + '</h2></div>' +
-      '<div class="kinds">' + KINDS.map(function (k, i) {
-        return '<a class="kind" href="' + api.url(k.s) + '" data-link style="--tint:' + TINTS[i % TINTS.length] + '">' +
-          i3(k.icon, 52) + '<b>' + H.esc(t(k.label)) + '</b><small>' + H.esc(roomsText(api.count(k.s))) + '</small></a>';
-      }).join('') + '</div></section>';
-  }
-
-  function schools(api) {
-    var list = HAVN_SCHOOLS.map(function (s) { return { s: s, n: api.count({ place: 'school:' + s.id }) }; })
-      .sort(function (a, b) { return b.n - a.n; });
-    return '<section class="h-sec" aria-labelledby="schools-t"><div class="h-head">' + i3('school', 36) + '<h2 id="schools-t">' + H.esc(t('Near your school')) + '</h2></div>' +
-      '<div class="schools">' + list.map(function (x) {
-        return '<a class="school-card" href="' + api.url({ place: 'school:' + x.s.id }) + '" data-link>' + i3('school', 48) +
-          '<span><b>' + H.esc(x.s.short) + '</b><small>' + H.esc(x.s.name) + '</small><em>' + H.esc(nearbyText(x.n)) + '</em></span></a>';
+  function places(api) {
+    return '<section class="h-sec" aria-labelledby="places-t"><div class="h-head"><h2 id="places-t">' + H.esc(t('Near popular places')) + '</h2></div>' +
+      '<div class="places">' + POPULAR.map(function (id, i) {
+        var p = H.school(id), n = api.count({ place: 'school:' + id });
+        return '<a class="place-card" href="' + api.url({ place: 'school:' + id }) + '" data-link style="--tint:' + TINTS[i % TINTS.length] + '">' +
+          i3(KIND_ICON[p.kind], 64) + '<span><b>' + H.esc(p.short) + '</b><small>' + H.esc(p.name) + '</small><em>' + H.esc(nearbyText(n)) + '</em></span></a>';
       }).join('') + '</div></section>';
   }
 
@@ -96,19 +80,6 @@
     '</section>';
   }
 
-  function steps() {
-    var s = [
-      ['magnifier', 'Search near your school', 'Pick your school or area and your budget.'],
-      ['pushpin', 'See the exact spot', 'Every room shows photos, the monthly price and where it is on the map.'],
-      ['chat', 'Message the landlord', 'Ask about the room and visit before you move in.'],
-    ];
-    return '<section class="h-sec" aria-labelledby="how-t"><div class="h-head"><h2 id="how-t">' + H.esc(t('How Havn works')) + '</h2></div>' +
-      '<ol class="steps">' + s.map(function (x, i) {
-        return '<li class="step" style="--tint:' + TINTS[i] + '">' + i3(x[0], 64) + '<div><span class="step-n">' + (i + 1) + '</span>' +
-          '<h3>' + H.esc(t(x[1])) + '</h3><p>' + H.esc(t(x[2])) + '</p></div></li>';
-      }).join('') + '</ol></section>';
-  }
-
   function landlordBand() {
     return '<section class="ll-band" aria-labelledby="llb-t"><div class="ll-band-copy">' +
         '<h2 id="llb-t">' + H.esc(t('Own a boarding house?')) + '</h2>' +
@@ -122,14 +93,31 @@
   }
 
   HV.render = function (host, api) {
-    host.innerHTML = '<div class="home">' + hero(api) +
+    host.innerHTML = '<div class="home">' + top(api) +
       '<div class="home-wrap">' +
-        kinds(api) + schools(api) +
+        places(api) +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
-        steps() + landlordBand() + api.foot +
+        landlordBand() + api.foot +
       '</div></div>';
     bindRows(host);
+    startCapy(host);
   };
+
+  /* Kapi the capybara: a still picture first, then the moving 3D one when the browser can draw it. */
+  function startCapy(host) {
+    var el = host.querySelector('[data-capy]');
+    if (!el) return;
+    // The 3D model is about 1 MB: skip it on data saver or slow connections (the picture stays).
+    var net = navigator.connection;
+    if (net && (net.saveData || /(^|-)2g|3g/.test(net.effectiveType || ''))) return;
+    var c = document.createElement('canvas');
+    var ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
+    if (!ok) return;
+    var go = function () {
+      import('/assets/js/capy.js').then(function (m) { m.mount(el); }).catch(function () { /* the still picture stays */ });
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 1500 }); else setTimeout(go, 400);
+  }
 
   /* Row arrows: scroll a page of cards; disabled at either end, hidden when everything fits. */
   function bindRows(host) {

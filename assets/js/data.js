@@ -31,6 +31,23 @@ window.HAVN_SCHOOLS = [
   { id: 'upmin', short: 'UP Min', name: 'UP Mindanao', lat: 7.08491, lng: 125.48581 },
 ];
 
+/* Places people go every day (malls, hospitals, offices): rooms can be searched "near" these
+ * just like schools. Pins from OpenStreetMap. kind: mall | hospital | work. */
+window.HAVN_LANDMARKS = [
+  { id: 'gmall', short: 'Gmall', name: 'Gaisano Mall of Davao', kind: 'mall', lat: 7.07763, lng: 125.61415 },
+  { id: 'sm-lanang', short: 'SM Lanang', name: 'SM Lanang Premier', kind: 'mall', lat: 7.09897, lng: 125.63077 },
+  { id: 'abreeza', short: 'Abreeza', name: 'Abreeza Mall and Business Park', kind: 'mall', lat: 7.09150, lng: 125.61200 },
+  { id: 'nccc-vp', short: 'NCCC Mall VP', name: 'NCCC Mall VP (Victoria Plaza)', kind: 'mall', lat: 7.08662, lng: 125.61176 },
+  { id: 'felcris', short: 'Felcris Centrale', name: 'Felcris Centrale, Quimpo Blvd', kind: 'mall', lat: 7.05949, lng: 125.60890 },
+  { id: 'sm-ecoland', short: 'SM Ecoland', name: 'SM City Davao (Ecoland)', kind: 'mall', lat: 7.04875, lng: 125.58881 },
+  { id: 'citygate', short: 'Gaisano Citygate', name: 'Gaisano Grand Citygate, Buhangin', kind: 'mall', lat: 7.11091, lng: 125.61265 },
+  { id: 'spmc', short: 'SPMC', name: 'Southern Philippines Medical Center', kind: 'hospital', lat: 7.09978, lng: 125.61948 },
+  { id: 'ddh', short: 'Davao Doctors', name: 'Davao Doctors Hospital', kind: 'hospital', lat: 7.07044, lng: 125.60441 },
+  { id: 'cybergate', short: 'Robinsons Cybergate', name: 'Robinsons Cybergate Davao (offices)', kind: 'work', lat: 7.09957, lng: 125.62394 },
+  { id: 'damosa', short: 'Damosa IT Park', name: 'Damosa IT Park, Lanang', kind: 'work', lat: 7.10411, lng: 125.63461 },
+  { id: 'city-hall', short: 'City Hall', name: 'Davao City Hall', kind: 'work', lat: 7.06445, lng: 125.60772 },
+];
+
 window.HAVN_AREAS = ['Poblacion', 'Bajada', 'Obrero', 'Matina', 'Ma-a', 'Mintal', 'Buhangin'];
 
 window.HAVN_ROOM_TYPES = ['Bedspace', 'Shared room', 'Private room', 'Studio'];

@@ -152,7 +152,8 @@
       middle = '<a class="back-link" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(lastBrowseUrl === '/' ? t('Back') : t('Back to results')) + '</span></a>';
     } else if (view === 'home') {
       // Appears once the big search on the home page scrolls out of view.
-      middle = '<button type="button" class="hdr-find" data-find>' + H.icon('search') + '<span>' + H.esc(t('Search by school or area')) + '</span></button>';
+      middle = HomeView.tabs(homeApi(), 'tabs-hdr') +
+        '<button type="button" class="hdr-find" data-find>' + H.icon('search') + '<span>' + H.esc(t('Search a mall, school or area')) + '</span></button>';
     } else {
       middle = searchHtml() +
         '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>';
@@ -178,7 +179,7 @@
               '<div class="sf sf-where">' +
                 '<label class="sf-label" for="q">' + H.esc(t('Where')) + '</label>' +
                 '<div class="sf-input' + (mapArea ? ' is-area' : '') + '">' + H.icon(mapArea ? 'map' : 'search', 'sf-icon') +
-                  '<input id="q" name="q" type="text" inputmode="search" enterkeyhint="search" placeholder="' + H.esc(mapArea ? t('Map area') : t('Search by school or area')) + '" value="' + H.esc(qVal) + '" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="q-list">' +
+                  '<input id="q" name="q" type="text" inputmode="search" enterkeyhint="search" placeholder="' + H.esc(mapArea ? t('Map area') : t('Search a mall, school or area')) + '" value="' + H.esc(qVal) + '" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="q-list">' +
                   '<button type="button" class="sf-clear" aria-label="' + H.esc(t('Clear all')) + '"' + (qVal || mapArea ? '' : ' hidden') + '>' + H.icon('x') + '</button>' +
                 '</div>' +
                 '<ul id="q-list" class="suggest" role="listbox" hidden></ul>' +
@@ -308,9 +309,12 @@
   function suggestions(v) {
     var q = (v || '').trim().toLowerCase();
     var out = [];
-    HAVN_SCHOOLS.forEach(function (s) {
+    // Schools and everyday places (malls, hospitals, offices); with nothing typed, a mix of both.
+    var places = HAVN_SCHOOLS.concat(HAVN_LANDMARKS);
+    if (!q) places = HAVN_LANDMARKS.slice(0, 5).concat(HAVN_SCHOOLS.slice(0, 5));
+    places.forEach(function (s) {
       var hit = !q || s.short.toLowerCase().indexOf(q) === 0 || s.name.toLowerCase().indexOf(q) !== -1;
-      if (hit) out.push({ icon: 'cap', title: s.short, sub: s.name, place: 'school:' + s.id, exact: q && (s.short.toLowerCase() === q || s.name.toLowerCase() === q || out.length === 0) });
+      if (hit) out.push({ icon: s.kind ? HavnMap.placeIcon(s.kind) : 'cap', title: s.short, sub: s.name, place: 'school:' + s.id, exact: q && (s.short.toLowerCase() === q || s.name.toLowerCase() === q || out.length === 0) });
     });
     HAVN_AREAS.forEach(function (a) {
       if (!q || a.toLowerCase().indexOf(q) === 0) out.push({ icon: 'pin', title: a, sub: 'Davao City', place: 'area:' + a, exact: q && (a.toLowerCase() === q || out.length === 0) });
@@ -486,7 +490,7 @@
     H.bindSlides(box);
     var mc = $('.map-count span');
     if (mc) mc.textContent = mapCountText(list.length);
-    if (bmap) bmap.set(results(S, true), refit !== false && !boxOn(S));
+    if (bmap) { bmap.set(results(S, true), refit !== false && !boxOn(S)); bmap.setPlace(placeSchool(S)); }
     return list;
   }
 
@@ -515,9 +519,8 @@
   }
 
   /* ---------------- Home ---------------- */
-  function renderHome() {
-    var host = $('#view-home');
-    HomeView.render(host, {
+  function homeApi() {
+    return {
       searchHtml: searchHtml(),
       sampleNote: sampleNote(),
       foot: footHtml(),
@@ -525,7 +528,12 @@
       list: function (p) { return results(stateWith(p)); },
       url: function (p) { return urlFor(stateWith(p)); },
       card: A.cardHtml,
-    });
+    };
+  }
+
+  function renderHome() {
+    var host = $('#view-home');
+    HomeView.render(host, homeApi());
     bindSearch($('#search', host));
     // Header search button shows once the hero search has scrolled away.
     if (findObs) findObs.disconnect();
@@ -533,7 +541,7 @@
     if (window.IntersectionObserver) {
       findObs = new IntersectionObserver(function (es) {
         hdr.classList.toggle('find-on', view === 'home' && !es[0].isIntersecting && es[0].boundingClientRect.top < 0);
-      }, { rootMargin: '-80px 0px 0px 0px' });
+      }, { rootMargin: '-96px 0px 0px 0px' });
       findObs.observe($('#search', host));
     }
   }
@@ -608,6 +616,7 @@
       bmap = m;
       var ld = $('.map-loading', el); if (ld) ld.remove();
       bmap.set(results(S, true), false);
+      bmap.setPlace(placeSchool(S));
       refitMap();
     }).catch(function () {
       bmapP = null;

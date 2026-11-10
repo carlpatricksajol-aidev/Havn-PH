@@ -3,7 +3,7 @@
   var D = {
     tl: {
       'Skip to rooms': 'Lumaktaw sa mga kwarto',
-      'Search by school or area': 'Hanapin ayon sa school o lugar',
+      'Search a mall, school or area': 'Maghanap ng mall, school o lugar',
       'Where': 'Saan', 'Budget': 'Budget', 'Room type': 'Uri ng kwarto',
       'Any budget': 'Kahit magkano', 'Up to {p}': 'Hanggang {p}',
       'Any room': 'Kahit anong kwarto', 'Search': 'Hanapin', 'All rooms': 'Lahat',
@@ -97,10 +97,13 @@
       'Own a boarding house?': 'May boarding house ka?',
       'List it on Havn so students and young workers nearby can find it.': 'Ilista ito sa Havn para makita ng mga estudyante at batang empleyado sa malapit.',
       '3D icons: Microsoft Fluent Emoji (MIT).': '3D icons: Microsoft Fluent Emoji (MIT).',
+      'Find a room in Davao City': 'Maghanap ng kwarto sa Davao City',
+      'Boarding houses, bedspaces and rooms near malls, offices and schools.': 'Mga boarding house, bedspace at kwarto malapit sa mall, opisina at school.',
+      'Hi! Looking for a room?': 'Hi! Naghahanap ng kwarto?', 'Near popular places': 'Malapit sa mga sikat na lugar',
     },
     ceb: {
       'Skip to rooms': 'Laktaw sa mga kwarto',
-      'Search by school or area': 'Pangita sumala sa school o lugar',
+      'Search a mall, school or area': 'Pangita og mall, school o lugar',
       'Where': 'Asa', 'Budget': 'Budget', 'Room type': 'Klase sa kwarto',
       'Any budget': 'Bisan pila', 'Up to {p}': 'Hangtod {p}',
       'Any room': 'Bisan unsang kwarto', 'Search': 'Pangita', 'All rooms': 'Tanan',
@@ -194,6 +197,9 @@
       'Own a boarding house?': 'Naa kay boarding house?',
       'List it on Havn so students and young workers nearby can find it.': 'Ilista kini sa Havn aron makit-an sa mga estudyante ug batan-ong trabahante sa duol.',
       '3D icons: Microsoft Fluent Emoji (MIT).': '3D icons: Microsoft Fluent Emoji (MIT).',
+      'Find a room in Davao City': 'Pangita og kwarto sa Davao City',
+      'Boarding houses, bedspaces and rooms near malls, offices and schools.': 'Mga boarding house, bedspace ug kwarto duol sa mall, opisina ug school.',
+      'Hi! Looking for a room?': 'Hi! Nangita ka og kwarto?', 'Near popular places': 'Duol sa mga sikat nga lugar',
     },
   };
 

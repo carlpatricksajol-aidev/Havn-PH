@@ -5,9 +5,10 @@ Boarding houses, bedspaces and rooms in Davao City. Live at www.havnph.com (Verc
 Plain HTML, CSS and JavaScript. No build step.
 
 - `index.html`: the page shell
-- `assets/js/data.js`: **all rooms, schools and settings** (edit this to add or change a room)
+- `assets/js/data.js`: **all rooms, schools, landmarks (malls, hospitals, offices) and settings** (edit this to add or change a room)
 - `assets/js/app.js`: rooms list (`/rooms`), search, filters, saved rooms, routing
-- `assets/js/home.js`: the home page (`/`): hero search, kinds of room, schools, rows of rooms, how it works, landlord band
+- `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, landlord band
+- `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections)
 - `assets/3d/`: 3D icons (Microsoft Fluent Emoji, MIT, licence in that folder)
 - `assets/js/room.js`: the room page (photos, details, map, Contact Landlord)
 - `assets/js/map.js`: the map (OpenStreetMap data via OpenFreeMap, no API key; shops, restaurants, hotels and other places are removed)
@@ -48,5 +49,5 @@ Map + list, filter chips, a heart to save and price markers are common patterns 
 
 - Colours: Havn blue `#0052CC` and navy. Fonts: Plus Jakarta Sans + DM Sans (Google Fonts, OFL). Icons: Lucide (ISC, credited in `index.html`). 3D icons: Microsoft Fluent Emoji (MIT, `assets/3d/LICENSE`, credited in the footer).
 - Map price pins are blue tags whose tail points at the exact spot. The search bar is a rounded rectangle with a labelled "Search" button. Card photos are 3:2. The room page shows 3 photos and a "See all N photos" button.
-- The home page shows kinds of room as colourful tiles in the page (not tabs in the header), then schools, then rows of rooms.
+- The home page has room-type tabs with 3D icons, a big search and our own mascot (Kapi the capybara, made for Havn with Higgsfield/Meshy), then popular places as colourful cards and rows of rooms.
 - Write our own words. Don't copy another site's phrases, and don't name other companies in the code or on the site.

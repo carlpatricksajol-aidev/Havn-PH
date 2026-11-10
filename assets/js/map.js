@@ -95,13 +95,15 @@
   }
 
   function whenLoaded(map, fn) { if (map.loaded()) fn(); else map.once('load', fn); }
+  var PLACE_ICONS = { mall: 'bag', hospital: 'plus', work: 'building' };
+  M.placeIcon = function (kind) { return PLACE_ICONS[kind] || 'pin'; };
 
   /* ---------- Browse map: price pins, clusters, popup card ---------- */
   M.browse = function (el, opts) {
     return baseMap(el, {}).then(function (b) {
       var ml = b.ml, map = b.map;
       var markers = {}, shown = {}, list = [], listKey = null, hoverId = null, selectedId = null, popup = null;
-      var wantBox = null, moveT = 0;
+      var wantBox = null, moveT = 0, placeMarker = null;
 
       function geo(items) {
         return {
@@ -274,6 +276,18 @@
         fitBox: fitBox,
         bounds: bounds,
         hover: function (id, on) { hoverId = on ? id : (hoverId === id ? null : hoverId); paintStates(); },
+        // The mall / hospital / office the search is "near" (schools already have their own markers).
+        setPlace: function (p) {
+          if (placeMarker && placeMarker._havnId === (p && p.id)) return;
+          if (placeMarker) { placeMarker.remove(); placeMarker = null; }
+          if (!p || !p.kind) return;
+          var el = document.createElement('div');
+          el.className = 'place-pin';
+          el.title = p.name;
+          el.innerHTML = '<span class="place-dot">' + H.icon(PLACE_ICONS[p.kind] || 'pin') + '</span><span class="place-name">' + H.esc(p.short) + '</span>';
+          placeMarker = new ml.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(map);
+          placeMarker._havnId = p.id;
+        },
         resize: function () { map.resize(); },
         close: closeCard,
         destroy: function () { document.removeEventListener('havn:saved', paintStates); map.remove(); },

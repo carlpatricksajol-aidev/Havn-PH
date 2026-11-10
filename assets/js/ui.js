@@ -20,10 +20,14 @@
     for (var i = 0; i < HAVN_LISTINGS.length; i++) if (HAVN_LISTINGS[i].id === id) return HAVN_LISTINGS[i];
     return null;
   };
+  // A school or a landmark (mall, hospital, office) by id: both can be the "near" place of a search.
   H.school = function (id) {
     for (var i = 0; i < HAVN_SCHOOLS.length; i++) if (HAVN_SCHOOLS[i].id === id) return HAVN_SCHOOLS[i];
+    var lm = window.HAVN_LANDMARKS || [];
+    for (var j = 0; j < lm.length; j++) if (lm[j].id === id) return lm[j];
     return null;
   };
+  H.landmark = function (id) { var p = H.school(id); return p && p.kind ? p : null; };
 
   /* Straight-line km between two points. */
   H.km = function (a, b) {

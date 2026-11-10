@@ -355,7 +355,22 @@ img.ok { opacity: 1 !important; }
 .bottom-nav .count { position: absolute; top: 8px; left: calc(50% + 6px); }
 
 /* ---------- Home ---------- */
-/* Header: a small search button appears once the hero search scrolls away. */
+/* Room-type tabs: in the header on computers, under the search on phones. */
+.tabs { display: flex; gap: 2px; }
+.tab {
+  position: relative; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 10px 10px;
+  color: var(--muted); text-decoration: none; font: 600 12.5px/1.2 var(--font-display); white-space: nowrap; transition: color .15s;
+}
+.tab .i3 { width: 34px; height: 34px; transition: transform .25s var(--ease); }
+.tab::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 3px; background: var(--blue); transform: scaleX(0); transition: transform .2s var(--ease); }
+.tab.on { color: #0B1F44; }
+.tab.on::after { transform: scaleX(1); }
+@media (hover: hover) { .tab:hover { color: var(--text); } .tab:hover .i3 { transform: scale(1.12) rotate(-5deg); } }
+.tabs-hdr { display: none; }
+.tabs-band { overflow-x: auto; scrollbar-width: none; margin: 10px -16px 0; padding: 0 8px; justify-content: space-between; }
+.tabs-band::-webkit-scrollbar { display: none; }
+
+/* Header: a small search button appears once the big search scrolls away. */
 .hdr-find {
   grid-area: search; display: none; align-items: center; gap: 10px; width: 100%; height: 44px; margin-bottom: 10px; padding: 0 16px;
   border: 1px solid var(--border-strong); border-radius: 12px; background: #fff; color: var(--muted); text-align: left;
@@ -366,43 +381,36 @@ img.ok { opacity: 1 !important; }
 .site-header.is-home:not(.find-on) { border-bottom-color: transparent; }
 
 .home { padding-bottom: calc(var(--nav-h) + 16px); }
-.home-wrap { max-width: 1360px; margin: 0 auto; padding: 0 16px; }
+.home-wrap { padding: 0 16px; }
 .i3 { display: block; width: 48px; height: 48px; object-fit: contain; }
 
-.hero {
-  position: relative; overflow: hidden; margin: 4px 12px 0; border-radius: 24px;
-  background:
-    radial-gradient(60% 70% at 100% 0%, rgba(255, 214, 170, .55) 0%, rgba(255, 214, 170, 0) 70%),
-    radial-gradient(50% 60% at 0% 100%, rgba(186, 230, 205, .5) 0%, rgba(186, 230, 205, 0) 70%),
-    linear-gradient(160deg, #E8F1FF 0%, #F4F8FF 55%, #FFF7EE 100%);
-}
-.hero-in { max-width: 1360px; margin: 0 auto; padding: 20px 18px 22px; display: grid; gap: 4px; }
-.hero-copy { position: relative; z-index: 2; min-width: 0; }
-.hero-hi {
-  display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; border-radius: 999px;
-  background: rgba(255, 255, 255, .9); box-shadow: 0 1px 3px rgba(17, 24, 39, .08);
-  font: 600 13px var(--font-display); color: var(--ink-2);
-}
-.hero-hi .i3 { width: 24px; height: 24px; }
-.hero h1 { margin: 12px 0 8px; font: 800 30px/1.1 var(--font-display); letter-spacing: -0.03em; color: #0B1F44; }
-.hero h1 em { font-style: normal; color: var(--blue); }
-.hero-sub { color: var(--ink-2); font-size: 15px; max-width: 540px; margin-bottom: 16px; }
-.hero .search { margin: 0; }
-.hero .sf-go { display: grid; place-items: center; flex: none; width: 48px; height: 48px; margin-left: 8px; border-radius: 12px; background: var(--blue); color: #fff; }
-.hero .sf-go span { display: none; }
-.hero .sf-go .i { width: 20px; height: 20px; stroke-width: 2.4; }
-.hero-pop { display: flex; align-items: center; gap: 8px; margin: 14px -18px 0; padding: 0 18px 2px; overflow-x: auto; scrollbar-width: none; font-size: 13px; color: var(--muted); white-space: nowrap; }
-.hero-pop::-webkit-scrollbar { display: none; }
-.hero-pop span { flex: none; }
-.hero-pop a {
-  padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .85); border: 1px solid var(--border);
-  font: 600 13px var(--font-display); color: var(--text); text-decoration: none; transition: border-color .15s, color .15s;
-}
-.hero-pop a:hover { border-color: var(--blue); color: var(--blue); }
+/* Top band: greeting (phones), search, tabs and Kapi the capybara. */
+.top { background: linear-gradient(180deg, #fff 0%, #F2F6FD 100%); border-bottom: 1px solid var(--border); }
+.top-in { position: relative; padding: 2px 16px 0; }
+.top-greet { min-height: 96px; padding: 6px 118px 0 0; }
+.top-greet h1 { font: 800 23px/1.15 var(--font-display); letter-spacing: -0.02em; color: #0B1F44; }
+.top-greet p { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+.top-search { position: relative; z-index: 3; margin-top: 12px; }
+.top .search { margin: 0; }
+.top .sf-go { display: grid; place-items: center; flex: none; width: 48px; height: 48px; margin-left: 8px; border-radius: 12px; background: var(--blue); color: #fff; }
+.top .sf-go span { display: none; }
+.top .sf-go .i { width: 20px; height: 20px; stroke-width: 2.4; }
 
-/* The little scene: a house with pets and school things floating around it. */
-.hero-art { position: relative; order: -1; width: min(250px, 72vw); aspect-ratio: 46 / 36; margin: 0 auto; }
-.hero-blob { position: absolute; left: 14%; top: 8%; width: 72%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, .7) 45%, rgba(255, 255, 255, 0) 70%); }
+.capy { position: absolute; right: 6px; top: -8px; width: 120px; aspect-ratio: 1; z-index: 2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.capy-still, .capy canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.capy-still { filter: drop-shadow(0 8px 12px rgba(11, 31, 68, .12)); transition: opacity .35s; }
+.capy canvas { opacity: 0; transition: opacity .35s; }
+.capy.live canvas { opacity: 1; }
+.capy.live .capy-still { opacity: 0 !important; } /* beats the global img.ok fade-in rule */
+.capy-bubble {
+  position: absolute; z-index: 1; right: 78%; top: 6%; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: #fff;
+  box-shadow: 0 6px 18px rgba(11, 31, 68, .12); font: 700 13px var(--font-display); color: #0B1F44; white-space: nowrap;
+  opacity: 0; transform: translateY(6px) scale(.9); transform-origin: 100% 100%; transition: opacity .25s, transform .3s var(--ease); pointer-events: none;
+}
+.capy.talk .capy-bubble { opacity: 1; transform: none; }
+@media (max-width: 1023px) { .capy-bubble { display: none; } }
+
+/* Floating 3D bits (landlord band) */
 .ha { position: absolute; display: block; animation: bob 5.5s ease-in-out infinite; transform: rotate(var(--r, 0deg)); }
 .ha .i3 { width: 100%; height: auto; filter: drop-shadow(0 6px 10px rgba(11, 31, 68, .12)); }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-6px) rotate(var(--r, 0deg)); } }
@@ -412,37 +420,24 @@ img.ok { opacity: 1 !important; }
 .h-head .i3 { width: 34px; height: 34px; }
 .h-head h2 { font: 800 19px/1.2 var(--font-display); letter-spacing: -0.02em; color: #0B1F44; min-width: 0; }
 
-/* Kinds of room */
-.kinds { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 10px; scroll-padding: 0 16px; scroll-snap-type: x proximity; }
-.kinds::-webkit-scrollbar { display: none; }
-.kind {
-  flex: none; width: 100px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px 12px;
-  border-radius: 20px; background: var(--tint); color: var(--text); text-decoration: none; text-align: center; scroll-snap-align: start;
+/* Popular places (malls, hospitals, offices) */
+.places { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 8px; scroll-padding: 0 16px; scroll-snap-type: x proximity; }
+.places::-webkit-scrollbar { display: none; }
+.place-card {
+  flex: none; width: 262px; display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 20px;
+  background: var(--tint); color: var(--text); text-decoration: none; scroll-snap-align: start;
   transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
-.kind .i3 { width: 50px; height: 50px; margin-bottom: 4px; transition: transform .25s var(--ease); }
-.kind b { font: 700 13px/1.2 var(--font-display); }
-.kind small { font-size: 12px; color: var(--muted); }
-.kind:active { transform: scale(.97); }
+.place-card .i3 { width: 56px; height: 56px; flex: none; transition: transform .25s var(--ease); }
+.place-card span { display: flex; flex-direction: column; min-width: 0; }
+.place-card b { font: 800 16.5px/1.2 var(--font-display); color: #0B1F44; }
+.place-card small { margin-top: 2px; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.place-card em { align-self: flex-start; margin-top: 8px; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .9); font: 700 12px var(--font-display); font-style: normal; color: var(--blue); }
+.place-card:active { transform: scale(.98); }
 @media (hover: hover) {
-  .kind:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(11, 31, 68, .09); }
-  .kind:hover .i3 { transform: scale(1.1) rotate(-5deg); }
+  .place-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(11, 31, 68, .09); }
+  .place-card:hover .i3 { transform: scale(1.08) rotate(-4deg); }
 }
-
-/* Schools */
-.schools { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 8px; scroll-padding: 0 16px; scroll-snap-type: x proximity; }
-.schools::-webkit-scrollbar { display: none; }
-.school-card {
-  flex: none; width: 250px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-  border: 1px solid var(--border); border-radius: 18px; background: #fff; color: var(--text); text-decoration: none; scroll-snap-align: start;
-  transition: border-color .15s, box-shadow .2s var(--ease), transform .2s var(--ease);
-}
-.school-card .i3 { width: 46px; height: 46px; flex: none; }
-.school-card span { display: flex; flex-direction: column; min-width: 0; }
-.school-card b { font: 700 15px/1.2 var(--font-display); }
-.school-card small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.school-card em { font: 600 12.5px var(--font-display); font-style: normal; color: var(--blue); margin-top: 2px; }
-@media (hover: hover) { .school-card:hover { border-color: #B9CCF0; box-shadow: 0 8px 20px rgba(11, 31, 68, .07); transform: translateY(-2px); } }
 
 /* Rows of rooms */
 .h-rows { margin-top: 32px; }
@@ -451,23 +446,15 @@ img.ok { opacity: 1 !important; }
 .hrow-all:hover { background: var(--blue-light); }
 .hrow-all .i { width: 16px; height: 16px; }
 .hrow-nav { display: none; margin-left: auto; gap: 8px; }
-.hrow-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-strong); background: #fff; display: grid; place-items: center; transition: border-color .15s, opacity .15s; }
+.hrow-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-strong); background: #fff; display: grid; place-items: center; transition: border-color .15s, opacity .15s; }
 .hrow-btn:hover:not(:disabled) { border-color: var(--text); }
 .hrow-btn:disabled { opacity: .35; cursor: default; }
 .hrow-btn .i { width: 18px; height: 18px; }
 .hrow-track { display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 6px; scroll-padding: 0 16px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
 .hrow-track::-webkit-scrollbar { display: none; }
-.hrow-track .card { flex: 0 0 min(70vw, 280px); scroll-snap-align: start; }
-.hrow-track .card-media { aspect-ratio: 4 / 3; border-radius: 16px; }
+.hrow-track .card { flex: 0 0 min(80vw, 330px); scroll-snap-align: start; }
+.hrow-track .card-media { aspect-ratio: 4 / 3; border-radius: 18px; }
 .hrow-track .card-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* How it works */
-.steps { display: grid; gap: 12px; }
-.step { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 20px; background: var(--tint); }
-.step .i3 { width: 56px; height: 56px; flex: none; }
-.step-n { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-bottom: 6px; border-radius: 50%; background: #fff; font: 800 12.5px var(--font-display); color: var(--blue); box-shadow: 0 1px 3px rgba(17, 24, 39, .1); }
-.step h3 { font: 700 16px/1.25 var(--font-display); margin-bottom: 4px; color: #0B1F44; }
-.step p { color: var(--ink-2); font-size: 14px; }
 
 /* Landlords */
 .ll-band {
@@ -479,6 +466,15 @@ img.ok { opacity: 1 !important; }
 .ll-band .btn .i { width: 18px; height: 18px; }
 .ll-band-art { position: relative; width: min(220px, 60vw); aspect-ratio: 4 / 3; justify-self: center; }
 .home .foot { margin-top: 36px; }
+
+/* The mall / hospital / office a search is "near", on the map */
+.place-pin { position: relative; width: 28px; height: 28px; pointer-events: none; z-index: 2; }
+.place-dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: #E8590C; color: #fff; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, .25); }
+.place-dot .i { width: 16px; height: 16px; stroke-width: 2.2; }
+.place-name {
+  position: absolute; left: 34px; top: 50%; translate: 0 -50%; padding: 3px 8px; border-radius: 8px; background: #fff; color: #9A3A06;
+  font: 700 12.5px/1.2 var(--font-display); white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
 
 /* ---------- Room page ---------- */
 .room { max-width: 1120px; margin: 0 auto; padding: 0 16px 120px; display: flex; flex-direction: column; }
@@ -916,45 +912,64 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
 
 @media (min-width: 640px) {
-  .hero h1 { font-size: 38px; }
-  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .step { flex-direction: column; }
+  .top-greet h1 { font-size: 28px; }
+  .hrow-track .card { flex-basis: calc((100% - 16px) / 2.3); }
   .ll-band { grid-template-columns: minmax(0, 1fr) 240px; align-items: center; padding: 32px 36px; }
 }
 
 @media (min-width: 1024px) {
-  .hdr-find { margin: 0; max-width: 420px; justify-self: center; }
+  /* Header on the home page: logo · room-type tabs · links. Tabs give way to a small search after scrolling. */
+  .site-header.is-home .hdr { height: 92px; }
+  .tabs-hdr { display: flex; grid-area: search; justify-self: center; align-self: stretch; align-items: stretch; gap: 6px; }
+  .tabs-hdr .tab { flex-direction: row; gap: 10px; padding: 0 14px; font-size: 15px; }
+  .tabs-hdr .tab .i3 { width: 44px; height: 44px; }
+  .tabs-hdr .tab::after { left: 14px; right: 14px; bottom: 10px; }
+  .site-header.find-on .tabs-hdr { display: none; }
+  .hdr-find { margin: 0; max-width: 460px; justify-self: center; }
+  .tabs-band { display: none; }
+
   .home { padding-bottom: 0; }
-  .home-wrap { padding: 0 40px 0; }
-  .hero { margin: 8px 24px 0; border-radius: 32px; }
-  .hero-in { grid-template-columns: minmax(0, 1fr) minmax(360px, 480px); align-items: center; gap: 32px; padding: 52px 56px 56px; }
-  .hero-hi { font-size: 14px; }
-  .hero h1 { font-size: 54px; margin: 18px 0 12px; }
-  .hero-sub { font-size: 17px; margin-bottom: 24px; }
-  .hero .search { max-width: none; }
-  .hero .sf-go { width: auto; height: 100%; margin-left: 6px; display: inline-flex; gap: 8px; padding: 0 20px 0 16px; border-radius: 10px; font: 700 14.5px var(--font-display); }
-  .hero .sf-go span { display: inline; }
-  .hero .sf-go .i { width: 18px; height: 18px; }
-  .hero-art { order: 0; width: 100%; }
+  .home-wrap { padding: 0 clamp(24px, 4vw, 80px); }
+  .top-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 880px) minmax(210px, 1fr); align-items: center; min-height: 190px; padding: 4px clamp(24px, 4vw, 80px) 0; }
+  .top-greet { position: absolute !important; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .top-search { grid-column: 2; margin: 0 0 18px; }
+  .top .search { height: 70px; max-width: none; border-radius: 18px; box-shadow: 0 2px 6px rgba(17, 24, 39, .05), 0 12px 32px rgba(17, 24, 39, .08); }
+  .top .sf-go { width: auto; height: 100%; margin-left: 6px; display: inline-flex; gap: 8px; padding: 0 22px 0 18px; border-radius: 12px; font: 700 15px var(--font-display); }
+  .top .sf-go span { display: inline; }
+  .top .sf-go .i { width: 18px; height: 18px; }
+  .capy { grid-column: 3; position: relative; right: auto; top: auto; align-self: end; justify-self: start; width: 214px; margin: 0 0 -8px 12px; }
+  .capy-bubble { right: 74%; top: 10%; font-size: 14px; padding: 9px 14px; }
+
   .h-sec, .hrow { margin-top: 48px; }
-  .h-head h2 { font-size: 23px; }
-  .h-head .i3 { width: 38px; height: 38px; }
-  .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); overflow: visible; margin: 0; padding: 4px 0 8px; }
-  .kind { width: auto; padding: 18px 8px 14px; }
-  .kind .i3 { width: 56px; height: 56px; }
-  .schools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; margin: 0; padding: 2px 0 8px; }
-  .school-card { width: auto; }
+  .h-head h2 { font-size: 24px; }
+  .h-head .i3 { width: 40px; height: 40px; }
+  .places { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; overflow: visible; margin: 0; padding: 2px 0 8px; }
+  .place-card { width: auto; padding: 20px; gap: 16px; }
+  .place-card .i3 { width: 64px; height: 64px; }
+  .place-card b { font-size: 18px; }
   .h-rows { margin-top: 48px; }
   .hrow-nav { display: flex; }
   .hrow-nav[hidden] { display: none; }
-  .hrow-track { margin: 0; padding: 2px 0 8px; scroll-padding: 0; gap: 20px; }
-  .hrow-track .card { flex-basis: 268px; }
-  .step { padding: 24px; }
-  .step .i3 { width: 72px; height: 72px; }
+  .hrow-track { margin: 0; padding: 2px 0 8px; scroll-padding: 0; gap: 24px; }
+  .hrow-track .card { flex-basis: calc((100% - 2 * 24px) / 3); }
+  .hrow .card-title { font-size: 16px; }
+  .hrow .card-near, .hrow .card-meta { font-size: 14px; }
+  .hrow .card-price b { font-size: 17px; }
   .ll-band { grid-template-columns: minmax(0, 1fr) 320px; padding: 44px 56px; margin-top: 56px; }
   .ll-band h2 { font-size: 34px; }
   .ll-band-art { width: 100%; }
   .home .foot { margin-top: 48px; padding-bottom: 32px; }
+
+  /* Rooms page: the map sits inset with rounded corners. */
+  .browse .map-pane, .browse.mode-map .map-pane { padding: 16px 24px 24px 4px; }
+  .browse .map-pane .map { border-radius: 24px; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px var(--border), 0 6px 24px rgba(11, 31, 68, .06); }
+}
+
+@media (min-width: 1280px) {
+  .hrow-track .card { flex-basis: calc((100% - 3 * 24px) / 4); }
+}
+@media (min-width: 2000px) {
+  .hrow-track .card { flex-basis: calc((100% - 4 * 24px) / 5); }
 }
 
 @media (prefers-reduced-motion: reduce) {
