@@ -1,13 +1,11 @@
 /* ECStay — home page: room-type tabs + search (with Kapi the capybara), popular places,
- * rows of rooms, questions, Kapi's note and the closing scene. Line icons from the sprite in index.html. */
+ * rows of rooms, Kapi's note and the closing scene (the questions live in llms.txt). Line icons from the sprite in index.html. */
 (function () {
   var HV = (window.HomeView = {});
 
   // A line icon in a round badge.
   function ic(name, cls) { return '<span class="' + cls + '" aria-hidden="true">' + H.icon(name) + '</span>'; }
 
-  // ECStay tints: linen and a soft evergreen, alternating.
-  var TINTS = ['#EFE8DC', '#E4ECE6'];
   var KIND_ICON = { mall: 'bag', hospital: 'hospital', work: 'briefcase' };
 
   // Room types as tabs (header on computers, under the search on phones).
@@ -26,9 +24,6 @@
     }).join('') + '</nav>';
   };
 
-  // The places shown on the home page (all landmarks can be searched).
-  var POPULAR = ['gmall', 'sm-lanang', 'abreeza', 'nccc-vp', 'felcris', 'spmc', 'ddh', 'cybergate'];
-
   function rows() {
     var near = function (id) { var p = H.school(id); return { icon: p.kind ? KIND_ICON[p.kind] : 'cap', title: t('Rooms near {place}', { place: p.short }), s: { place: 'school:' + id }, school: id }; };
     return [
@@ -41,11 +36,9 @@
     ];
   }
 
-  function nearbyText(n) { return !n ? t('No rooms nearby yet') : n === 1 ? t('1 room nearby') : t('{n} rooms nearby', { n: n }); }
-
   function top(api) {
     return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
-      '<div class="top-greet"><p class="top-slogan">Explore · Come · Stay</p>' +
+      '<div class="top-greet">' +
         '<h1 id="top-t">' + H.esc(t('Boarding houses, bedspaces and rooms for rent in Davao City')) + '</h1></div>' +
       '<div class="top-search">' + api.searchHtml + '</div>' +
       HV.tabs(api, 'tabs-band') +
@@ -54,15 +47,6 @@
         '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" fetchpriority="low">' +
       '</div>' +
     '</div></section>';
-  }
-
-  function places(api) {
-    return '<section class="h-sec" aria-labelledby="places-t"><div class="h-head"><h2 id="places-t">' + H.esc(t('Rooms near popular places in Davao')) + '</h2></div>' +
-      '<div class="places">' + POPULAR.map(function (id, i) {
-        var p = H.school(id), n = api.count({ place: 'school:' + id });
-        return '<a class="place-card" href="' + api.url({ place: 'school:' + id }) + '" data-link style="--tint:' + TINTS[i % TINTS.length] + '">' +
-          ic(KIND_ICON[p.kind], 'place-ic') + '<span><b>' + H.esc(p.short) + '</b><small>' + H.esc(p.name) + '</small><em>' + H.esc(nearbyText(n)) + '</em></span></a>';
-      }).join('') + '</div></section>';
   }
 
   function row(api, r, idx) {
@@ -78,22 +62,6 @@
     '</section>';
   }
 
-  /* Questions people ask before renting (also in index.html as FAQPage data for search and AI answers). */
-  var FAQ = [
-    ['What is ECStay?', 'ECStay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.'],
-    ['Where in Davao can I find a room?', 'Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.'],
-    ['What kinds of rooms are listed?', 'Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.'],
-    ['How do I contact a landlord?', 'Open a room and tap Contact Landlord. ECStay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.'],
-    ['How do I list my boarding house?', 'Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The ECStay team will get back to you.'],
-    ['Are the rooms on ECStay real?', 'The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.']
-  ];
-  function faq() {
-    return '<section class="h-sec faq" aria-labelledby="faq-t"><div class="h-head"><h2 id="faq-t">' + H.esc(t('Questions about renting a room in Davao')) + '</h2></div>' +
-      '<div class="faq-list">' + FAQ.map(function (x, i) {
-        return '<details class="faq-item"' + (i === 0 ? ' open' : '') + '><summary>' + H.esc(t(x[0])) + H.icon('chev-right') + '</summary><p>' + H.esc(t(x[1])) + '</p></details>';
-      }).join('') + '</div></section>';
-  }
-
   function kapiStill() {
     return '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" loading="lazy">';
   }
@@ -104,7 +72,7 @@
         '<div class="note-card">' +
           '<h2 id="note-t" class="note-hi">' + H.esc(t('Hi, I\'m Kapi!')) + '</h2>' +
           '<p class="note-text">' + H.esc(t('Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.')) + '</p>' +
-          '<p class="note-sign">Kapi · ' + H.esc(t('Your ECStay concierge')) + '</p>' +
+          '<p class="note-sign">— Kapi, ' + H.esc(t('your ECStay concierge')) + '</p>' +
         '</div>' +
         '<button type="button" class="btn btn-primary btn-lg" data-find>' + H.icon('search') + '<span>' + H.esc(t('Start searching')) + '</span></button>' +
       '</div>' +
@@ -121,7 +89,7 @@
         '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
       '</div>' +
       '<div class="scene-copy">' +
-        '<h2 id="scene-t">Explore. Come. <em>Stay.</em></h2>' +
+        '<h2 id="scene-t">Explore. Come. Stay.</h2>' +
         '<p class="scene-lead">' + H.esc(t('Rooms and bedspaces in Davao, near malls, offices and schools.')) + '</p>' +
         '<div class="scene-btns">' +
           '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a>' +
@@ -135,9 +103,7 @@
   HV.render = function (host, api) {
     host.innerHTML = '<div class="home">' + top(api) +
       '<div class="home-wrap">' +
-        places(api) +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
-        faq() +
       '</div>' +
       kapiNote() + scene() + api.footScene +
     '</div>';

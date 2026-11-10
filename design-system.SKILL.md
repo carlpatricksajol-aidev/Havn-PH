@@ -13,7 +13,7 @@ ECStay (Explore, Come, Stay) is a boarding house, bedspace and room finder for s
 - **Line**: "Explore. Come. Stay." (English in every language)
 - **Target users**: students near UM, AdDU, USeP, SPC, HCDC, and young workers near malls, hospitals and offices
 - **Tone**: calm, warm, helpful. Premium, never stiff.
-- **Logo**: `assets/brand/ecstay-mark.svg` (an arched doorway looking out at Mt Apo and the sun) + the wordmark "ECStay" in Fraunces 600, evergreen. On dark backgrounds use `ecstay-mark-light.svg` and an ivory wordmark.
+- **Logo**: `assets/brand/ecstay-mark.svg` (an arched doorway looking out at Mt Apo and the sun) + the wordmark "ECStay" in Newsreader 600, evergreen. On dark backgrounds use `ecstay-mark-light.svg` and an ivory wordmark.
 
 ## Color Palette
 
@@ -46,16 +46,16 @@ Older token names (`--blue`, `--navy`, `--kapi`, `--sand`) are kept and point at
 
 ```css
 :root {
-  --font-serif:   'Fraunces', Georgia, serif;          /* Headlines, wordmark, section titles, Kapi's note (italic) */
-  --font-display: 'Instrument Sans', system-ui, sans-serif; /* Buttons, labels, chips */
-  --font-body:    'Instrument Sans', system-ui, sans-serif; /* Body text */
+  --font-serif:   'Newsreader', Georgia, serif;           /* Headlines, wordmark, section titles, Kapi's note */
+  --font-display: 'Hanken Grotesk', system-ui, sans-serif; /* Buttons, labels, chips */
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif; /* Body text */
 }
 ```
 
-- Headlines: Fraunces 500, letter-spacing -0.015em to -0.03em.
-- Eyebrows (small labels above headlines): Instrument Sans 600, 11-12px, uppercase, letter-spacing .18-.22em, `--brass-text`.
+- Headlines: Newsreader 500, letter-spacing -0.015em to -0.03em.
+- Avoid template tells (Carl, 11 Nov: "looks AI generated"): no Fraunces/Instrument fonts, no spaced-out uppercase eyebrows with dashes, no italic accent word in a second colour.
 - Prices and numbers stay in Instrument Sans.
-- The home H1 is always the keyword sentence ("Boarding houses, bedspaces and rooms for rent in Davao City"); the line "Explore · Come · Stay" sits above it as an eyebrow.
+- The home H1 is always the keyword sentence ("Boarding houses, bedspaces and rooms for rent in Davao City"). The line "Explore. Come. Stay." is the closing scene's headline.
 
 ## Spacing & Layout
 
