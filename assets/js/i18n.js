@@ -1,0 +1,127 @@
+/* Havn PH — English / Tagalog / Cebuano. Keys are the English text. */
+(function () {
+  var D = {
+    tl: {
+      'Skip to rooms': 'Lumaktaw sa mga kwarto',
+      'Search by school or area': 'Hanapin ayon sa school o lugar',
+      'Where': 'Saan', 'Budget': 'Budget', 'Room type': 'Uri ng kwarto',
+      'Any budget': 'Kahit magkano', 'Up to {p}': 'Hanggang {p}',
+      'Any room': 'Kahit anong kwarto', 'Search': 'Hanapin', 'All rooms': 'Lahat',
+      'Bedspace': 'Bedspace', 'Shared room': 'Shared room', 'Private room': 'Sariling kwarto', 'Studio': 'Studio',
+      'Available now': 'Bakante ngayon', 'Female only': 'Babae lang', 'Male only': 'Lalaki lang', 'Mixed': 'Babae at lalaki',
+      'Aircon': 'Aircon', 'Own CR': 'Sariling CR', 'Shared CR': 'Shared CR', 'Wi-Fi': 'Wi-Fi',
+      'Filters': 'Mga filter', 'List your place': 'I-lista ang boarding house mo',
+      '{n} rooms in Davao City': '{n} kwarto sa Davao City', '1 room in Davao City': '1 kwarto sa Davao City',
+      '{n} rooms near {place}': '{n} kwarto malapit sa {place}', '1 room near {place}': '1 kwarto malapit sa {place}',
+      '{n} saved rooms': '{n} naka-save na kwarto', '1 saved room': '1 naka-save na kwarto',
+      'Sort': 'Ayusin', 'Recommended': 'Inirerekomenda', 'Lowest price': 'Pinakamura', 'Highest price': 'Pinakamahal', 'Nearest': 'Pinakamalapit',
+      'Sample listings: these rooms and photos are examples while real boarding houses are being added.': 'Sample listings: halimbawa lang ang mga kwarto at litratong ito habang idinadagdag pa ang mga totoong boarding house.',
+      'Map': 'Mapa', 'Rooms': 'Mga kwarto', 'Saved': 'Naka-save', 'Show list': 'Ipakita ang listahan', 'Show map': 'Ipakita ang mapa',
+      '{n} min walk to {school}': '{n} minutong lakad sa {school}', '{km} km to {school}': '{km} km mula {school}', '{n} min walk': '{n} minutong lakad',
+      '/ month': '/ buwan', '{n} slots left': '{n} bakante na lang', '1 slot left': '1 bakante na lang', 'Fully booked': 'Puno na',
+      'Save': 'I-save', 'Share': 'I-share', 'Link copied': 'Nakopya ang link', 'Remove from saved': 'Alisin sa naka-save', 'Save this room': 'I-save ang kwartong ito',
+      'No boarding houses match your filters': 'Walang boarding house na tugma sa filter mo',
+      'Try removing the school filter or raising your budget.': 'Subukang alisin ang school filter o taasan ang budget.',
+      'Clear all filters': 'Alisin lahat ng filter', 'Rooms you might like': 'Baka magustuhan mo',
+      'No saved rooms yet': 'Wala ka pang naka-save', 'Tap the heart on any room to keep it here.': 'I-tap ang puso sa kwarto para ma-save dito.',
+      'Browse rooms': 'Tumingin ng kwarto',
+      'Price per month': 'Presyo kada buwan', 'Near school': 'Malapit sa school', 'Any school': 'Kahit anong school',
+      'Who can stay': 'Sino ang puwede', 'Anyone': 'Kahit sino', 'Amenities': 'Mga amenity', 'Only rooms available now': 'Bakante lang ngayon',
+      'Clear all': 'Alisin lahat', 'Show {n} rooms': 'Ipakita ang {n} kwarto', 'Show 1 room': 'Ipakita ang 1 kwarto', 'Close': 'Isara',
+      'Back to results': 'Bumalik sa listahan', 'Show all photos': 'Tingnan lahat ng litrato', 'Photo {i} of {n}': 'Litrato {i} sa {n}',
+      '{type} in {area}': '{type} sa {area}', 'What this place offers': 'Ano ang meron dito', 'House rules': 'Patakaran sa bahay',
+      'Curfew': 'Curfew', 'No curfew': 'Walang curfew', 'Visitors': 'Bisita', 'Cooking': 'Pagluluto',
+      'Where you will live': 'Saan ka titira', 'Open in Google Maps': 'Buksan sa Google Maps', 'Distance to schools': 'Layo sa mga school',
+      'Landlord': 'Landlord', 'Renting out since {year}': 'Nagpapaupa mula {year}', 'About this room': 'Tungkol sa kwartong ito',
+      'Bills': 'Kuryente at tubig', 'Monthly rent': 'Upa kada buwan', '1 month advance': '1 buwang advance', '1 month deposit': '1 buwang deposit',
+      'Move-in total': 'Kabuuan sa paglipat', 'Contact Landlord': 'Kontakin ang landlord',
+      'Havn is free for renters. You pay the landlord directly, only after you see the room.': 'Libre ang Havn para sa renters. Sa landlord ka direktang magbabayad, pagkatapos mong makita ang kwarto.',
+      'Similar rooms nearby': 'Mga katulad na kwarto sa malapit', 'Room not found': 'Hindi makita ang kwarto',
+      'This room may have been removed.': 'Baka natanggal na ang kwartong ito.', 'Back to all rooms': 'Bumalik sa lahat ng kwarto',
+      'Ask about {name}': 'Magtanong tungkol sa {name}', 'Your message': 'Mensahe mo', 'Move-in month': 'Buwan ng paglipat',
+      'Not sure yet': 'Hindi pa sigurado', 'Send on Messenger': 'Ipadala sa Messenger', 'Copy message': 'Kopyahin ang mensahe',
+      'Message copied. Paste it in Messenger.': 'Nakopya na. I-paste sa Messenger.',
+      'This opens Messenger with your message copied. Nothing is sent until you press send there.': 'Bubuksan nito ang Messenger at kokopyahin ang mensahe mo. Walang maipapadala hangga\'t hindi mo pinipindot ang send doon.',
+      'This is a sample listing. Your message goes to the Havn team, who can point you to real rooms like it.': 'Sample listing ito. Mapupunta ang mensahe mo sa Havn team, na makakapagturo sa iyo ng totoong kwartong ganito.',
+      'Hi Havn! I\'m interested in {name} ({type}, {price}/month) near {near}. Move-in: {month}. Is it still available?': 'Hi Havn! Interesado po ako sa {name} ({type}, {price}/buwan) malapit sa {near}. Lipat: {month}. Bakante pa po ba?',
+      'Hi Havn! I\'d like to list my boarding house.': 'Hi Havn! Gusto ko pong i-lista ang boarding house ko.',
+      'Language': 'Wika', 'View room': 'Tingnan ang kwarto', 'Sample': 'Sample',
+      'Stock photos are used in sample listings.': 'Stock photos ang gamit sa mga sample listing.',
+      'Previous photo': 'Naunang litrato', 'Next photo': 'Susunod na litrato', 'Zoom in to see each room': 'Mag-zoom in para makita ang bawat kwarto',
+      'Electric fan': 'Electric fan', 'Hot shower': 'Hot shower', 'Kitchen access': 'Puwedeng gumamit ng kusina', 'Laundry area': 'Labahan',
+      'Study desk': 'Study table', 'Personal locker': 'Sariling locker', 'Refrigerator': 'Ref', 'Water dispenser': 'Water dispenser',
+      'CCTV': 'CCTV', '24/7 security': '24/7 na guard', 'Parking': 'Paradahan', 'Meal plan available': 'May meal plan',
+    },
+    ceb: {
+      'Skip to rooms': 'Laktaw sa mga kwarto',
+      'Search by school or area': 'Pangita sumala sa school o lugar',
+      'Where': 'Asa', 'Budget': 'Budget', 'Room type': 'Klase sa kwarto',
+      'Any budget': 'Bisan pila', 'Up to {p}': 'Hangtod {p}',
+      'Any room': 'Bisan unsang kwarto', 'Search': 'Pangita', 'All rooms': 'Tanan',
+      'Bedspace': 'Bedspace', 'Shared room': 'Shared room', 'Private room': 'Kaugalingong kwarto', 'Studio': 'Studio',
+      'Available now': 'Bakante karon', 'Female only': 'Babaye ra', 'Male only': 'Lalaki ra', 'Mixed': 'Babaye ug lalaki',
+      'Aircon': 'Aircon', 'Own CR': 'Kaugalingong CR', 'Shared CR': 'Shared CR', 'Wi-Fi': 'Wi-Fi',
+      'Filters': 'Mga filter', 'List your place': 'I-lista imong boarding house',
+      '{n} rooms in Davao City': '{n} ka kwarto sa Davao City', '1 room in Davao City': '1 ka kwarto sa Davao City',
+      '{n} rooms near {place}': '{n} ka kwarto duol sa {place}', '1 room near {place}': '1 ka kwarto duol sa {place}',
+      '{n} saved rooms': '{n} ka na-save nga kwarto', '1 saved room': '1 ka na-save nga kwarto',
+      'Sort': 'Han-aya', 'Recommended': 'Girekomenda', 'Lowest price': 'Pinakabarato', 'Highest price': 'Pinakamahal', 'Nearest': 'Pinakaduol',
+      'Sample listings: these rooms and photos are examples while real boarding houses are being added.': 'Sample listings: pananglitan ra ang mga kwarto ug litrato samtang gidugang pa ang tinuod nga mga boarding house.',
+      'Map': 'Mapa', 'Rooms': 'Mga kwarto', 'Saved': 'Na-save', 'Show list': 'Ipakita ang lista', 'Show map': 'Ipakita ang mapa',
+      '{n} min walk to {school}': '{n} ka minutos lakaw sa {school}', '{km} km to {school}': '{km} km gikan sa {school}', '{n} min walk': '{n} ka minutos lakaw',
+      '/ month': '/ bulan', '{n} slots left': '{n} na lang ang bakante', '1 slot left': '1 na lang ang bakante', 'Fully booked': 'Puno na',
+      'Save': 'I-save', 'Share': 'I-share', 'Link copied': 'Na-copy ang link', 'Remove from saved': 'Tangtanga sa na-save', 'Save this room': 'I-save kini nga kwarto',
+      'No boarding houses match your filters': 'Walay boarding house nga mohaom sa imong filter',
+      'Try removing the school filter or raising your budget.': 'Sulayi pagtangtang sa school filter o pataasa ang budget.',
+      'Clear all filters': 'Tangtanga tanang filter', 'Rooms you might like': 'Basin magustohan nimo',
+      'No saved rooms yet': 'Wala pa kay na-save', 'Tap the heart on any room to keep it here.': 'I-tap ang kasingkasing sa kwarto aron ma-save diri.',
+      'Browse rooms': 'Tan-awa ang mga kwarto',
+      'Price per month': 'Presyo matag bulan', 'Near school': 'Duol sa school', 'Any school': 'Bisan unsang school',
+      'Who can stay': 'Kinsa ang puwede', 'Anyone': 'Bisan kinsa', 'Amenities': 'Mga amenity', 'Only rooms available now': 'Bakante ra karon',
+      'Clear all': 'Tangtanga tanan', 'Show {n} rooms': 'Ipakita ang {n} ka kwarto', 'Show 1 room': 'Ipakita ang 1 ka kwarto', 'Close': 'Sirado',
+      'Back to results': 'Balik sa lista', 'Show all photos': 'Tan-awa tanang litrato', 'Photo {i} of {n}': 'Litrato {i} sa {n}',
+      '{type} in {area}': '{type} sa {area}', 'What this place offers': 'Unsay naa diri', 'House rules': 'Mga lagda sa balay',
+      'Curfew': 'Curfew', 'No curfew': 'Walay curfew', 'Visitors': 'Bisita', 'Cooking': 'Pagluto',
+      'Where you will live': 'Asa ka mopuyo', 'Open in Google Maps': 'Ablihi sa Google Maps', 'Distance to schools': 'Kalayo sa mga school',
+      'Landlord': 'Landlord', 'Renting out since {year}': 'Nagpaabang sukad {year}', 'About this room': 'Bahin niining kwarto',
+      'Bills': 'Kuryente ug tubig', 'Monthly rent': 'Abang matag bulan', '1 month advance': '1 ka bulan advance', '1 month deposit': '1 ka bulan deposit',
+      'Move-in total': 'Total sa pagbalhin', 'Contact Landlord': 'Kontaka ang landlord',
+      'Havn is free for renters. You pay the landlord directly, only after you see the room.': 'Libre ang Havn para sa mga renter. Direkta ka mobayad sa landlord, human nimo makita ang kwarto.',
+      'Similar rooms nearby': 'Susamang kwarto sa duol', 'Room not found': 'Wala makit-i ang kwarto',
+      'This room may have been removed.': 'Basin natangtang na kini nga kwarto.', 'Back to all rooms': 'Balik sa tanang kwarto',
+      'Ask about {name}': 'Pangutana bahin sa {name}', 'Your message': 'Imong mensahe', 'Move-in month': 'Bulan sa pagbalhin',
+      'Not sure yet': 'Wala pa sigurado', 'Send on Messenger': 'Ipadala sa Messenger', 'Copy message': 'Kopyaha ang mensahe',
+      'Message copied. Paste it in Messenger.': 'Na-copy na. I-paste sa Messenger.',
+      'This opens Messenger with your message copied. Nothing is sent until you press send there.': 'Ablihan niini ang Messenger ug kopyahon ang imong mensahe. Walay mapadala hangtod dili nimo pindoton ang send didto.',
+      'This is a sample listing. Your message goes to the Havn team, who can point you to real rooms like it.': 'Sample listing kini. Ang imong mensahe moadto sa Havn team, nga makatudlo nimo sa tinuod nga kwarto nga susama ani.',
+      'Hi Havn! I\'m interested in {name} ({type}, {price}/month) near {near}. Move-in: {month}. Is it still available?': 'Hi Havn! Interesado ko sa {name} ({type}, {price}/bulan) duol sa {near}. Pagbalhin: {month}. Bakante pa ba?',
+      'Hi Havn! I\'d like to list my boarding house.': 'Hi Havn! Gusto nako i-lista akong boarding house.',
+      'Language': 'Pinulongan', 'View room': 'Tan-awa ang kwarto', 'Sample': 'Sample',
+      'Stock photos are used in sample listings.': 'Stock photos ang gigamit sa mga sample listing.',
+      'Previous photo': 'Miaging litrato', 'Next photo': 'Sunod nga litrato', 'Zoom in to see each room': 'I-zoom in aron makita ang matag kwarto',
+      'Electric fan': 'Electric fan', 'Hot shower': 'Hot shower', 'Kitchen access': 'Puwede mogamit sa kusina', 'Laundry area': 'Labhanan',
+      'Study desk': 'Study table', 'Personal locker': 'Kaugalingong locker', 'Refrigerator': 'Ref', 'Water dispenser': 'Water dispenser',
+      'CCTV': 'CCTV', '24/7 security': '24/7 nga guard', 'Parking': 'Paradahan', 'Meal plan available': 'Naay meal plan',
+    },
+  };
+
+  var lang = 'en';
+  try { lang = localStorage.getItem('havn-lang') || 'en'; } catch (e) {}
+  if (!D[lang] && lang !== 'en') lang = 'en';
+
+  window.HAVN_I18N = {
+    langs: [['en', 'EN'], ['tl', 'TL'], ['ceb', 'CEB']],
+    get: function () { return lang; },
+    set: function (l) {
+      lang = (l === 'tl' || l === 'ceb') ? l : 'en';
+      try { localStorage.setItem('havn-lang', lang); } catch (e) {}
+      document.documentElement.lang = lang === 'en' ? 'en' : (lang === 'tl' ? 'tl' : 'ceb');
+    },
+  };
+
+  window.t = function (s, vars) {
+    var out = (lang !== 'en' && D[lang] && D[lang][s]) || s;
+    if (vars) out = out.replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? vars[k] : m; });
+    return out;
+  };
+})();
