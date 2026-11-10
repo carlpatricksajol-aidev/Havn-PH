@@ -1,8 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/room/:id", "destination": "/index.html" },
-    { "source": "/list", "destination": "/index.html" }
+    { "source": "/room/:id", "destination": "/" },
+    { "source": "/list", "destination": "/" }
   ],
   "headers": [
     {
