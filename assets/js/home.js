@@ -1,4 +1,4 @@
-/* Havn PH — home page: room-type tabs + search (with Kapi the capybara), popular places,
+/* Kapibahay — home page: room-type tabs + search (with Kapi the capybara), popular places,
  * rows of rooms, landlord band. 3D icons: Microsoft Fluent Emoji (MIT, /assets/3d/LICENSE). */
 (function () {
   var HV = (window.HomeView = {});
@@ -47,8 +47,8 @@
 
   function top(api) {
     return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
-      '<div class="top-greet"><h1 id="top-t">' + H.esc(t('Find a room in Davao City')) + '</h1>' +
-        '<p>' + H.esc(t('Boarding houses, bedspaces and rooms near malls, offices and schools.')) + '</p></div>' +
+      '<div class="top-greet"><h1 id="top-t">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</h1>' +
+        '<p>' + H.esc(t('Rooms and bedspaces in Davao, near malls, offices and schools.')) + '</p></div>' +
       '<div class="top-search">' + api.searchHtml + '</div>' +
       HV.tabs(api, 'tabs-band') +
       '<div class="capy" data-capy aria-hidden="true">' +
@@ -107,12 +107,13 @@
         '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
       '</div>' +
       '<div class="scene-copy">' +
-        '<h2 id="scene-t">' + H.esc(t('Find a home you\'ll love in Davao.')) + '</h2>' +
+        '<h2 id="scene-t">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</h2>' +
+        '<p class="scene-lead">' + H.esc(t('Rooms and bedspaces in Davao, near malls, offices and schools.')) + '</p>' +
         '<div class="scene-btns">' +
           '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a>' +
           '<a class="btn btn-light btn-lg" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
         '</div>' +
-        '<p class="scene-sub">' + H.esc(t('Own a boarding house? List it on Havn so people nearby can find it.')) + '</p>' +
+        '<p class="scene-sub">' + H.esc(t('Own a boarding house? List it on Kapibahay so people nearby can find it.')) + '</p>' +
       '</div>' +
     '</section>';
   }

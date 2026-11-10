@@ -1,4 +1,4 @@
-/* Havn PH — room page: gallery, details, exact-location map, contact. */
+/* Kapibahay — room page: gallery, details, exact-location map, contact. */
 (function () {
   var R = (window.RoomView = {});
   var roomMap = null, io = null;
@@ -27,7 +27,7 @@
       host.innerHTML = '<div class="room-missing">' +
         '<h1>' + H.esc(t('Room not found')) + '</h1><p>' + H.esc(t('This room may have been removed.')) + '</p>' +
         '<a class="btn btn-primary" href="/rooms" data-link data-home>' + H.esc(t('Back to all rooms')) + '</a></div>';
-      setMeta(t('Room not found') + ' · Havn PH', '', '/');
+      setMeta(t('Room not found') + ' · Kapibahay', '', '/');
       return;
     }
     var near = H.schoolsByDistance(l);
@@ -111,7 +111,7 @@
             '</dl>' +
             '<p class="pc-bills">' + H.icon('zap') + '<span><b>' + H.esc(t('Bills')) + ':</b> ' + H.esc(l.bills) + '</span></p>' +
             '<button type="button" class="btn btn-primary btn-block" data-contact>' + H.icon('message') + '<span>' + H.esc(t('Contact Landlord')) + '</span></button>' +
-            '<p class="pc-note">' + H.esc(t('Havn is free for renters. You pay the landlord directly, only after you see the room.')) + '</p>' +
+            '<p class="pc-note">' + H.esc(t('Kapibahay is free for renters. You pay the landlord directly, only after you see the room.')) + '</p>' +
           '</div></aside>' +
         '</div>' +
         '<section class="similar"><h2>' + H.esc(t('Similar rooms nearby')) + '</h2><div class="grid">' +
@@ -126,7 +126,7 @@
     host.onclick = function (e) {
       var ph = e.target.closest('[data-photo]');
       if (ph) { openViewer(l, +ph.getAttribute('data-photo')); return; }
-      if (e.target.closest('[data-share]')) { H.share(location.href, l.name + ' · Havn PH'); return; }
+      if (e.target.closest('[data-share]')) { H.share(location.href, l.name + ' · Kapibahay'); return; }
       if (e.target.closest('[data-contact]')) { openContact(l); }
     };
 
@@ -147,7 +147,7 @@
     } else start();
 
     var nearName = near[0].school.short;
-    setMeta(l.name + ' · ' + t(l.type) + ' near ' + nearName + ' · Havn PH',
+    setMeta(l.name + ' · ' + t(l.type) + ' near ' + nearName + ' · Kapibahay',
       t(l.type) + ' in ' + l.area + ', Davao City. ' + H.peso(l.price) + ' a month. ' + l.desc,
       '/room/' + l.id, !!l.sample);
   };
@@ -216,7 +216,7 @@
     var ms = months();
     var near = H.nearName(l);
     var msg = function (m) {
-      return t('Hi Havn! I\'m interested in {name} ({type}, {price}/month) near {near}. Move-in: {month}. Is it still available?',
+      return t('Hi Kapibahay! I\'m interested in {name} ({type}, {price}/month) near {near}. Move-in: {month}. Is it still available?',
         { name: l.name, type: t(l.type), price: H.peso(l.price), near: near, month: m }) + '\n' + HAVN_CONFIG.siteUrl + '/room/' + l.id;
     };
     var first = ms[1];
@@ -224,7 +224,7 @@
       title: t('Ask about {name}', { name: l.name }),
       className: 'sheet contact',
       body:
-        (l.sample ? '<p class="note-box">' + H.icon('info') + '<span>' + H.esc(t('This is a sample listing. Your message goes to the Havn team, who can point you to real rooms like it.')) + '</span></p>' : '') +
+        (l.sample ? '<p class="note-box">' + H.icon('info') + '<span>' + H.esc(t('This is a sample listing. Your message goes to the Kapibahay team, who can point you to real rooms like it.')) + '</span></p>' : '') +
         '<label class="field"><span>' + H.esc(t('Move-in month')) + '</span><select id="c-month">' +
           ms.map(function (m, i) { return '<option' + (i === 1 ? ' selected' : '') + '>' + H.esc(m) + '</option>'; }).join('') +
           '<option value="">' + H.esc(t('Not sure yet')) + '</option></select></label>' +
