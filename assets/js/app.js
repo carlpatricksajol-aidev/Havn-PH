@@ -1,7 +1,8 @@
 /* Havn PH — app shell: header, browse (rooms + map), filters, routing. */
 (function () {
   var A = (window.App = {});
-  var DEFAULTS = { place: '', q: '', min: 0, max: 0, types: [], gender: '', amen: [], avail: false, saved: false, sort: 'rec' };
+  // bbox = the map area [west, south, east, north] once someone moves the map (Airbnb-style).
+  var DEFAULTS = { place: '', q: '', min: 0, max: 0, types: [], gender: '', amen: [], avail: false, saved: false, sort: 'rec', bbox: null };
   var PRICE_MIN = 1000, PRICE_MAX = 15000, PRICE_STEP = 500;
   var BUDGETS = [4000, 6000, 8000, 12000];
   var NEAR_KM = 2.0;
@@ -33,12 +34,15 @@
     S.avail = p.get('avail') === '1';
     S.saved = p.get('saved') === '1';
     S.sort = ['rec', 'low', 'high', 'near'].indexOf(p.get('sort')) !== -1 ? p.get('sort') : 'rec';
+    var bb = (p.get('bbox') || '').split(',').map(Number);
+    if (bb.length === 4 && bb.every(function (v) { return isFinite(v); }) && bb[0] < bb[2] && bb[1] < bb[3] && bb[1] >= -90 && bb[3] <= 90) S.bbox = bb;
   }
   function urlFor(s) {
     var p = new URLSearchParams();
     if (s.place.indexOf('school:') === 0) p.set('near', s.place.slice(7));
     if (s.place.indexOf('area:') === 0) p.set('area', s.place.slice(5));
     if (s.q) p.set('q', s.q);
+    if (boxOn(s)) p.set('bbox', s.bbox.map(function (v) { return v.toFixed(5); }).join(','));
     if (s.min) p.set('min', s.min);
     if (s.max) p.set('max', s.max);
     if (s.types.length) p.set('type', s.types.join(','));
@@ -55,7 +59,15 @@
   function placeSchool(s) { return s.place.indexOf('school:') === 0 ? H.school(s.place.slice(7)) : null; }
   function placeArea(s) { return s.place.indexOf('area:') === 0 ? s.place.slice(5) : ''; }
 
-  function matches(l, s) {
+  // The saved list always shows every saved room, wherever the map is.
+  function boxOn(s) { return !!(s.bbox && !s.saved); }
+  function inBox(l, b) { return l.lng >= b[0] && l.lat >= b[1] && l.lng <= b[2] && l.lat <= b[3]; }
+  function boxCenter(b) { return { lat: (b[1] + b[3]) / 2, lng: (b[0] + b[2]) / 2 }; }
+  function areaMode(s) { return boxOn(s) && !s.place && !s.q; }
+
+  // anyArea: ignore the map area (map pins show every match, so you can pan toward them).
+  function matches(l, s, anyArea) {
+    if (!anyArea && boxOn(s) && !inBox(l, s.bbox)) return false;
     var sc = placeSchool(s), area = placeArea(s);
     if (sc && H.km(l, sc) > NEAR_KM) return false;
     if (area && l.area !== area) return false;
@@ -73,9 +85,9 @@
     return true;
   }
 
-  function results(s) {
+  function results(s, anyArea) {
     var sc = placeSchool(s);
-    var list = HAVN_LISTINGS.filter(function (l) { return matches(l, s); });
+    var list = HAVN_LISTINGS.filter(function (l) { return matches(l, s, anyArea); });
     var order = HAVN_LISTINGS.map(function (l) { return l.id; });
     var dist = function (l) { return sc ? H.km(l, sc) : H.schoolsByDistance(l)[0].km; };
     list.sort(function (a, b) {
@@ -134,6 +146,7 @@
     var n = activeCount(S);
     var savedN = H.saved.count();
     var qVal = S.place ? placeLabel(S) : S.q;
+    var mapArea = areaMode(S);
     hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '');
     hdr.innerHTML =
       '<div class="hdr">' +
@@ -143,9 +156,9 @@
           : '<form class="search" id="search" role="search" autocomplete="off">' +
               '<div class="sf sf-where">' +
                 '<label class="sf-label" for="q">' + H.esc(t('Where')) + '</label>' +
-                '<div class="sf-input">' + H.icon('search', 'sf-icon') +
-                  '<input id="q" name="q" type="text" inputmode="search" enterkeyhint="search" placeholder="' + H.esc(t('Search by school or area')) + '" value="' + H.esc(qVal) + '" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="q-list">' +
-                  '<button type="button" class="sf-clear" aria-label="' + H.esc(t('Clear all')) + '"' + (qVal ? '' : ' hidden') + '>' + H.icon('x') + '</button>' +
+                '<div class="sf-input' + (mapArea ? ' is-area' : '') + '">' + H.icon(mapArea ? 'map' : 'search', 'sf-icon') +
+                  '<input id="q" name="q" type="text" inputmode="search" enterkeyhint="search" placeholder="' + H.esc(mapArea ? t('Map area') : t('Search by school or area')) + '" value="' + H.esc(qVal) + '" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="q-list">' +
+                  '<button type="button" class="sf-clear" aria-label="' + H.esc(t('Clear all')) + '"' + (qVal || mapArea ? '' : ' hidden') + '>' + H.icon('x') + '</button>' +
                 '</div>' +
                 '<ul id="q-list" class="suggest" role="listbox" hidden></ul>' +
               '</div>' +
@@ -203,12 +216,11 @@
       var pick = function (it) {
         close();
         if (it.room) { A.go('/room/' + it.room); return; }
-        S.place = it.place; S.q = '';
-        if (it.place.indexOf('school:') === 0 && S.sort === 'rec') S.sort = 'rec';
+        S.place = it.place; S.q = ''; S.bbox = null;
         apply(true);
       };
       input.addEventListener('focus', open);
-      input.addEventListener('input', function () { clear.hidden = !input.value; open(); });
+      input.addEventListener('input', function () { clear.hidden = !input.value && !areaMode(S); open(); });
       input.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowDown' && !list.hidden) { e.preventDefault(); active = Math.min(items.length - 1, active + 1); paintActive(); }
         else if (e.key === 'ArrowUp' && !list.hidden) { e.preventDefault(); active = Math.max(0, active - 1); paintActive(); }
@@ -220,14 +232,14 @@
         var li = e.target.closest('li'); if (li) pick(items[+li.getAttribute('data-i')]);
       });
       input.addEventListener('blur', function () { setTimeout(close, 120); });
-      clear.addEventListener('click', function () { S.place = ''; S.q = ''; input.value = ''; clear.hidden = true; apply(true); input.focus(); });
+      clear.addEventListener('click', function () { S.place = ''; S.q = ''; S.bbox = null; apply(true); $('#q').focus(); });
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var v = input.value.trim();
         var sug = suggestions(v);
         if (v && sug.length && !sug[0].room && sug[0].exact) { pick(sug[0]); return; }
         if (S.place && v === placeLabel(S)) { close(); apply(true); return; }
-        S.place = ''; S.q = v; close(); apply(true);
+        S.place = ''; S.q = v; if (v) S.bbox = null; close(); apply(true);
         input.blur();
       });
       $('#budget', form).addEventListener('change', function (e) {
@@ -297,7 +309,7 @@
   $('#bottom-nav').addEventListener('click', function (e) {
     var b = e.target.closest('[data-tab]'); if (!b) return;
     var tab = b.getAttribute('data-tab');
-    if (tab === 'saved') { S.saved = !S.saved || mode === 'map' ? true : false; setMode('list'); apply(false); window.scrollTo(0, 0); return; }
+    if (tab === 'saved') { S.saved = !S.saved || mode === 'map' ? true : false; S.bbox = null; setMode('list'); apply(false); window.scrollTo(0, 0); return; }
     if (S.saved) { S.saved = false; apply(false); }
     setMode(tab);
   });
@@ -308,8 +320,14 @@
     if (b) { b.classList.toggle('mode-map', m === 'map'); b.classList.toggle('mode-list', m !== 'map'); }
     document.body.classList.toggle('map-open', m === 'map' && !desktop.matches);
     renderNav();
-    if (m === 'map') { window.scrollTo(0, 0); ensureMap(); if (bmap) setTimeout(function () { bmap.resize(); bmap.fit(); }, 30); }
+    if (m === 'map') { window.scrollTo(0, 0); ensureMap(); if (bmap) setTimeout(function () { bmap.resize(); refitMap(); }, 30); }
     else if (bmap) bmap.close();
+  }
+
+  // Back to the map area the person chose, or else fit the rooms.
+  function refitMap() {
+    if (!bmap) return;
+    if (boxOn(S)) bmap.fitBox(S.bbox); else bmap.fit();
   }
 
   /* ---------------- Browse view ---------------- */
@@ -356,6 +374,7 @@
   function title(list) {
     var n = list.length;
     if (S.saved) return n === 1 ? t('1 saved room') : t('{n} saved rooms', { n: n });
+    if (areaMode(S)) return n === 1 ? t('1 room in this map area') : t('{n} rooms in this map area', { n: n });
     var place = placeLabel(S);
     if (place) return n === 1 ? t('1 room near {place}', { place: place }) : t('{n} rooms near {place}', { n: n, place: place });
     return n === 1 ? t('1 room in Davao City') : t('{n} rooms in Davao City', { n: n });
@@ -363,7 +382,32 @@
 
   var EMPTY_ART = '<svg class="empty-art" viewBox="0 0 160 120" aria-hidden="true"><rect x="10" y="96" width="140" height="6" rx="3" fill="#E0E4ED"/><path d="M38 96V58l42-30 42 30v38" fill="#fff" stroke="#0052CC" stroke-width="4" stroke-linejoin="round"/><rect x="68" y="66" width="24" height="30" rx="3" fill="#E6EFFE" stroke="#0052CC" stroke-width="4"/><circle cx="118" cy="40" r="16" fill="#fff" stroke="#6B7280" stroke-width="4"/><path d="m130 52 12 12" stroke="#6B7280" stroke-width="5" stroke-linecap="round"/></svg>';
 
-  function renderResults() {
+  // Re-use the cards already on screen, so moving the map never reloads photos that stay.
+  function updateGrid(box, list) {
+    var ctx = (placeSchool(S) && placeSchool(S).id) || '';
+    var grid = box.firstElementChild;
+    if (!grid || !grid.hasAttribute('data-main') || grid.getAttribute('data-ctx') !== ctx) {
+      box.innerHTML = '<div class="grid" data-main data-ctx="' + ctx + '">' + list.map(function (l, i) { return A.cardHtml(l, i < 4); }).join('') + '</div>';
+      return;
+    }
+    var old = {}, tmp = document.createElement('div');
+    $$('.card', grid).forEach(function (c) { old[c.getAttribute('data-id')] = c; });
+    list.forEach(function (l, i) {
+      var c = old[l.id];
+      if (c) delete old[l.id];
+      else { tmp.innerHTML = A.cardHtml(l, false); c = tmp.firstElementChild; }
+      if (grid.children[i] !== c) grid.insertBefore(c, grid.children[i] || null);
+    });
+    Object.keys(old).forEach(function (k) { old[k].remove(); });
+  }
+
+  function mapCountText(n) {
+    if (!n) return t('No rooms in this area');
+    return n === 1 ? t('Show 1 room') : t('Show {n} rooms', { n: n });
+  }
+
+  /* refit: false keeps the map where it is (the person is moving it). */
+  function renderResults(refit) {
     var list = results(S);
     var box = $('#results-body');
     $('#results-title').textContent = title(list);
@@ -374,6 +418,14 @@
       if (S.saved) {
         box.innerHTML = '<div class="empty">' + EMPTY_ART + '<h2>' + H.esc(t('No saved rooms yet')) + '</h2><p>' + H.esc(t('Tap the heart on any room to keep it here.')) + '</p>' +
           '<a class="btn btn-primary" href="/" data-link>' + H.esc(t('Browse rooms')) + '</a></div>';
+      } else if (boxOn(S) && results(S, true).length) {
+        var c = boxCenter(S.bbox);
+        var near = results(S, true).sort(function (a, b) { return H.km(a, c) - H.km(b, c); }).slice(0, 3);
+        box.innerHTML = '<div class="empty">' + EMPTY_ART + '<h2>' + H.esc(t('No rooms in this part of the map')) + '</h2>' +
+          '<p>' + H.esc(t('Zoom out or move the map to see more rooms.')) + '</p>' +
+          '<button type="button" class="btn btn-primary" data-clear-map>' + H.esc(t('Show all rooms')) + '</button></div>' +
+          '<h2 class="sub-head">' + H.esc(t('Nearest rooms')) + '</h2>' +
+          '<div class="grid">' + near.map(function (l) { return A.cardHtml(l, false); }).join('') + '</div>';
       } else {
         var alt = HAVN_LISTINGS.filter(function (l) { return l.status !== 'full'; }).slice(0, 3);
         box.innerHTML = '<div class="empty">' + EMPTY_ART + '<h2>' + H.esc(t('No boarding houses match your filters')) + '</h2>' +
@@ -383,11 +435,27 @@
           '<div class="grid">' + alt.map(function (l) { return A.cardHtml(l, false); }).join('') + '</div>';
       }
     } else {
-      box.innerHTML = '<div class="grid">' + list.map(function (l, i) { return A.cardHtml(l, i < 4); }).join('') + '</div>';
+      updateGrid(box, list);
     }
     H.bindSlides(box);
-    if (bmap) bmap.set(list, true);
+    var mc = $('.map-count span');
+    if (mc) mc.textContent = mapCountText(list.length);
+    if (bmap) bmap.set(results(S, true), refit !== false && !boxOn(S));
     return list;
+  }
+
+  /* The person moved the map: the list becomes the rooms inside it (like Airbnb). */
+  function onMapMove(b) {
+    if (view !== 'browse' || S.saved) return;
+    var hadArea = areaMode(S);
+    var before = results(S).map(function (l) { return l.id; }).join();
+    S.bbox = b.map(function (v) { return Math.round(v * 1e5) / 1e5; });
+    S.place = ''; S.q = '';
+    lastBrowseUrl = urlFor(S);
+    history.replaceState(history.state, '', lastBrowseUrl);
+    if (!hadArea) renderHeader();
+    var list = renderResults(false);
+    if (desktop.matches && window.scrollY > 0 && list.map(function (l) { return l.id; }).join() !== before) window.scrollTo(0, 0);
   }
 
   function renderBrowse() {
@@ -410,7 +478,8 @@
             '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
           '</footer>' +
         '</section>' +
-        '<aside class="map-pane" aria-label="' + H.esc(t('Map')) + '"><div class="map" id="bmap"><div class="map-loading"></div></div></aside>' +
+        '<aside class="map-pane" aria-label="' + H.esc(t('Map')) + '"><div class="map" id="bmap"><div class="map-loading"></div></div>' +
+          '<button type="button" class="map-count" data-show-list>' + H.icon('list') + '<span></span></button></aside>' +
       '</div>';
     $('#sort', host).addEventListener('change', function (e) { S.sort = e.target.value; apply(false); });
     var browse = $('.browse', host);
@@ -435,11 +504,12 @@
         var c = $('.card[data-id="' + id + '"]');
         if (c) c.classList.toggle('pin-hover', on);
       },
+      onMove: onMapMove,
     }).then(function (m) {
       bmap = m;
       var ld = $('.map-loading', el); if (ld) ld.remove();
-      bmap.set(results(S), false);
-      bmap.fit();
+      bmap.set(results(S, true), false);
+      refitMap();
     }).catch(function () {
       bmapP = null;
       el.innerHTML = '<div class="map-error">' + H.icon('map') + '<p>Map could not load. Check your connection and try again.</p><button type="button" class="btn btn-ghost" data-retry-map>Try again</button></div>';
@@ -528,7 +598,7 @@
     root.addEventListener('change', function (e) { if (e.target.id === 'f-avail') { D.avail = e.target.checked; refresh(true); } });
     root.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      if (b.hasAttribute('data-f-place')) { var p = b.getAttribute('data-f-place'); D.place = p; D.q = ''; refresh(); }
+      if (b.hasAttribute('data-f-place')) { var p = b.getAttribute('data-f-place'); D.place = p; D.q = ''; if (p) D.bbox = null; refresh(); }
       else if (b.hasAttribute('data-f-type')) { var x = b.getAttribute('data-f-type'), i = D.types.indexOf(x); if (i === -1) D.types.push(x); else D.types.splice(i, 1); refresh(); }
       else if (b.hasAttribute('data-f-gender')) { D.gender = b.getAttribute('data-f-gender'); refresh(); }
       else if (b.hasAttribute('data-f-amen')) { var a = b.getAttribute('data-f-amen'), j = D.amen.indexOf(a); if (j === -1) D.amen.push(a); else D.amen.splice(j, 1); refresh(); }
@@ -609,6 +679,8 @@
     }
     if (e.target.closest('[data-open-filters]')) { openFilters(); return; }
     if (e.target.closest('[data-clear-all]')) { var k = { saved: S.saved, sort: S.sort }; S = clone(DEFAULTS); S.saved = k.saved; apply(true); return; }
+    if (e.target.closest('[data-clear-map]')) { S.bbox = null; apply(true); return; }
+    if (e.target.closest('[data-show-list]')) { setMode('list'); window.scrollTo(0, 0); return; }
     if (e.target.closest('[data-retry-map]')) { $('#bmap').innerHTML = '<div class="map-loading"></div>'; ensureMap(); return; }
     var lb = e.target.closest('[data-lang]');
     if (lb) {

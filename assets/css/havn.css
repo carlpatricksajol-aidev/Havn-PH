@@ -130,6 +130,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.25; letter-spacing
 .sf-icon { color: var(--text); width: 18px; height: 18px; }
 .sf-input input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: 500 15px var(--font-body); }
 .sf-input input::placeholder { color: var(--muted); font-weight: 400; }
+.sf-input.is-area input::placeholder { color: var(--text); font-weight: 600; }
+.sf-input.is-area .sf-icon { color: var(--blue); }
 .sf-clear { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
 .sf-clear:hover { background: var(--surface); color: var(--text); }
 .sf-clear .i { width: 16px; height: 16px; }
@@ -256,6 +258,19 @@ img.ok { opacity: 1 !important; }
 .map-loading { position: absolute; inset: 0; background: linear-gradient(90deg, #EEF0F4 25%, #E5E8EE 50%, #EEF0F4 75%) 0 0 / 200% 100%; animation: shimmer 1.4s linear infinite; }
 .map-error { height: 100%; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); }
 .map-error .i { width: 32px; height: 32px; }
+
+/* Phones: live count of rooms in view; tap to see them as a list. */
+.map-count { display: none; }
+.browse.mode-map .map-count {
+  position: absolute; left: 50%; bottom: 44px; translate: -50% 0; z-index: 4;
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px;
+  border-radius: 999px; background: var(--text); color: #fff; white-space: nowrap;
+  font: 600 14.5px var(--font-display); box-shadow: var(--shadow-pop);
+  transition: transform .15s var(--ease);
+}
+.browse.mode-map .map-count:active { transform: scale(.97); }
+.map-count .i { width: 18px; height: 18px; }
+.map-pane:has(.map-card) .map-count { display: none; }
 
 /* Price pins */
 .pin, .cluster-pin { padding: 0; }
@@ -563,6 +578,7 @@ img.ok { opacity: 1 !important; }
   .results-head h1 { font-size: 20px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 32px 22px; }
   .bottom-nav { display: none; }
+  .browse .map-count, .browse.mode-map .map-count { display: none; }
   .lang-foot { display: none; }
   .toast { bottom: 32px; }
 

@@ -100,7 +100,8 @@
   M.browse = function (el, opts) {
     return baseMap(el, {}).then(function (b) {
       var ml = b.ml, map = b.map;
-      var markers = {}, shown = {}, list = [], hoverId = null, selectedId = null, popup = null;
+      var markers = {}, shown = {}, list = [], listKey = null, hoverId = null, selectedId = null, popup = null;
+      var wantBox = null, moveT = 0;
 
       function geo(items) {
         return {
@@ -121,7 +122,7 @@
           el.addEventListener('click', function (e) {
             e.stopPropagation();
             map.getSource('rooms').getClusterExpansionZoom(p.cluster_id).then(function (z) {
-              map.easeTo({ center: f.geometry.coordinates, zoom: Math.min(z + 0.3, 17) });
+              map.easeTo({ center: f.geometry.coordinates, zoom: Math.min(z + 0.3, 17) }, { fromUser: true });
             });
           });
         } else {
@@ -184,6 +185,7 @@
       }
 
       function fit(items, animate) {
+        wantBox = null;
         items = core(items);
         if (!items.length) return;
         if (items.length === 1) { map.easeTo({ center: [items[0].lng, items[0].lat], zoom: 15, duration: animate ? 500 : 0 }); return; }
@@ -191,6 +193,27 @@
         items.forEach(function (l) { bb.extend([l.lng, l.lat]); });
         map.fitBounds(bb, { padding: pad(), maxZoom: 15, duration: animate ? 600 : 0 });
       }
+
+      // Show a saved map area again (from the URL, or after the map was hidden on phones).
+      function fitBox(b) {
+        wantBox = b;
+        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 0, duration: 0 });
+      }
+
+      function bounds() {
+        var b = map.getBounds();
+        return [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
+      }
+
+      // Only a person dragging, zooming, tapping a cluster or asking for their location
+      // changes the search. Our own fits, resizes and card pans carry no originalEvent.
+      function byUser(e) { return !!(e.originalEvent || e.geolocateSource || e.fromUser); }
+      map.on('movestart', function (e) { if (byUser(e)) clearTimeout(moveT); });
+      map.on('moveend', function (e) {
+        if (!opts.onMove || !byUser(e)) return;
+        clearTimeout(moveT);
+        moveT = setTimeout(function () { opts.onMove(bounds()); }, 120);
+      });
 
       function closeCard() {
         selectedId = null;
@@ -229,21 +252,24 @@
         map.addLayer({ id: 'rooms-hit', type: 'circle', source: 'rooms', paint: { 'circle-radius': 1, 'circle-opacity': 0 } });
         map.on('render', sync);
         map.on('click', function () { closeCard(); });
-        fit(list, false);
+        if (wantBox) fitBox(wantBox); else fit(list, false);
       });
       document.addEventListener('havn:saved', paintStates);
 
       return {
         map: map,
+        // Same rooms as before → pins stay put (no flicker while the map is being moved).
         set: function (items, refit) {
-          list = items.slice();
+          var key = items.map(function (l) { return l.id; }).sort().join(',');
+          var changed = key !== listKey;
+          list = items.slice(); listKey = key;
           if (selectedId && !list.some(function (l) { return l.id === selectedId; })) closeCard();
-          if (!map.getSource('rooms')) return;
-          clearMarkers();
-          map.getSource('rooms').setData(geo(list));
+          if (changed && map.getSource('rooms')) { clearMarkers(); map.getSource('rooms').setData(geo(list)); }
           if (refit) fit(list, true);
         },
         fit: function () { fit(list, false); },
+        fitBox: fitBox,
+        bounds: bounds,
         hover: function (id, on) { hoverId = on ? id : (hoverId === id ? null : hoverId); paintStates(); },
         resize: function () { map.resize(); },
         close: closeCard,
