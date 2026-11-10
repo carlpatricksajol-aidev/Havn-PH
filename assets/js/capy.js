@@ -28,6 +28,8 @@ const FRAMES = {
   stand: { y: 0.62, h: 1.5, turn: 0.45, head: 0.5, tilt: 0, face: 0 },
   peek: { y: 0.58, h: 1.3, turn: 0.08, head: 0.18, tilt: 0, face: 0 },
   jump: { y: 0.66, h: 1.55, turn: 0.25, head: 0.35, tilt: 0, face: 0 },
+  // host: a wide box from the front door to the right edge; Kapi ends up at `at` (share of the box width from the left).
+  host: { y: 0.58, h: 1.3, turn: 0.1, head: 0.22, tilt: 0, face: 0, at: 0.16 },
 };
 
 const pointer = { x: 0, y: 0, seen: false };
@@ -91,9 +93,19 @@ export function mount(el) {
     const fov = 2 * Math.atan(Math.tan(13 * Math.PI / 180) * Math.max(1, 0.75 / camera.aspect));
     camera.fov = fov * 180 / Math.PI;
     const dist = F.h / 2 / Math.tan(fov / 2);
-    camera.position.set(0, F.y, dist);
-    camera.lookAt(0, F.y, 0);
+    // In a wide box Kapi stands left of centre, so the camera slides right.
+    const cx = F.at != null ? (0.5 - F.at) * visibleWidth(fov, dist) : 0;
+    camera.position.set(cx, F.y, dist);
+    camera.lookAt(cx, F.y, 0);
     camera.updateProjectionMatrix();
+  }
+  function visibleWidth(fov, dist) { return 2 * dist * Math.tan(fov / 2) * camera.aspect; }
+  // Where the walk starts: just past the right edge of what the camera sees.
+  function walkFrom() {
+    if (F.at == null) return WALK.from;
+    const fov = camera.fov * Math.PI / 180, vw = visibleWidth(fov, camera.position.z), r = el.getBoundingClientRect();
+    const shown = Math.min(1, Math.max(0.3, (window.innerWidth - r.left) / (r.width || 1)));
+    return camera.position.x - vw / 2 + shown * vw + 0.45;
   }
 
   function play(name, once) {
@@ -134,7 +146,7 @@ export function mount(el) {
       if (!actions.idle) actions.idle = mixer.clipAction(gltf.animations[0]);
       // Each Kapi has his own everyday movement.
       // (Arms-up clips pull the head out of shape on this rig, so the scene Kapi hops instead of cheering.)
-      base = mode === 'peek' && actions.talk ? 'talk' : 'idle';
+      base = (mode === 'peek' || mode === 'host') && actions.talk ? 'talk' : 'idle';
       mixer.addEventListener('finished', () => play(base));
       if (reduce) { actions.idle.play(); mixer.update(0.5); actions.idle.paused = true; }
       else { play(base); mixer.update(Math.random() * 3); }
@@ -157,21 +169,26 @@ export function mount(el) {
     shadow.scale.set(0.62, 0.62, 1);
     shadow.position.y = 0.002;
     root.rotation.set(0, F.face, F.tilt);
-    if (mode === 'peek' && !reduce && actions.walk) {
+    size();
+    if ((mode === 'peek' || mode === 'host') && !reduce && actions.walk) {
       // Off to the right until the section is in view, then walk in.
-      enter = { phase: 'wait', t: 0 };
-      root.position.x = WALK.from;
+      enter = { phase: 'wait', t: 0, from: walkFrom() };
+      root.position.x = enter.from;
       root.rotation.y = WALK.yaw;
-      actions.walk.timeScale = 1.25;
       if (window.IntersectionObserver) {
         const io = new IntersectionObserver((es) => {
-          if (es[0].intersectionRatio >= 0.3 && enter.phase === 'wait') { enter = { phase: 'walk', t: clock.elapsedTime }; play('walk'); io.disconnect(); }
+          if (es[0].intersectionRatio >= 0.3 && enter.phase === 'wait') {
+            // A stroll: about as long as the friends' conversation in the house section; long walks go a bit faster.
+            const from = walkFrom(), dur = Math.min(F.at != null ? 5 : 3.4, Math.max(2.2, from / (F.at != null ? 0.8 : WALK.speed)));
+            actions.walk.timeScale = Math.min(2.4, 1.25 * (from / dur) / WALK.speed);
+            enter = { phase: 'walk', t: clock.elapsedTime, from, dur };
+            play('walk'); io.disconnect();
+          }
         }, { threshold: [0, 0.3, 0.6] });
         io.observe(el);
       } else { enter.phase = 'done'; root.position.x = 0; root.rotation.y = F.face; }
-    }
+    } else if (reduce && (mode === 'peek' || mode === 'host')) el.dispatchEvent(new CustomEvent('kapi:arrived'));
     shadow.position.x = root.position.x;
-    size();
     renderer.render(scene, camera);
     ready = true;
     el.classList.add('live');
@@ -182,15 +199,16 @@ export function mount(el) {
   // The walk-in, one frame at a time. Returns true while it is running (pointer-following waits).
   function walkIn(t) {
     if (!enter || enter.phase === 'done') return false;
-    if (enter.phase === 'walk') {
-      const dur = WALK.from / WALK.speed, p = Math.min(1, (t - enter.t) / dur);
-      root.position.x = WALK.from * (1 - (p < 0.8 ? p : 0.8 + (1 - Math.pow(1 - (p - 0.8) / 0.2, 2)) * 0.2));
+    if (enter.phase === 'wait') { root.position.x = enter.from = walkFrom(); root.rotation.y = WALK.yaw; }
+    else if (enter.phase === 'walk') {
+      const p = Math.min(1, (t - enter.t) / enter.dur);
+      root.position.x = enter.from * (1 - (p < 0.8 ? p : 0.8 + (1 - Math.pow(1 - (p - 0.8) / 0.2, 2)) * 0.2));
       root.rotation.y = WALK.yaw;
       if (p >= 1) { root.position.x = 0; enter = { phase: 'turn', t }; play('idle'); }
     } else if (enter.phase === 'turn') {
       const q = Math.min(1, (t - enter.t) / WALK.turn), e = q * q * (3 - 2 * q);
       root.rotation.y = WALK.yaw + (F.face - WALK.yaw) * e;
-      if (q >= 1) { enter = { phase: 'done', t }; look.x = 0; look.y = 0; wave(); }
+      if (q >= 1) { enter = { phase: 'done', t }; look.x = 0; look.y = 0; wave(); el.dispatchEvent(new CustomEvent('kapi:arrived')); }
     }
     shadow.position.x = root.position.x;
     return enter.phase !== 'done';

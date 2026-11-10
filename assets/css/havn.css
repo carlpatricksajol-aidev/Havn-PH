@@ -23,7 +23,7 @@
   --kapi-dark: var(--brass-text);
   --sand: var(--linen);
   --sand-line: var(--linen-line);
-  --sky: #F3E5D2;          /* top of the scene picture */
+  --sky: #F1E1CA;          /* top of the house picture (closing section) */
   --sky-soft: #F6EEE2;
   --surface: #F2EDE4;
   --card: #FFFFFF;
@@ -469,67 +469,38 @@ img.ok { opacity: 1 !important; }
 .js .static-home { display: none; }
 .static-home { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
 
-/* A note from Kapi, with Kapi walking in from the edge of the screen */
-.kapi-note { --peek: min(92vw, 380px); position: relative; overflow: hidden; margin-top: 40px; padding: 56px 16px calc(var(--peek) - 10px); background: linear-gradient(180deg, var(--page) 0%, var(--sky-soft) 45%, var(--sky) 100%); }
-.note-in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; }
-.note-card {
-  position: relative; width: min(480px, 100%); padding: 30px 28px 26px; border-radius: 22px;
-  background: #FFFDF9; border: 1px solid var(--linen-line);
-  box-shadow: 0 1px 2px rgba(23, 34, 29, .04), 0 28px 60px -28px rgba(23, 34, 29, .35);
-}
-.note-hi { margin-top: 14px; font: 500 32px/1.1 var(--font-serif); letter-spacing: -0.02em; color: var(--navy); }
-.note-text { margin-top: 12px; font: 400 20px/1.5 var(--font-serif); color: var(--ink-2); }
-.note-sign { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--linen-line); font: 500 14.5px/1.4 var(--font-body); color: var(--muted); }
-/* Kapi's picks: pick a place, see the three nearest rooms */
-.picks-ask { margin-top: 24px; font: 600 15px/1.3 var(--font-body); color: var(--text); }
-.pick-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 12px -4px 0; padding: 2px 4px 4px; }
-.pick-chips::-webkit-scrollbar { display: none; }
-@media (min-width: 640px) { .pick-chips { flex-wrap: wrap; overflow: visible; } }
-.pchip { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border-strong); background: #fff; font: 600 14px var(--font-body); color: var(--text); transition: background-color .15s, color .15s, border-color .15s; }
-.pchip:hover { border-color: var(--text); }
-.pchip[aria-pressed="true"] { background: var(--evergreen); border-color: var(--evergreen); color: #fff; }
-.picks-box { min-height: 340px; }
-.picks-head { margin-top: 20px; font: 600 13px var(--font-body); color: var(--muted); }
-.picks { display: grid; gap: 2px; margin: 6px -10px 0; }
-.pick { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 9px 10px; border-radius: 14px; text-decoration: none; color: var(--text); transition: background-color .15s; }
-.pick:hover { background: var(--surface); }
-.pick img { width: 92px; height: 69px; object-fit: cover; border-radius: 10px; background: #EEE9E0; }
-.pick-b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pick-b b { font: 650 15.5px/1.3 var(--font-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pick-near { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; color: var(--evergreen); }
-.pick-near .i { width: 15px; height: 15px; }
-.pick-meta { font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pick-price { text-align: right; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
-.pick-price b { display: block; font: 700 16.5px var(--font-body); color: var(--text); }
-.picks-none { margin-top: 14px; color: var(--muted); }
-.picks-all { margin-top: 16px; }
-.picks-all .i { width: 18px; height: 18px; }
-@media (max-width: 479px) { .pick { grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; } .pick img { width: 76px; height: 57px; } .pick-meta { display: none; } }
 .btn-lg { min-height: 56px; padding: 0 30px; font-size: 16px; border-radius: 999px; letter-spacing: .01em; }
 .btn-lg .i { width: 20px; height: 20px; }
 .btn-light { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(23, 34, 29, .12); }
 .btn-light:hover { background: #F3EEE6; }
-.capy-peek { position: absolute; right: calc(var(--peek) * -0.2); bottom: 0; width: var(--peek); height: var(--peek); z-index: 1; }
 
-/* The closing scene: Davao hills with Kapi and friends */
-.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: var(--sky); }
-.scene-art { position: absolute; bottom: 0; left: -50%; width: 200%; aspect-ratio: 2400 / 1029; will-change: transform; }
-.scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.scene::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--foot); z-index: 4; pointer-events: none; }
-.scene-copy { position: relative; z-index: 3; max-width: 900px; margin: 0 auto; padding: 44px 20px 0; text-align: center; }
-.scene-copy h2 { font: 500 38px/1.05 var(--font-serif); letter-spacing: -0.03em; color: var(--navy); text-wrap: balance; }
-.scene-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
-.scene-sub { margin-top: 14px; font-size: 14.5px; color: var(--ink-2); }
-.scene-lead { margin-top: 10px; font-size: 16px; font-weight: 500; color: var(--ink-2); }
+/* Kapi's friends at home: a full-screen painted boarding house (the closing section). The friends are painted in;
+   only the speech bubbles float. Picture: assets/scene/hood-*.webp, its bottom edge fades into --foot. */
+.hood { position: relative; display: flex; flex-direction: column; overflow: hidden; padding-top: 56px; background: var(--sky); }
+.hood::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 160px; z-index: 1; pointer-events: none; background: linear-gradient(180deg, var(--page), rgba(249, 246, 240, 0)); }
+.hood-copy { position: relative; z-index: 3; max-width: 760px; margin: 0 auto; padding: 0 20px; text-align: center; }
+.hood-copy h2 { font: 500 36px/1.06 var(--font-serif); letter-spacing: -0.03em; color: var(--navy); text-wrap: balance; }
+.hood-copy p { max-width: 560px; margin: 14px auto 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+.hood-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
+.hood-stage { position: relative; left: 50%; width: 260vw; aspect-ratio: 3000 / 1273; translate: -50% 0; margin-top: -4vw; }
+.hood-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.capy-host { position: absolute; left: 40.8%; bottom: 5%; width: 59.2%; height: 28.6%; z-index: 2; pointer-events: none; }
+.capy-host .capy-still { left: 6%; right: auto; width: 20%; height: 82%; bottom: 3%; }
+.says { position: relative; z-index: 3; display: grid; gap: 10px; width: 100%; max-width: 520px; margin: 26px auto 0; padding: 0 16px; list-style: none; }
+.say { justify-self: start; max-width: 86%; padding: 10px 15px 12px; border-radius: 18px 18px 18px 6px; background: #fff; box-shadow: 0 1px 2px rgba(23, 34, 29, .06), 0 10px 28px -12px rgba(23, 34, 29, .3); }
+.say:nth-child(even) { justify-self: end; border-radius: 18px 18px 6px 18px; }
+.say b { display: block; font: 650 12.5px/1.3 var(--font-body); color: var(--brass-text); }
+.say b i { font-style: normal; font-weight: 500; color: var(--muted); }
+.say span { display: block; margin-top: 2px; font: 400 15px/1.45 var(--font-body); color: var(--text); }
+@keyframes say-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
 .foot-brand { flex-basis: 100%; display: flex; align-items: center; gap: 8px; }
 .foot-brand .logo-word { font-size: 24px; }
 .foot-tag { margin-left: 6px; font-size: 13.5px; }
 .foot-scene .logo-word { color: #F6F0E5; }
 .foot-scene .foot-tag { color: #D7B98A; }
-.capy-jump { position: absolute; left: 50%; bottom: 1.5%; width: 30%; height: auto; aspect-ratio: 1; margin-left: -15%; z-index: 2; }
-.capy-jump .capy-still { height: 62%; bottom: 6%; }
 
-/* Footer on the grass */
+/* Footer on the grass (under the house) */
 .foot-scene { margin: 0; padding: 22px clamp(16px, 4vw, 80px) calc(26px + var(--nav-h)); border-top: 0; background: var(--foot); color: rgba(246, 240, 229, .74); }
 .foot-scene a { color: #fff; }
 .foot-scene .lang { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); }
@@ -1018,18 +989,28 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-near, .hrow .card-meta { font-size: 15px; }
   .hrow .card-price { font-size: 15px; }
   .hrow .card-price b { font-size: 18px; }
-  .kapi-note { --peek: min(52vw, 780px); margin-top: 56px; padding: 96px clamp(24px, 4vw, 80px) 120px; min-height: calc(var(--peek) + 24px); }
-  .note-in { max-width: 1360px; margin: 0 auto; padding-left: clamp(0px, 6vw, 120px); }
-  .note-hi { font-size: 44px; }
-  .note-text { font-size: 23px; }
-  .note-card { width: 620px; padding: 40px 42px 32px; }
-  .capy-peek { right: calc(var(--peek) * -0.24); bottom: 0; }
-  .scene { padding-bottom: 0; height: max(640px, min(calc(100vw * 1029 / 2400), 960px)); }
-  .scene-art { left: 0; width: 100%; }
-  .scene-copy { padding-top: clamp(56px, 6vw, 120px); }
-  .scene-copy h2 { font-size: clamp(48px, 5vw, 84px); }
-  .scene-sub { font-size: 16px; }
-  .capy-jump { width: 19%; margin-left: -9.5%; bottom: 2%; }
+  .hood { height: max(700px, 100vh); padding-top: 0; }
+  .hood-copy { position: absolute; left: 50%; top: clamp(112px, 13vh, 190px); translate: -50% 0; width: min(1400px, 92vw); max-width: none; padding: 0; }
+  .hood-copy h2 { font-size: clamp(44px, 3.6vw, 72px); }
+  .hood-copy p { font-size: clamp(16px, 1.05vw, 19px); }
+  .hood-stage, .says { position: absolute; left: 50%; bottom: 0; width: max(100%, calc(max(700px, 100vh) * .92 * 3000 / 1273)); max-width: none; aspect-ratio: 3000 / 1273; translate: -50% 0; margin: 0; padding: 0; }
+  .says { display: block; pointer-events: none; }
+  .say { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: max-content; max-width: clamp(220px, 15vw, 420px); padding: clamp(10px, .7vw, 16px) clamp(14px, 1vw, 22px);
+    opacity: 0; scale: .85; transition: opacity .45s ease, scale .6s cubic-bezier(.16, 1, .3, 1); animation: say-bob 5.5s ease-in-out infinite; animation-delay: var(--d); }
+  .say span { font-size: clamp(14.5px, .92vw, 23px); }
+  .say b { font-size: clamp(12px, .72vw, 17px); }
+  .say b i { display: none; }
+  .say-l { translate: -100% -100%; border-radius: 18px 18px 6px 18px; transform-origin: 100% 100%; }
+  .say-r { translate: 0 -100%; border-radius: 18px 18px 18px 6px; transform-origin: 0 100%; }
+  .say-c { translate: -50% -100%; border-radius: 18px; }
+  .say:nth-child(even) { border-radius: inherit; }
+  .say-l:nth-child(even) { border-radius: 18px 18px 6px 18px; }
+  .say-r:nth-child(even) { border-radius: 18px 18px 18px 6px; }
+  .hood.talk .say { opacity: 1; scale: 1; }
+  .hood.talk .say:nth-child(2) { transition-delay: 1s; }
+  .hood.talk .say:nth-child(3) { transition-delay: 2s; }
+  .hood.talk .say:nth-child(4) { transition-delay: 3s; }
+  .hood.talk:not(.kapi-here) .say-kapi { opacity: 0; scale: .85; }
   .foot-scene { padding-bottom: 28px; }
 
   /* Rooms page: the map sits inset with rounded corners. */
