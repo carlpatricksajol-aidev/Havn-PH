@@ -39,6 +39,11 @@
     var a = document.activeElement;
     return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); // never interrupt someone typing
   }
+  // A bright, calm room for the photo side, and a preview of what a landlord's listing looks like.
+  var ASK_PHOTO = '/assets/photos/u-6a9f6d5f-1200.webp';
+  function point(icon, text) {
+    return '<li><span class="ll-ask-pi" aria-hidden="true">' + H.icon(icon) + '</span><span>' + H.esc(text) + '</span></li>';
+  }
   function showAsk() {
     if (askEl) return;
     opener = document.activeElement;
@@ -47,19 +52,38 @@
     askEl.innerHTML =
       '<div class="ll-ask-backdrop" data-ll-close="' + REST_CLOSED + '"></div>' +
       '<div class="ll-ask-card" role="dialog" aria-modal="true" aria-labelledby="ll-ask-t" aria-describedby="ll-ask-s" tabindex="-1">' +
-        '<button type="button" class="icon-btn ll-ask-x" data-ll-close="' + REST_CLOSED + '" aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>' +
-        '<span class="ll-ask-ic" aria-hidden="true">' + H.icon('home') + '</span>' +
-        '<h2 id="ll-ask-t">' + H.esc(t('Do you own a boarding house?')) + '</h2>' +
-        '<p id="ll-ask-s">' + H.esc(PHONE ? t('List your rooms on Havn. Fill up a short form, or call or text us.') : t('List your rooms on Havn. Fill up a short form and we\'ll get back to you.')) + '</p>' +
-        '<div class="ll-ask-btns">' +
-          '<a class="btn btn-primary btn-block" href="/list" data-ll-open>' + H.esc(t('List my place')) + '</a>' +
-          '<button type="button" class="btn btn-ghost btn-block" data-ll-close="' + REST_RENTER + '">' + H.esc(t('No, I\'m looking for a room')) + '</button>' +
+        '<button type="button" class="ll-ask-x" data-ll-close="' + REST_CLOSED + '" aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>' +
+        '<div class="ll-ask-media" aria-hidden="true">' +
+          '<img src="' + ASK_PHOTO + '" alt="" width="1200" height="900">' +
+          '<span class="ll-ask-brand"><span class="logo-word">havn</span><span class="logo-dot"></span></span>' +
+          '<div class="ll-ask-preview">' +
+            '<span class="ll-ask-preview-k">' + H.esc(t('Your listing')) + '</span>' +
+            '<b>' + H.esc(t('Your boarding house')) + '</b>' +
+            '<span class="ll-ask-preview-near">' + H.icon('walk') + H.esc(t('{n} min walk to {school}', { n: 5, school: 'AdDU' })) + '</span>' +
+            '<span class="ll-ask-preview-row"><span><b>' + H.peso(4500) + '</b> ' + H.esc(t('/ month')) + '</span>' +
+              '<span class="ll-ask-status"><i></i>' + H.esc(t('Available now')) + '</span></span>' +
+          '</div>' +
         '</div>' +
-        (PHONE ? '<p class="ll-ask-call">' + H.esc(t('Prefer to talk?')) + ' <a href="tel:' + H.esc(telHref()) + '">' + H.icon('phone') + H.esc(PHONE) + '</a></p>' : '') +
+        '<div class="ll-ask-body">' +
+          '<p class="ll-ask-eyebrow">' + H.esc(t('For landlords')) + '</p>' +
+          '<h2 id="ll-ask-t">' + H.esc(t('Do you own a boarding house?')) + '</h2>' +
+          '<p id="ll-ask-s" class="ll-ask-lead">' + H.esc(t('Havn helps students and young workers in Davao find rooms by school, budget and room type. Add yours.')) + '</p>' +
+          '<ul class="ll-ask-points">' +
+            point('cap', t('Renters see the walk time to their school')) +
+            point('pin', t('Your photos, price and exact spot on the map')) +
+            point('clock', PHONE ? t('Fill up a short form, or just call or text us') : t('Fill up a short form and we\'ll get back to you')) +
+          '</ul>' +
+          '<div class="ll-ask-btns">' +
+            '<a class="btn ll-ask-go" href="/list" data-ll-open><span>' + H.esc(t('List my place')) + '</span>' + H.icon('arrow-right') + '</a>' +
+            '<button type="button" class="ll-ask-no" data-ll-close="' + REST_RENTER + '">' + H.esc(t('No, I\'m looking for a room')) + '</button>' +
+          '</div>' +
+          (PHONE ? '<p class="ll-ask-call">' + H.esc(t('Prefer to talk?')) + ' <a href="tel:' + H.esc(telHref()) + '">' + H.icon('phone') + H.esc(PHONE) + '</a></p>' : '') +
+        '</div>' +
       '</div>';
     document.body.appendChild(askEl);
     H.lockScroll(true);
     document.addEventListener('keydown', onAskKey);
+    askEl.getBoundingClientRect(); // start from the closed state so the entrance animates
     requestAnimationFrame(function () { if (askEl) askEl.classList.add('open'); });
     $('.ll-ask-card', askEl).focus({ preventScroll: true });
   }
@@ -80,12 +104,15 @@
     var el = askEl; askEl = null;
     document.removeEventListener('keydown', onAskKey);
     H.lockScroll(false);
+    el.classList.add('closing');
     el.classList.remove('open');
-    setTimeout(function () { el.remove(); }, 200);
+    setTimeout(function () { el.remove(); }, 220);
     if (!keepFocus && opener && opener.focus) opener.focus({ preventScroll: true });
   }
   L.startAsk = function () {
     if (!due()) return;
+    // Fetch the photo early so the pop-up never opens on a grey box.
+    setTimeout(function () { if (due()) new Image().src = ASK_PHOTO; }, Math.max(0, ASK_DELAY - 6000));
     timer = setTimeout(function tick() {
       if (!due()) return;
       if (canShow()) showAsk(); else timer = setTimeout(tick, 3000);
