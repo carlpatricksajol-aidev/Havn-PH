@@ -1,4 +1,4 @@
-/* Kapibahay — app shell: header, home, browse (rooms + map), filters, routing. */
+/* ECStay — app shell: header, home, browse (rooms + map), filters, routing. */
 (function () {
   var A = (window.App = {});
   // bbox = the map area [west, south, east, north] once someone moves the map themselves.
@@ -160,7 +160,7 @@
     }
     hdr.innerHTML =
       '<div class="hdr">' +
-        '<a href="/" class="logo" data-link data-home aria-label="Kapibahay, home"><img class="logo-icon" src="/assets/brand/kapibahay-icon.svg" width="40" height="40" alt=""><span class="logo-word"><span class="lw-kapi">kapi</span><span class="lw-bahay">bahay</span></span></a>' +
+        '<a href="/" class="logo" data-link data-home aria-label="ECStay, home"><img class="logo-icon" src="/assets/brand/ecstay-mark.svg" width="40" height="40" alt=""><span class="logo-word">ECStay</span></a>' +
         middle +
         '<div class="hdr-actions">' +
           '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
@@ -461,7 +461,7 @@
     var list = results(S);
     var box = $('#results-body');
     $('#results-title').textContent = title(list);
-    document.title = (S.saved ? t('Saved') : title(list)) + ' · Kapibahay';
+    document.title = (S.saved ? t('Saved') : title(list)) + ' · ECStay';
     var sortSel = $('#sort');
     if (sortSel) sortSel.value = S.sort;
     if (!list.length) {
@@ -510,12 +510,12 @@
 
   function footHtml(cls) {
     return '<footer class="foot' + (cls ? ' ' + cls : '') + '">' +
-      '<p class="foot-brand"><img src="/assets/brand/kapibahay-icon.svg" width="30" height="30" alt=""><span class="logo-word"><span class="lw-kapi">kapi</span><span class="lw-bahay">bahay</span></span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
-      '<p>© 2026 Kapibahay · Davao City</p>' +
+      '<p class="foot-brand"><img src="/assets/brand/ecstay-mark-light.svg" width="30" height="30" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
+      '<p>© 2026 ECStay · Davao City</p>' +
       '<p><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a></p>' +
       '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
       langButtons('lang-foot') +
-      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + ' ' + H.esc(t('3D icons: Microsoft Fluent Emoji (MIT).')) + (cls ? ' ' + H.esc(t('Kapi and friends were made for Kapibahay.')) : '') + '</p>' +
+      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + (cls ? ' ' + H.esc(t('Kapi and friends were made for ECStay.')) : '') + '</p>' +
     '</footer>';
   }
 
@@ -568,7 +568,7 @@
     renderHeader();
     renderHome();
     renderNav();
-    document.title = 'Kapibahay · Boarding houses, bedspaces and rooms in Davao City';
+    document.title = 'ECStay · Boarding houses, bedspaces and rooms in Davao City';
     window.scrollTo(0, fromRoom ? homeScroll : 0);
   }
 

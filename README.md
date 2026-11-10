@@ -1,16 +1,15 @@
-# Havn PH
+# ECStay (repo: Havn PH)
 
-Boarding houses, bedspaces and rooms in Davao City. Live at www.havnph.com (Vercel deploys `main`).
+ECStay (Explore, Come, Stay): boarding houses, bedspaces and rooms in Davao City. Live at www.havnph.com (Vercel deploys `main`).
 
 Plain HTML, CSS and JavaScript. No build step.
 
 - `index.html`: the page shell
 - `assets/js/data.js`: **all rooms, schools, landmarks (malls, hospitals, offices) and settings** (edit this to add or change a room)
 - `assets/js/app.js`: rooms list (`/rooms`), search, filters, saved rooms, routing
-- `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, landlord band
+- `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, questions, Kapi's note, the closing scene
 - `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections). Three Kapis: next to the search (`data-capy="stand"`), leaning in beside his note (`peek`) and hopping in the closing scene (`jump`); they share one model file.
-- `assets/scene/`: the closing scene, one picture (davao-friends-*.webp) with Kapi's friends painted in (tarsier on the tree, carabao reading, kitten behind the bush, eagle chick on a branch), made for Havn with Higgsfield. The 3D Kapi cheers on the grass; the picture rises with a parallax as you scroll.
-- `assets/3d/`: 3D icons (Microsoft Fluent Emoji, MIT, licence in that folder)
+- `assets/scene/`: the closing scene, one picture (davao-golden-*.webp): Davao and Mt Apo at golden hour with Kapi's friends painted in (tarsier on the tree, carabao reading, kitten behind the bush, eagle chick on a branch), made with Higgsfield. Its bottom edge fades into the footer colour `--foot`; its top row is `--sky`. The 3D Kapi hops on the grass; the picture rises with a parallax as you scroll.
 - `assets/js/room.js`: the room page (photos, details, map, Contact Landlord)
 - `assets/js/map.js`: the map (OpenStreetMap data via OpenFreeMap, no API key; shops, restaurants, hotels and other places are removed)
 - `assets/js/i18n.js`: English, Tagalog and Cebuano text
@@ -48,15 +47,18 @@ Sample listings use free stock photos (rawpixel and StockSnap, CC0; Unsplash Lic
 
 Map + list, filter chips, a heart to save and price markers are common patterns on many rental and property sites. Nothing here is taken from another company: no logos, brand colours, fonts, icons, photos, code or wording. Keep it that way:
 
-- Colours: Havn blue `#0052CC` and navy. Fonts: Plus Jakarta Sans + DM Sans (Google Fonts, OFL). Icons: Lucide (ISC, credited in `index.html`). 3D icons: Microsoft Fluent Emoji (MIT, `assets/3d/LICENSE`, credited in the footer).
-- Map price pins are blue tags whose tail points at the exact spot. The search bar is a rounded rectangle with a labelled "Search" button. Card photos are 3:2. The room page shows 3 photos and a "See all N photos" button.
-- The home page has room-type tabs with 3D icons, a big search and our own mascot (Kapi the capybara, made for Havn with Higgsfield/Meshy), then popular places as colourful cards and rows of rooms.
+- Colours: ECStay evergreen, brass and ivory (see below). Fonts: Fraunces + Instrument Sans (Google Fonts, OFL). Icons: Lucide line icons (ISC, credited in `index.html`).
+- Map price pins are evergreen tags (brass when picked) whose tail points at the exact spot. The search bar is a rounded rectangle with a labelled "Search" button. Card photos are 3:2. The room page shows 3 photos and a "See all N photos" button.
+- The home page has room-type tabs with line icons, a big search and our own mascot (Kapi the capybara, made with Higgsfield/Meshy, in an evergreen bandana as the ECStay concierge), then popular places as linen and sage cards and rows of rooms.
 - Write our own words. Don't copy another site's phrases, and don't name other companies in the code or on the site.
 
 ## Brand and search
 
-- Brand: Kapibahay. Colours: house blue `#0052CC`, Kapi caramel `#C2793A`, navy `#0B1F44`, sand `#FCEFE1`, sky `#C9DBFC` (tokens at the top of `havn.css`). Logo: `assets/brand/`.
+- Brand: **ECStay** = Explore, Come, Stay (Carl, 11 Nov 2026; before that Kapibahay for a day, and Havn PH). Line: "Explore. Come. Stay."
+- Look (from research on premium stay brands): warm ivory pages, one deep colour, one metallic accent, a serif for headlines. Evergreen `#1D3F35` (Mt Apo forests: buttons, links, pins), brass `#B98B4E` / `#8A6431` for small text (golden hour: eyebrows, accents), ivory `#F9F6F0`, linen `#EFE8DC`, ink `#17221D`, footer `#1C2A21`. Tokens at the top of `havn.css`; older names (`--blue`, `--navy`, `--kapi`) point at the new colours.
+- Type: Fraunces (headlines, wordmark, Kapi's note in italic) + Instrument Sans (everything else). Buttons are pills; line icons at 1.6 stroke.
+- Logo: `assets/brand/ecstay-mark.svg` (an arched doorway looking out at Mt Apo and the sun) + the wordmark "ECStay" set in Fraunces 600; `ecstay-mark-light.svg` for the dark footer. Icons: `apple-touch-icon.png`, `ecstay-512.png`.
 - Keep the home H1 a keyword sentence ("Boarding houses, bedspaces and rooms for rent in Davao City"); the slogan sits above it, never in its place.
 - `index.html` carries Organization, WebSite (search box) and FAQPage data, plus a plain-HTML copy of the home content for crawlers that do not run JavaScript (hidden once the app loads). Keep the FAQ there, in `home.js` and in `llms.txt` the same.
 - `llms.txt` describes the site for AI search tools. `assets/og.jpg` is the share picture.
-- When real rooms replace the samples, update the last FAQ answer ("Are the rooms on Kapibahay real?") in all three places.
+- When real rooms replace the samples, update the last FAQ answer ("Are the rooms on ECStay real?") in all three places.

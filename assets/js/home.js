@@ -1,31 +1,28 @@
-/* Kapibahay — home page: room-type tabs + search (with Kapi the capybara), popular places,
- * rows of rooms, landlord band. 3D icons: Microsoft Fluent Emoji (MIT, /assets/3d/LICENSE). */
+/* ECStay — home page: room-type tabs + search (with Kapi the capybara), popular places,
+ * rows of rooms, questions, Kapi's note and the closing scene. Line icons from the sprite in index.html. */
 (function () {
   var HV = (window.HomeView = {});
 
-  function i3(name, size, eager) {
-    return '<img class="i3" src="/assets/3d/' + name + '.webp" width="' + (size || 48) + '" height="' + (size || 48) + '" alt=""' +
-      (eager ? '' : ' loading="lazy"') + ' decoding="async">';
-  }
-  HV.i3 = i3;
+  // A line icon in a round badge.
+  function ic(name, cls) { return '<span class="' + cls + '" aria-hidden="true">' + H.icon(name) + '</span>'; }
 
-  // Brand tints: Kapibahay blue and Kapi's caramel, alternating.
-  var TINTS = ['#EAF1FF', '#FCEFE1'];
-  var KIND_ICON = { mall: 'bags', hospital: 'hospital', work: 'office' };
+  // ECStay tints: linen and a soft evergreen, alternating.
+  var TINTS = ['#EFE8DC', '#E4ECE6'];
+  var KIND_ICON = { mall: 'bag', hospital: 'hospital', work: 'briefcase' };
 
   // Room types as tabs (header on computers, under the search on phones).
   var TABS = [
-    { icon: 'houses', label: 'All rooms', type: '' },
+    { icon: 'grid', label: 'All rooms', type: '' },
     { icon: 'bed', label: 'Bedspace', type: 'Bedspace' },
-    { icon: 'couch', label: 'Shared room', type: 'Shared room' },
+    { icon: 'users', label: 'Shared room', type: 'Shared room' },
     { icon: 'door', label: 'Private room', type: 'Private room' },
-    { icon: 'house', label: 'Studio', type: 'Studio' },
+    { icon: 'sofa', label: 'Studio', type: 'Studio' },
   ];
   HV.tabs = function (api, cls) {
     return '<nav class="tabs ' + (cls || '') + '" aria-label="' + H.esc(t('Room type')) + '">' + TABS.map(function (x) {
       var on = !x.type;
       return '<a class="tab' + (on ? ' on' : '') + '" href="' + (x.type ? api.url({ types: [x.type] }) : '/') + '" data-link' + (on ? ' aria-current="page"' : '') + '>' +
-        i3(x.icon, 40, true) + '<span>' + H.esc(t(x.label)) + '</span></a>';
+        H.icon(x.icon) + '<span>' + H.esc(t(x.label)) + '</span></a>';
     }).join('') + '</nav>';
   };
 
@@ -36,11 +33,11 @@
     var near = function (id) { var p = H.school(id); return { icon: p.kind ? KIND_ICON[p.kind] : 'cap', title: t('Rooms near {place}', { place: p.short }), s: { place: 'school:' + id }, school: id }; };
     return [
       near('gmall'),
-      { icon: 'sparkles', title: t('Available now'), s: { avail: true } },
+      { icon: 'sparkle', title: t('Available now'), s: { avail: true } },
       near('nccc-vp'),
-      { icon: 'coin', title: t('{p} a month and below', { p: H.peso(5000) }), s: { max: 5000, sort: 'low' } },
+      { icon: 'wallet', title: t('{p} a month and below', { p: H.peso(5000) }), s: { max: 5000, sort: 'low' } },
       near('addu'),
-      { icon: 'bathtub', title: t('With their own CR'), s: { amen: ['own-cr'] } },
+      { icon: 'bath', title: t('With their own CR'), s: { amen: ['own-cr'] } },
     ];
   }
 
@@ -48,7 +45,7 @@
 
   function top(api) {
     return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
-      '<div class="top-greet"><p class="top-slogan">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</p>' +
+      '<div class="top-greet"><p class="top-slogan">Explore · Come · Stay</p>' +
         '<h1 id="top-t">' + H.esc(t('Boarding houses, bedspaces and rooms for rent in Davao City')) + '</h1></div>' +
       '<div class="top-search">' + api.searchHtml + '</div>' +
       HV.tabs(api, 'tabs-band') +
@@ -64,7 +61,7 @@
       '<div class="places">' + POPULAR.map(function (id, i) {
         var p = H.school(id), n = api.count({ place: 'school:' + id });
         return '<a class="place-card" href="' + api.url({ place: 'school:' + id }) + '" data-link style="--tint:' + TINTS[i % TINTS.length] + '">' +
-          i3(KIND_ICON[p.kind], 64) + '<span><b>' + H.esc(p.short) + '</b><small>' + H.esc(p.name) + '</small><em>' + H.esc(nearbyText(n)) + '</em></span></a>';
+          ic(KIND_ICON[p.kind], 'place-ic') + '<span><b>' + H.esc(p.short) + '</b><small>' + H.esc(p.name) + '</small><em>' + H.esc(nearbyText(n)) + '</em></span></a>';
       }).join('') + '</div></section>';
   }
 
@@ -72,7 +69,7 @@
     var list = api.list(r.s);
     if (list.length < 2) return '';
     return '<section class="hrow" aria-labelledby="row-' + idx + '">' +
-      '<div class="h-head">' + i3(r.icon, 36) + '<h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
+      '<div class="h-head">' + ic(r.icon, 'h-ic') + '<h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
         '<a class="hrow-all" href="' + api.url(r.s) + '" data-link>' + H.esc(t('See all')) + H.icon('arrow-right') + '</a>' +
         '<div class="hrow-nav"><button type="button" class="hrow-btn" data-row-step="-1" aria-label="' + H.esc(t('Previous')) + '">' + H.icon('chev-left') + '</button>' +
         '<button type="button" class="hrow-btn" data-row-step="1" aria-label="' + H.esc(t('Next')) + '">' + H.icon('chev-right') + '</button></div>' +
@@ -83,12 +80,12 @@
 
   /* Questions people ask before renting (also in index.html as FAQPage data for search and AI answers). */
   var FAQ = [
-    ['What is Kapibahay?', 'Kapibahay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.'],
+    ['What is ECStay?', 'ECStay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.'],
     ['Where in Davao can I find a room?', 'Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.'],
     ['What kinds of rooms are listed?', 'Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.'],
-    ['How do I contact a landlord?', 'Open a room and tap Contact Landlord. Kapibahay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.'],
-    ['How do I list my boarding house?', 'Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The Kapibahay team will get back to you.'],
-    ['Are the rooms on Kapibahay real?', 'The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.']
+    ['How do I contact a landlord?', 'Open a room and tap Contact Landlord. ECStay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.'],
+    ['How do I list my boarding house?', 'Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The ECStay team will get back to you.'],
+    ['Are the rooms on ECStay real?', 'The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.']
   ];
   function faq() {
     return '<section class="h-sec faq" aria-labelledby="faq-t"><div class="h-head"><h2 id="faq-t">' + H.esc(t('Questions about renting a room in Davao')) + '</h2></div>' +
@@ -107,7 +104,7 @@
         '<div class="note-card">' +
           '<h2 id="note-t" class="note-hi">' + H.esc(t('Hi, I\'m Kapi!')) + '</h2>' +
           '<p class="note-text">' + H.esc(t('Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.')) + '</p>' +
-          '<p class="note-sign">— Kapi</p>' +
+          '<p class="note-sign">Kapi · ' + H.esc(t('Your ECStay concierge')) + '</p>' +
         '</div>' +
         '<button type="button" class="btn btn-primary btn-lg" data-find>' + H.icon('search') + '<span>' + H.esc(t('Start searching')) + '</span></button>' +
       '</div>' +
@@ -115,22 +112,22 @@
     '</section>';
   }
 
-  /* The closing scene: Davao hills with Kapi's friends painted in (tarsier on the tree, carabao reading,
+  /* The closing scene: Davao at golden hour with Kapi's friends painted in (tarsier on the tree, carabao reading,
    * kitten behind the bush, eagle chick on a branch) and Kapi cheering on the grass. */
   function scene() {
     return '<section class="scene" aria-labelledby="scene-t">' +
       '<div class="scene-art" aria-hidden="true">' +
-        '<img class="scene-bg" src="/assets/scene/davao-sky-1280.webp" srcset="/assets/scene/davao-sky-1280.webp 1280w, /assets/scene/davao-sky-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
+        '<img class="scene-bg" src="/assets/scene/davao-golden-1280.webp" srcset="/assets/scene/davao-golden-1280.webp 1280w, /assets/scene/davao-golden-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
         '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
       '</div>' +
       '<div class="scene-copy">' +
-        '<h2 id="scene-t">' + H.esc(t('Hanap-bahay? Kapibahay!')) + '</h2>' +
+        '<h2 id="scene-t">Explore. Come. <em>Stay.</em></h2>' +
         '<p class="scene-lead">' + H.esc(t('Rooms and bedspaces in Davao, near malls, offices and schools.')) + '</p>' +
         '<div class="scene-btns">' +
           '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a>' +
           '<a class="btn btn-light btn-lg" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
         '</div>' +
-        '<p class="scene-sub">' + H.esc(t('Own a boarding house? List it on Kapibahay so people nearby can find it.')) + '</p>' +
+        '<p class="scene-sub">' + H.esc(t('Own a boarding house? List it on ECStay so people nearby can find it.')) + '</p>' +
       '</div>' +
     '</section>';
   }

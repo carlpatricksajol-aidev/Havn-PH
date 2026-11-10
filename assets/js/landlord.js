@@ -1,4 +1,4 @@
-/* Kapibahay — landlords: the "Do you own a boarding house?" pop-up and the listing form.
+/* ECStay — landlords: the "Do you own a boarding house?" pop-up and the listing form.
  *
  * Settings live in data.js (HAVN_CONFIG):
  *   phone            number landlords can call or text; empty = the Call/Text buttons are hidden
@@ -55,7 +55,7 @@
         '<button type="button" class="ll-ask-x" data-ll-close="' + REST_CLOSED + '" aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>' +
         '<div class="ll-ask-media" aria-hidden="true">' +
           '<img src="' + ASK_PHOTO + '" alt="" width="1200" height="900">' +
-          '<span class="ll-ask-brand"><img src="/assets/brand/kapibahay-icon.svg" width="30" height="30" alt=""><span class="logo-word">kapibahay</span></span>' +
+          '<span class="ll-ask-brand"><img src="/assets/brand/ecstay-mark.svg" width="30" height="30" alt=""><span class="logo-word">ECStay</span></span>' +
           '<div class="ll-ask-preview">' +
             '<span class="ll-ask-preview-k">' + H.esc(t('Your listing')) + '</span>' +
             '<b>' + H.esc(t('Your boarding house')) + '</b>' +
@@ -67,7 +67,7 @@
         '<div class="ll-ask-body">' +
           '<p class="ll-ask-eyebrow">' + H.esc(t('For landlords')) + '</p>' +
           '<h2 id="ll-ask-t">' + H.esc(t('Do you own a boarding house?')) + '</h2>' +
-          '<p id="ll-ask-s" class="ll-ask-lead">' + H.esc(t('Kapibahay helps students and young workers in Davao find rooms by school, budget and room type. Add yours.')) + '</p>' +
+          '<p id="ll-ask-s" class="ll-ask-lead">' + H.esc(t('ECStay helps students and young workers in Davao find rooms by school, budget and room type. Add yours.')) + '</p>' +
           '<ul class="ll-ask-points">' +
             point('cap', t('Renters see the walk time to their school')) +
             point('pin', t('Your photos, price and exact spot on the map')) +
@@ -187,7 +187,7 @@
   }
 
   function summary(v) {
-    return t('Hi Kapibahay! I\'d like to list my boarding house.') + '\n' +
+    return t('Hi ECStay! I\'d like to list my boarding house.') + '\n' +
       'Name: ' + v.name + '\nMobile: ' + showPhone(v.phone) + ' (' + v.reach + ')\nWhere: ' + v.where +
       (v.types.length ? '\nRents out: ' + v.types.join(', ') : '') +
       (v.count ? '\nRooms or beds: ' + v.count : '') +
@@ -200,7 +200,7 @@
     var body = {
       access_key: C.landlordFormKey,
       subject: 'New landlord: ' + v.name + ' (' + v.where + ')',
-      from_name: 'Kapibahay website',
+      from_name: 'ECStay website',
       botcheck: false,
       'Name': v.name,
       'Mobile': showPhone(v.phone),

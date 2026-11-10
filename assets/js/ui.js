@@ -1,4 +1,4 @@
-/* Havn PH — shared helpers (formatting, distances, saved rooms, dialogs). */
+/* ECStay — shared helpers (formatting, distances, saved rooms, dialogs). */
 (function () {
   var H = (window.H = {});
 

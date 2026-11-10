@@ -1,73 +1,61 @@
 ---
-name: havn-design-system
-description: Apply Havn's brand identity, color palette, typography, and design tokens when building any UI for the Havn boarding house search app. Use this skill when building pages, components, or layouts for Havn (havnph.com / browse.havnph.com) — including listing cards, search filters, maps, landing pages, and dashboards.
+name: ecstay-design-system
+description: Apply ECStay's brand identity, colour palette, typography and design tokens when building any UI for the ECStay boarding house search site (havnph.com). Use this skill when building pages, components or layouts for ECStay, including listing cards, search filters, maps, landing pages and dashboards.
 ---
 
-# Havn Design System
+# ECStay Design System
 
-Havn is a boarding house search platform for students and young professionals in Davao City, Philippines. The brand is trustworthy, clean, and approachable — a place that feels like home before you find one.
+ECStay (Explore, Come, Stay) is a boarding house, bedspace and room finder for students and young workers in Davao City, Philippines. The brand should feel like a calm, premium stay brand: warm ivory pages, one deep colour, one metallic accent, a serif for headlines. Kapi the capybara is the ECStay concierge.
 
 ## Brand Identity
 
-- **Product name**: Havn (pronounced "haven")
-- **Tagline**: "Find your haven in Davao City"
-- **Target users**: Students near UM, AdDU, USEP, SPC, HCDC — and young workers
-- **Tone**: Calm, helpful, Filipino-warm. Not corporate. Not cluttered.
-- **Feel**: The app should feel like a reliable kuya/ate recommending a boarding house — trustworthy, local, and genuinely useful.
+- **Product name**: ECStay (always written with E, C and S capitalised)
+- **Line**: "Explore. Come. Stay." (English in every language)
+- **Target users**: students near UM, AdDU, USeP, SPC, HCDC, and young workers near malls, hospitals and offices
+- **Tone**: calm, warm, helpful. Premium, never stiff.
+- **Logo**: `assets/brand/ecstay-mark.svg` (an arched doorway looking out at Mt Apo and the sun) + the wordmark "ECStay" in Fraunces 600, evergreen. On dark backgrounds use `ecstay-mark-light.svg` and an ivory wordmark.
 
 ## Color Palette
 
-Always use CSS variables. Reference this system:
+Always use the CSS variables at the top of `assets/css/havn.css`:
 
 ```css
 :root {
-  /* Brand */
-  --havn-blue:        #0052CC;  /* Primary — headers, CTAs, links */
-  --havn-blue-dark:   #003A99;  /* Hover state */
-  --havn-blue-light:  #E6EFFE;  /* Subtle tint backgrounds */
-
-  /* Neutrals */
-  --havn-white:       #FFFFFF;
-  --havn-surface:     #F7F8FA;  /* Page background */
-  --havn-card:        #FFFFFF;  /* Card background */
-  --havn-border:      #E0E4ED;  /* Borders, dividers */
-  --havn-muted:       #6B7280;  /* Secondary text */
-  --havn-text:        #111827;  /* Primary text */
-
-  /* Status */
-  --havn-green:       #16A34A;  /* Available now badge */
-  --havn-amber:       #D97706;  /* Limited availability */
-  --havn-red:         #DC2626;  /* Fully booked */
-
-  /* Accent */
-  --havn-warm:        #FFF7ED;  /* Warm fill for featured cards */
-  --havn-warm-border: #FED7AA;  /* Orange accent for featured */
+  --evergreen:      #1D3F35;  /* Primary: buttons, links, map pins (Mt Apo forests) */
+  --evergreen-dark: #132C25;  /* Hover */
+  --evergreen-soft: #E6EDE8;  /* Tint backgrounds */
+  --brass:          #B98B4E;  /* Accent: rules, icons, decoration (golden hour) */
+  --brass-text:     #8A6431;  /* Brass for small text: eyebrows, signatures (4.8:1 on ivory) */
+  --page:           #F9F6F0;  /* Ivory page background */
+  --linen:          #EFE8DC;  /* Section bands, cards */
+  --linen-line:     #E2D8C7;
+  --text:           #17221D;  /* Ink */
+  --ink-2:          #3C443F;
+  --muted:          #666C66;
+  --border:         #E4DDD0;
+  --foot:           #1C2A21;  /* Footer, matches the grass in the closing scene */
+  --sky:            #F3E5D2;  /* Top of the closing scene picture */
 }
 ```
 
-**DO NOT** use purple gradients, dark navy backgrounds for the main UI, or neon colors. Havn is day-use — students browse it on mobile in bright sunlight.
+Older token names (`--blue`, `--navy`, `--kapi`, `--sand`) are kept and point at these colours.
+
+**DO NOT** use bright blue, purple gradients, neon colours or emoji/3D icons. Keep one accent (brass) per view.
 
 ## Typography
 
 ```css
-/* Import in <head> */
-/* @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap'); */
-
 :root {
-  --font-display: 'Plus Jakarta Sans', sans-serif;  /* Headings, logo, CTAs */
-  --font-body:    'DM Sans', sans-serif;             /* Body text, labels */
+  --font-serif:   'Fraunces', Georgia, serif;          /* Headlines, wordmark, section titles, Kapi's note (italic) */
+  --font-display: 'Instrument Sans', system-ui, sans-serif; /* Buttons, labels, chips */
+  --font-body:    'Instrument Sans', system-ui, sans-serif; /* Body text */
 }
-
-/* Scale */
-/* h1: 2rem / 700 — page titles */
-/* h2: 1.5rem / 600 — section headers */
-/* h3: 1.125rem / 600 — card titles */
-/* body: 0.9375rem / 400 — default reading text */
-/* label: 0.8125rem / 500 — filter labels, badges */
-/* caption: 0.75rem / 400 — metadata, timestamps */
 ```
 
-**Never use**: Inter, Roboto, Arial, system-ui as primary font. Havn has a brand — use it.
+- Headlines: Fraunces 500, letter-spacing -0.015em to -0.03em.
+- Eyebrows (small labels above headlines): Instrument Sans 600, 11-12px, uppercase, letter-spacing .18-.22em, `--brass-text`.
+- Prices and numbers stay in Instrument Sans.
+- The home H1 is always the keyword sentence ("Boarding houses, bedspaces and rooms for rent in Davao City"); the line "Explore · Come · Stay" sits above it as an eyebrow.
 
 ## Spacing & Layout
 
@@ -90,7 +78,7 @@ Always use CSS variables. Reference this system:
 
 ### Listing Card
 - Photo thumbnail (16:9 ratio, `object-fit: cover`)
-- Price badge top-left: `₱X,XXX/mo` in `--havn-blue`
+- Price badge top-left: `₱X,XXX/mo` in `--evergreen`
 - Availability dot: green/amber/red with label
 - Title: boarding house name, `font-weight: 600`
 - 2–3 amenity chips (WiFi, CR included, etc.)
@@ -99,28 +87,28 @@ Always use CSS variables. Reference this system:
 
 ### Filter Pills
 - Horizontal scroll on mobile
-- Active: `background: --havn-blue`, white text
-- Inactive: `background: --havn-surface`, `--havn-text`
+- Active: `background: --evergreen`, white text
+- Inactive: `background: --surface`, `--text`
 - Border radius: `--radius-xl` (pill shape)
 
 ### Price Range Slider
 - Two-handle range input
 - Display: `₱1,000 — ₱10,000+`
-- Track color: `--havn-blue`
+- Track color: `--evergreen`
 
 ### Search Bar
 - Full width, prominent
 - Placeholder: "Search by location or university..."
 - Icon: magnifying glass left-aligned inside input
-- Focus ring: `0 0 0 3px rgba(0,82,204,0.2)`
+- Focus ring: `0 0 0 3px rgba(29,63,53,0.25)`
 
 ### University Badges
 Use abbreviated names: UM, AdDU, USEP, SPC, HCDC
-Color: `--havn-blue-light` background, `--havn-blue` text
+Color: `--evergreen-soft` background, `--evergreen` text
 
 ## Mobile-First Rules
 
-Most Havn users are on mobile (students browsing on data). Always:
+Most ECStay users are on mobile (students browsing on data). Always:
 - Build mobile layout first, then desktop
 - Minimum tap target: 44×44px
 - Card grid: 1 column mobile → 2 columns tablet → 3 columns desktop

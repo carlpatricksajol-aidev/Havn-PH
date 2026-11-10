@@ -1,4 +1,4 @@
-/* Havn PH — maps. MapLibre GL + OpenFreeMap (OpenStreetMap data, no API key).
+/* ECStay — maps. MapLibre GL + OpenFreeMap (OpenStreetMap data, no API key).
  * The basemap is stripped of every shop, restaurant, hotel, bank and transit
  * icon, so the only things on the map are streets, room pins and schools. */
 (function () {
