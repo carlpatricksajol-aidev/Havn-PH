@@ -80,16 +80,42 @@
     '</section>';
   }
 
-  function landlordBand() {
-    return '<section class="ll-band" aria-labelledby="llb-t"><div class="ll-band-copy">' +
-        '<h2 id="llb-t">' + H.esc(t('Own a boarding house?')) + '</h2>' +
-        '<p>' + H.esc(t('List it on Havn so students and young workers nearby can find it.')) + '</p>' +
-        '<a class="btn btn-primary" href="/list" data-ll-open><span>' + H.esc(t('List your place')) + '</span>' + H.icon('arrow-right') + '</a>' +
-      '</div><div class="ll-band-art" aria-hidden="true">' +
-        '<span class="ha" style="left:22%;top:6%;width:52%">' + i3('house-garden', 192) + '</span>' +
-        '<span class="ha" style="left:2%;top:52%;width:26%;--r:-18deg;animation-delay:-1s">' + i3('key', 192) + '</span>' +
-        '<span class="ha" style="left:72%;top:50%;width:24%;animation-delay:-2s">' + i3('dog', 192) + '</span>' +
-      '</div></section>';
+  function kapiStill() {
+    return '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" loading="lazy">';
+  }
+
+  /* A note from Kapi, with Kapi leaning in from the edge of the screen. */
+  function kapiNote() {
+    return '<section class="kapi-note" aria-labelledby="note-t"><div class="note-in">' +
+        '<div class="note-card">' +
+          '<h2 id="note-t" class="note-hi">' + H.esc(t('Hi, I\'m Kapi!')) + '</h2>' +
+          '<p class="note-text">' + H.esc(t('Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.')) + '</p>' +
+          '<p class="note-sign">— Kapi</p>' +
+        '</div>' +
+        '<button type="button" class="btn btn-primary btn-lg" data-find>' + H.icon('search') + '<span>' + H.esc(t('Start searching')) + '</span></button>' +
+      '</div>' +
+      '<div class="capy capy-peek" data-capy="peek" aria-hidden="true">' + kapiStill() + '</div>' +
+    '</section>';
+  }
+
+  /* The closing scene: Davao hills, Kapi hopping on the grass, friends peeking from the trees. */
+  function scene() {
+    var friend = function (name, cls) { return '<span class="friend f-' + name + (cls ? ' ' + cls : '') + '"><img src="/assets/scene/' + name + '.webp" alt="" loading="lazy" decoding="async"></span>'; };
+    return '<section class="scene" aria-labelledby="scene-t">' +
+      '<div class="scene-art" aria-hidden="true">' +
+        '<img class="scene-bg" src="/assets/scene/davao-hills-1280.webp" srcset="/assets/scene/davao-hills-1280.webp 1280w, /assets/scene/davao-hills-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
+        friend('carabao') + friend('tarsier') + friend('kitten') + friend('eagle') +
+        '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
+      '</div>' +
+      '<div class="scene-copy">' +
+        '<h2 id="scene-t">' + H.esc(t('Find a home you\'ll love in Davao.')) + '</h2>' +
+        '<div class="scene-btns">' +
+          '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a>' +
+          '<a class="btn btn-light btn-lg" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
+        '</div>' +
+        '<p class="scene-sub">' + H.esc(t('Own a boarding house? List it on Havn so people nearby can find it.')) + '</p>' +
+      '</div>' +
+    '</section>';
   }
 
   HV.render = function (host, api) {
@@ -97,26 +123,37 @@
       '<div class="home-wrap">' +
         places(api) +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
-        landlordBand() + api.foot +
-      '</div></div>';
+      '</div>' +
+      kapiNote() + scene() + api.footScene +
+    '</div>';
     bindRows(host);
     startCapy(host);
   };
 
-  /* Kapi the capybara: a still picture first, then the moving 3D one when the browser can draw it. */
+  /* Kapi the capybara: still pictures first, then the moving 3D Kapi when the browser can draw it.
+   * The one at the top starts when the page is idle; the others when they come near the screen. */
   function startCapy(host) {
-    var el = host.querySelector('[data-capy]');
-    if (!el) return;
-    // The 3D model is about 1 MB: skip it on data saver or slow connections (the picture stays).
+    var els = host.querySelectorAll('[data-capy]');
+    if (!els.length) return;
+    // The 3D model is about 1 MB: skip it on data saver or slow connections (the pictures stay).
     var net = navigator.connection;
     if (net && (net.saveData || /(^|-)2g|3g/.test(net.effectiveType || ''))) return;
     var c = document.createElement('canvas');
     var ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
     if (!ok) return;
-    var go = function () {
-      import('/assets/js/capy.js').then(function (m) { m.mount(el); }).catch(function () { /* the still picture stays */ });
+    var mod = null;
+    var mount = function (el) {
+      mod = mod || import('/assets/js/capy.js');
+      mod.then(function (m) { m.mount(el); }).catch(function () { /* the still picture stays */ });
     };
-    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 1500 }); else setTimeout(go, 400);
+    var first = els[0];
+    if ('requestIdleCallback' in window) requestIdleCallback(function () { mount(first); }, { timeout: 1500 }); else setTimeout(function () { mount(first); }, 400);
+    var rest = Array.prototype.slice.call(els, 1);
+    if (!window.IntersectionObserver) { rest.forEach(mount); return; }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); mount(e.target); } });
+    }, { rootMargin: '400px 0px' });
+    rest.forEach(function (el) { io.observe(el); });
   }
 
   /* Row arrows: scroll a page of cards; disabled at either end, hidden when everything fits. */

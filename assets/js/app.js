@@ -508,13 +508,13 @@
     if (desktop.matches && window.scrollY > 0 && list.map(function (l) { return l.id; }).join() !== before) window.scrollTo(0, 0);
   }
 
-  function footHtml() {
-    return '<footer class="foot">' +
+  function footHtml(cls) {
+    return '<footer class="foot' + (cls ? ' ' + cls : '') + '">' +
       '<p>© 2026 Havn PH · Davao City</p>' +
       '<p><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a></p>' +
       '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
       langButtons('lang-foot') +
-      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + ' ' + H.esc(t('3D icons: Microsoft Fluent Emoji (MIT).')) + '</p>' +
+      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + ' ' + H.esc(t('3D icons: Microsoft Fluent Emoji (MIT).')) + (cls ? ' ' + H.esc(t('Kapi and friends were made for Havn.')) : '') + '</p>' +
     '</footer>';
   }
 
@@ -524,6 +524,7 @@
       searchHtml: searchHtml(),
       sampleNote: sampleNote(),
       foot: footHtml(),
+      footScene: footHtml('foot-scene'),
       count: function (p) { return results(stateWith(p)).length; },
       list: function (p) { return results(stateWith(p)); },
       url: function (p) { return urlFor(stateWith(p)); },

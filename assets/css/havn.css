@@ -396,8 +396,10 @@ img.ok { opacity: 1 !important; }
 .top .sf-go span { display: none; }
 .top .sf-go .i { width: 20px; height: 20px; stroke-width: 2.4; }
 
-.capy { position: absolute; right: 6px; top: -8px; width: 120px; aspect-ratio: 1; z-index: 2; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.capy-still, .capy canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.capy { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.top .capy { position: absolute; right: 0; top: -26px; width: 150px; height: 150px; z-index: 2; }
+.capy canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.capy-still { position: absolute; left: 18%; right: 18%; bottom: 0; height: 68%; width: 64%; object-fit: contain; object-position: 50% 100%; }
 .capy-still { filter: drop-shadow(0 8px 12px rgba(11, 31, 68, .12)); transition: opacity .35s; }
 .capy canvas { opacity: 0; transition: opacity .35s; }
 .capy.live canvas { opacity: 1; }
@@ -410,10 +412,6 @@ img.ok { opacity: 1 !important; }
 .capy.talk .capy-bubble { opacity: 1; transform: none; }
 @media (max-width: 1023px) { .capy-bubble { display: none; } }
 
-/* Floating 3D bits (landlord band) */
-.ha { position: absolute; display: block; animation: bob 5.5s ease-in-out infinite; transform: rotate(var(--r, 0deg)); }
-.ha .i3 { width: 100%; height: auto; filter: drop-shadow(0 6px 10px rgba(11, 31, 68, .12)); }
-@keyframes bob { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-6px) rotate(var(--r, 0deg)); } }
 
 .h-sec, .hrow { margin-top: 32px; }
 .h-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -456,16 +454,55 @@ img.ok { opacity: 1 !important; }
 .hrow-track .card-media { aspect-ratio: 4 / 3; border-radius: 18px; }
 .hrow-track .card-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Landlords */
-.ll-band {
-  position: relative; overflow: hidden; display: grid; gap: 8px; margin-top: 36px; padding: 24px 20px 20px; border-radius: 24px;
-  background: radial-gradient(70% 90% at 100% 100%, rgba(255, 200, 214, .6) 0%, rgba(255, 200, 214, 0) 70%), linear-gradient(135deg, #FFF3E3 0%, #FFEDE6 100%);
+
+/* A note from Kapi, with Kapi leaning in from the edge of the screen */
+.kapi-note { position: relative; overflow: hidden; margin-top: 56px; padding: 40px 16px 250px; background: linear-gradient(180deg, #fff 0%, #EDF4FF 100%); }
+.note-in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; }
+.note-card {
+  position: relative; width: min(470px, 100%); padding: 26px 26px 22px 54px; border-radius: 18px; transform: rotate(-2.5deg);
+  background: #fff repeating-linear-gradient(180deg, transparent 0 35px, #D3E2F6 35px 36px); background-position: 0 30px;
+  box-shadow: 0 2px 4px rgba(11, 31, 68, .06), 0 16px 40px rgba(11, 31, 68, .12);
 }
-.ll-band h2 { font: 800 24px/1.15 var(--font-display); letter-spacing: -0.02em; color: #0B1F44; }
-.ll-band p { color: var(--ink-2); margin: 8px 0 18px; max-width: 460px; }
-.ll-band .btn .i { width: 18px; height: 18px; }
-.ll-band-art { position: relative; width: min(220px, 60vw); aspect-ratio: 4 / 3; justify-self: center; }
-.home .foot { margin-top: 36px; }
+.note-card::before { content: ''; position: absolute; left: 18px; top: 22px; bottom: 22px; width: 14px; background: radial-gradient(circle, #DDE6F2 0 5px, transparent 5.5px) 0 0 / 14px 30px repeat-y; }
+.note-card::after { content: ''; position: absolute; left: 42px; top: 0; bottom: 0; width: 2px; background: #F6C7CF; }
+.note-hi { font: 700 34px/1.1 'Caveat', cursive; color: #0B1F44; }
+.note-text { margin-top: 8px; font: 500 25px/36px 'Caveat', cursive; color: #1E3A5F; }
+.note-sign { margin-top: 4px; text-align: right; font: 700 26px/1.2 'Caveat', cursive; color: var(--blue); }
+.btn-lg { min-height: 56px; padding: 0 26px; font-size: 16.5px; border-radius: 16px; }
+.btn-lg .i { width: 20px; height: 20px; }
+.btn-light { background: #fff; color: #0B1F44; box-shadow: 0 2px 8px rgba(11, 31, 68, .12); }
+.btn-light:hover { background: #F4F7FB; }
+.capy-peek { position: absolute; right: -90px; bottom: -36px; width: 320px; height: 320px; z-index: 1; cursor: pointer; }
+.capy-peek .capy-still { left: 10%; right: auto; width: 80%; height: 92%; bottom: -12%; transform: rotate(-9deg); transform-origin: 50% 100%; }
+
+/* The closing scene: Davao hills with Kapi and friends */
+.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: #C0F6EB; }
+.scene-art { position: absolute; bottom: 0; left: -50%; width: 200%; aspect-ratio: 2400 / 1029; }
+.scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scene-copy { position: relative; z-index: 3; max-width: 900px; margin: 0 auto; padding: 44px 20px 0; text-align: center; }
+.scene-copy h2 { font: 800 34px/1.06 var(--font-display); letter-spacing: -0.03em; color: #0D3550; text-wrap: balance; }
+.scene-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
+.scene-sub { margin-top: 14px; font-size: 14.5px; color: #2A5468; }
+.friend { position: absolute; display: block; z-index: 1; }
+.friend img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 10px rgba(20, 50, 20, .18)); }
+.f-carabao { left: 4.5%; bottom: 4%; width: 8.5%; transform-origin: 50% 100%; animation: breathe 4.5s ease-in-out infinite; }
+.f-tarsier { left: 11.5%; bottom: 44%; width: 6%; transform-origin: 50% 0; animation: sway 5s ease-in-out infinite; }
+.f-kitten { left: 72.4%; bottom: 24.2%; width: 6.6%; height: 9.5%; overflow: hidden; }
+.f-kitten img { position: absolute; left: 0; bottom: 0; animation: peekup 7s ease-in-out infinite; }
+.f-eagle { left: 87.5%; bottom: 62%; width: 6.4%; transform-origin: 50% 100%; animation: rock 3.4s ease-in-out infinite; }
+.capy-jump { position: absolute; left: 50%; bottom: 1.5%; width: 30%; height: auto; aspect-ratio: 1; margin-left: -15%; z-index: 2; }
+.capy-jump .capy-still { height: 62%; bottom: 6%; }
+@keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, .975); } }
+@keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg); } }
+@keyframes rock { 0%, 100% { transform: rotate(-4deg) translateY(0); } 25% { transform: rotate(5deg) translateY(-4%); } 50% { transform: rotate(-2deg) translateY(0); } }
+@keyframes peekup { 0%, 12% { transform: translateY(95%); } 22%, 62% { transform: translateY(0); } 70%, 100% { transform: translateY(95%); } }
+
+/* Footer on the grass */
+.foot-scene { margin: 0; padding: 18px clamp(16px, 4vw, 80px) calc(22px + var(--nav-h)); border-top: 0; background: linear-gradient(180deg, #4F7D2A 0%, #3F6926 100%); color: rgba(255, 255, 255, .82); }
+.foot-scene a { color: #fff; }
+.foot-scene .lang { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); }
+.foot-scene .lang button { color: rgba(255, 255, 255, .85); }
+.foot-scene .lang button[aria-pressed="true"] { background: #fff; color: #2F531C; }
 
 /* The mall / hospital / office a search is "near", on the map */
 .place-pin { position: relative; width: 28px; height: 28px; pointer-events: none; z-index: 2; }
@@ -914,7 +951,6 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 @media (min-width: 640px) {
   .top-greet h1 { font-size: 28px; }
   .hrow-track .card { flex-basis: calc((100% - 16px) / 2.3); }
-  .ll-band { grid-template-columns: minmax(0, 1fr) 240px; align-items: center; padding: 32px 36px; }
 }
 
 @media (min-width: 1024px) {
@@ -930,15 +966,15 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
   .home { padding-bottom: 0; }
   .home-wrap { padding: 0 clamp(24px, 4vw, 80px); }
-  .top-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 880px) minmax(210px, 1fr); align-items: center; min-height: 190px; padding: 4px clamp(24px, 4vw, 80px) 0; }
+  .top-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 880px) minmax(260px, 1fr); align-items: center; min-height: 250px; padding: 0 clamp(24px, 4vw, 80px); }
   .top-greet { position: absolute !important; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .top-search { grid-column: 2; margin: 0 0 18px; }
+  .top-search { grid-column: 2; margin: 0 0 6px; }
   .top .search { height: 70px; max-width: none; border-radius: 18px; box-shadow: 0 2px 6px rgba(17, 24, 39, .05), 0 12px 32px rgba(17, 24, 39, .08); }
   .top .sf-go { width: auto; height: 100%; margin-left: 6px; display: inline-flex; gap: 8px; padding: 0 22px 0 18px; border-radius: 12px; font: 700 15px var(--font-display); }
   .top .sf-go span { display: inline; }
   .top .sf-go .i { width: 18px; height: 18px; }
-  .capy { grid-column: 3; position: relative; right: auto; top: auto; align-self: end; justify-self: start; width: 214px; margin: 0 0 -8px 12px; }
-  .capy-bubble { right: 74%; top: 10%; font-size: 14px; padding: 9px 14px; }
+  .top .capy { grid-column: 3; position: relative; right: auto; top: auto; align-self: end; justify-self: start; width: 300px; height: 262px; margin: 0 0 -14px -10px; }
+  .capy-bubble { right: 70%; top: 14%; font-size: 14px; padding: 9px 14px; }
 
   .h-sec, .hrow { margin-top: 48px; }
   .h-head h2 { font-size: 24px; }
@@ -955,10 +991,20 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-title { font-size: 16px; }
   .hrow .card-near, .hrow .card-meta { font-size: 14px; }
   .hrow .card-price b { font-size: 17px; }
-  .ll-band { grid-template-columns: minmax(0, 1fr) 320px; padding: 44px 56px; margin-top: 56px; }
-  .ll-band h2 { font-size: 34px; }
-  .ll-band-art { width: 100%; }
-  .home .foot { margin-top: 48px; padding-bottom: 32px; }
+  .kapi-note { margin-top: 72px; padding: 72px clamp(24px, 4vw, 80px) 80px; min-height: 480px; }
+  .note-in { max-width: 1360px; margin: 0 auto; padding-left: clamp(0px, 6vw, 120px); }
+  .note-hi { font-size: 40px; }
+  .note-text { font-size: 28px; line-height: 40px; }
+  .note-card { width: 520px; padding: 32px 34px 26px 64px; background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 39px, #D3E2F6 39px 40px); }
+  .note-card::after { left: 48px; }
+  .capy-peek { right: -170px; bottom: -110px; width: min(44vw, 600px); height: min(44vw, 600px); }
+  .scene { padding-bottom: 0; height: max(640px, min(calc(100vw * 1029 / 2400), 960px)); }
+  .scene-art { left: 0; width: 100%; }
+  .scene-copy { padding-top: clamp(56px, 6vw, 120px); }
+  .scene-copy h2 { font-size: clamp(42px, 4.4vw, 72px); }
+  .scene-sub { font-size: 16px; }
+  .capy-jump { width: 19%; margin-left: -9.5%; bottom: 2%; }
+  .foot-scene { padding-bottom: 28px; }
 
   /* Rooms page: the map sits inset with rounded corners. */
   .browse .map-pane, .browse.mode-map .map-pane { padding: 16px 24px 24px 4px; }
@@ -974,4 +1020,5 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .f-kitten img { animation: none !important; }
 }

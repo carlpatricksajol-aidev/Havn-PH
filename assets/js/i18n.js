@@ -100,6 +100,11 @@
       'Find a room in Davao City': 'Maghanap ng kwarto sa Davao City',
       'Boarding houses, bedspaces and rooms near malls, offices and schools.': 'Mga boarding house, bedspace at kwarto malapit sa mall, opisina at school.',
       'Hi! Looking for a room?': 'Hi! Naghahanap ng kwarto?', 'Near popular places': 'Malapit sa mga sikat na lugar',
+      'Hi, I\'m Kapi!': 'Hi, ako si Kapi!',
+      'Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.': 'Sabihin mo kung saan ka nag-aaral, nagtatrabaho o namimili, at ipapakita ko ang mga kwarto sa malapit, may litrato, presyo at eksaktong lugar sa mapa.',
+      'Start searching': 'Magsimulang maghanap', 'Find a home you\'ll love in Davao.': 'Hanapin ang tahanang mamahalin mo sa Davao.',
+      'Find a room': 'Maghanap ng kwarto', 'Own a boarding house? List it on Havn so people nearby can find it.': 'May boarding house ka? Ilista ito sa Havn para makita ng mga tao sa malapit.',
+      'Kapi and friends were made for Havn.': 'Ginawa para sa Havn sina Kapi at ang mga kaibigan niya.',
     },
     ceb: {
       'Skip to rooms': 'Laktaw sa mga kwarto',
@@ -200,6 +205,11 @@
       'Find a room in Davao City': 'Pangita og kwarto sa Davao City',
       'Boarding houses, bedspaces and rooms near malls, offices and schools.': 'Mga boarding house, bedspace ug kwarto duol sa mall, opisina ug school.',
       'Hi! Looking for a room?': 'Hi! Nangita ka og kwarto?', 'Near popular places': 'Duol sa mga sikat nga lugar',
+      'Hi, I\'m Kapi!': 'Hi, ako si Kapi!',
+      'Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.': 'Isulti asa ka nag-eskwela, nagtrabaho o namalit, ug ipakita nako ang mga kwarto sa duol, naay litrato, presyo ug eksaktong dapit sa mapa.',
+      'Start searching': 'Sugdi pagpangita', 'Find a home you\'ll love in Davao.': 'Pangitaa ang balay nga imong higugmaon sa Davao.',
+      'Find a room': 'Pangita og kwarto', 'Own a boarding house? List it on Havn so people nearby can find it.': 'Naa kay boarding house? Ilista kini sa Havn aron makit-an sa mga tawo sa duol.',
+      'Kapi and friends were made for Havn.': 'Gihimo para sa Havn si Kapi ug ang iyang mga higala.',
     },
   };
 

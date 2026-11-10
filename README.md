@@ -8,7 +8,8 @@ Plain HTML, CSS and JavaScript. No build step.
 - `assets/js/data.js`: **all rooms, schools, landmarks (malls, hospitals, offices) and settings** (edit this to add or change a room)
 - `assets/js/app.js`: rooms list (`/rooms`), search, filters, saved rooms, routing
 - `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, landlord band
-- `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections)
+- `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections). Three Kapis: next to the search (`data-capy="stand"`), leaning in beside his note (`peek`) and hopping in the closing scene (`jump`); they share one model file.
+- `assets/scene/`: the closing scene (Davao hills picture + Kapi's friends: tarsier, carabao, eagle chick, kitten), all made for Havn with Higgsfield. Friends are placed in % of the picture in `havn.css` (`.f-*`).
 - `assets/3d/`: 3D icons (Microsoft Fluent Emoji, MIT, licence in that folder)
 - `assets/js/room.js`: the room page (photos, details, map, Contact Landlord)
 - `assets/js/map.js`: the map (OpenStreetMap data via OpenFreeMap, no API key; shops, restaurants, hotels and other places are removed)

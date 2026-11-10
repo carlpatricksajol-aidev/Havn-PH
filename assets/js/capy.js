@@ -1,14 +1,42 @@
 /* Kapi the capybara: the moving 3D mascot on the home page.
- * three.js draws a rigged model (/assets/capy/kapi.glb) on a see-through canvas.
- * Kapi idles, waves hello, turns toward the pointer and hops when tapped.
- * With "reduce motion" on, Kapi stands still. Model made with Higgsfield (Meshy). */
+ * three.js draws a rigged model (/assets/capy/kapi.glb, loaded once and shared) on see-through canvases.
+ * Modes (data-capy on the element):
+ *   stand  next to the search: idles, waves hello, turns toward the pointer, hops when tapped
+ *   peek   big, leaning in from the edge of the screen: looks at the pointer, waves now and then
+ *   jump   in the bottom scene: happy hops with a wave
+ * With "reduce motion" on, Kapi stands still. Model made for Havn with Higgsfield (Meshy). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
+
+let gltfP = null;
+function loadKapi() {
+  if (!gltfP) {
+    gltfP = new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      loader.load('/assets/capy/kapi.glb', resolve, undefined, reject);
+    });
+  }
+  return gltfP;
+}
+
+// Camera framing per mode, in model units (Kapi is 1 tall, feet at 0).
+const FRAMES = {
+  stand: { y: 0.62, h: 1.5, turn: 0.45, tilt: 0, face: 0 },
+  peek: { y: 0.6, h: 1.32, turn: 0.22, tilt: 0.2, face: -0.22 },
+  jump: { y: 0.66, h: 1.55, turn: 0.3, tilt: 0, face: 0 },
+};
+
+const pointer = { x: 0, y: 0, seen: false };
+window.addEventListener('pointermove', (e) => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.seen = true; }, { passive: true });
 
 export function mount(el) {
   if (el.__kapi) return;
   el.__kapi = true;
+  const mode = FRAMES[el.getAttribute('data-capy')] ? el.getAttribute('data-capy') : 'stand';
+  const F = FRAMES[mode];
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const canvas = document.createElement('canvas');
@@ -32,22 +60,23 @@ export function mount(el) {
   // Soft round shadow under the feet.
   const sc = document.createElement('canvas');
   sc.width = sc.height = 128;
-  const g = sc.getContext('2d').createRadialGradient(64, 64, 0, 64, 64, 64);
-  g.addColorStop(0, 'rgba(11,31,68,0.28)');
-  g.addColorStop(1, 'rgba(11,31,68,0)');
   const sctx = sc.getContext('2d');
+  const g = sctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, mode === 'jump' ? 'rgba(20,60,30,0.32)' : 'rgba(11,31,68,0.26)');
+  g.addColorStop(1, 'rgba(11,31,68,0)');
   sctx.fillStyle = g;
   sctx.fillRect(0, 0, 128, 128);
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2;
+  shadow.visible = mode !== 'peek';
   scene.add(shadow);
 
   const root = new THREE.Group();
   scene.add(root);
 
   let mixer = null, actions = {}, head = null, current = null;
-  const look = { x: 0, y: 0, tx: 0, ty: 0 };
-  let hop = 0, lastWave = 0, visible = true, raf = 0, ready = false;
+  const look = { x: 0, y: 0 };
+  let hop = 0, lastWave = -99, lastHop = 0, visible = true, raf = 0, ready = false;
   const clock = new THREE.Clock();
   const extra = new THREE.Quaternion(), euler = new THREE.Euler();
 
@@ -55,6 +84,12 @@ export function mount(el) {
     const w = el.clientWidth || 1, h = el.clientHeight || 1;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    // Fit the frame's height, and its width on narrow boxes, so Kapi never touches the edges.
+    const fov = 2 * Math.atan(Math.tan(13 * Math.PI / 180) * Math.max(1, 0.75 / camera.aspect));
+    camera.fov = fov * 180 / Math.PI;
+    const dist = F.h / 2 / Math.tan(fov / 2);
+    camera.position.set(0, F.y, dist);
+    camera.lookAt(0, F.y, 0);
     camera.updateProjectionMatrix();
   }
 
@@ -73,18 +108,18 @@ export function mount(el) {
     if (reduce || !actions.wave) return;
     lastWave = clock.elapsedTime;
     play('wave', true);
-    el.classList.add('talk');
-    clearTimeout(el.__talkT);
-    el.__talkT = setTimeout(() => el.classList.remove('talk'), 2600);
+    if (mode === 'stand') {
+      el.classList.add('talk');
+      clearTimeout(el.__talkT);
+      el.__talkT = setTimeout(() => el.classList.remove('talk'), 2600);
+    }
   }
 
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  loader.load('/assets/capy/kapi.glb', (gltf) => {
-    const model = gltf.scene;
+  loadKapi().then((gltf) => {
+    const model = cloneSkinned(gltf.scene);
     model.traverse((o) => {
-      if (o.isMesh) { o.frustumCulled = false; if (o.material) o.material.envMapIntensity = 0; }
-      if (o.isBone && !head && /head/i.test(o.name)) head = o;
+      if (o.isMesh) o.frustumCulled = false;
+      if (o.isBone && !head && /^head$/i.test(o.name)) head = o;
     });
     root.add(model);
     if (gltf.animations.length) {
@@ -96,10 +131,9 @@ export function mount(el) {
       if (!actions.idle) actions.idle = mixer.clipAction(gltf.animations[0]);
       mixer.addEventListener('finished', () => play('idle'));
       if (reduce) { actions.idle.play(); mixer.update(0.5); actions.idle.paused = true; }
-      else { play('idle'); mixer.update(0); }
+      else { play('idle'); mixer.update(Math.random() * 3); }
     }
-    // Measure the posed model (a rigged mesh only has its real size once the skeleton is posed),
-    // then stand it on the ground, centred, 1 unit tall.
+    // Measure the posed model (a rigged mesh only has its real size once posed): feet on the ground, 1 tall.
     const measure = () => {
       model.updateMatrixWorld(true);
       const b = new THREE.Box3();
@@ -116,43 +150,47 @@ export function mount(el) {
     model.position.x -= c.x; model.position.z -= c.z; model.position.y -= box.min.y;
     shadow.scale.set(0.62, 0.62, 1);
     shadow.position.y = 0.002;
-    // Room above the head for the hop, a little below the feet for the shadow.
-    const fov = camera.fov * Math.PI / 180, view = 1.22;
-    camera.position.set(0, 0.58, view / 2 / Math.tan(fov / 2));
-    camera.lookAt(0, 0.58, 0);
+    root.rotation.set(0, F.face, F.tilt);
     size();
     renderer.render(scene, camera);
     ready = true;
     el.classList.add('live');
-    if (!reduce) setTimeout(wave, 700);
+    if (!reduce && mode !== 'jump') setTimeout(wave, mode === 'peek' ? 1600 : 700);
     loop();
-  }, undefined, () => { canvas.remove(); });
+  }).catch(() => { canvas.remove(); });
 
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
     if (mixer && !reduce) mixer.update(dt);
     if (!reduce) {
-      // Turn toward the pointer: body a little, head more.
-      look.x += (look.tx - look.x) * Math.min(1, dt * 4);
-      look.y += (look.ty - look.y) * Math.min(1, dt * 4);
-      root.rotation.y = look.x * 0.45;
+      // Look toward the pointer (or straight out until it moves): body a little, head more.
+      const r = el.getBoundingClientRect();
+      let tx = 0, ty = 0;
+      if (pointer.seen) {
+        tx = Math.max(-1, Math.min(1, (pointer.x - (r.left + r.width / 2)) / (window.innerWidth * 0.45)));
+        ty = Math.max(-1, Math.min(1, (pointer.y - (r.top + r.height * 0.3)) / (window.innerHeight * 0.6)));
+      }
+      look.x += (tx - look.x) * Math.min(1, dt * 4);
+      look.y += (ty - look.y) * Math.min(1, dt * 4);
+      root.rotation.y = F.face + look.x * F.turn;
       if (head) {
         euler.set(-look.y * 0.25, look.x * 0.5, 0, 'YXZ');
         extra.setFromEuler(euler);
         head.quaternion.multiply(extra);
       }
-      // A happy hop when tapped.
+      // In the scene, hop every couple of seconds; elsewhere when tapped.
+      if (mode === 'jump' && hop === 0 && t - lastHop > 2.2) { hop = 1; lastHop = t; if (t - lastWave > 6) wave(); }
       if (hop > 0) {
         hop = Math.max(0, hop - dt * 1.6);
-        const p = 1 - hop;
-        root.position.y = Math.sin(p * Math.PI) * 0.16;
-        root.scale.set(1 + Math.sin(p * Math.PI * 2) * 0.04, 1 - Math.sin(p * Math.PI * 2) * 0.04, 1 + Math.sin(p * Math.PI * 2) * 0.04);
-        shadow.scale.setScalar(0.62 * (1 - Math.sin(p * Math.PI) * 0.35));
-        shadow.scale.z = 1;
+        const p = 1 - hop, s = Math.sin(p * Math.PI * 2) * 0.05;
+        root.position.y = Math.sin(p * Math.PI) * (mode === 'jump' ? 0.22 : 0.16);
+        root.scale.set(1 + s, 1 - s, 1 + s);
+        const k = 0.62 * (1 - Math.sin(p * Math.PI) * 0.35);
+        shadow.scale.set(k, k, 1);
       }
       // Wave again now and then.
-      if (actions.wave && current === actions.idle && t - lastWave > 11) wave();
+      if (mode !== 'jump' && actions.wave && current === actions.idle && t - lastWave > (mode === 'peek' ? 9 : 11)) wave();
     }
     renderer.render(scene, camera);
   }
@@ -164,15 +202,9 @@ export function mount(el) {
     if (!reduce) raf = requestAnimationFrame(loop);
   }
 
-  window.addEventListener('pointermove', (e) => {
-    const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height * 0.35;
-    look.tx = Math.max(-1, Math.min(1, (e.clientX - cx) / (window.innerWidth * 0.45)));
-    look.ty = Math.max(-1, Math.min(1, (e.clientY - cy) / (window.innerHeight * 0.6)));
-  }, { passive: true });
   el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; wave(); });
 
-  if (window.ResizeObserver) new ResizeObserver(() => { size(); if (ready && reduce) frame(); }).observe(el);
+  if (window.ResizeObserver) new ResizeObserver(() => { size(); if (ready) renderer.render(scene, camera); }).observe(el);
   if (window.IntersectionObserver) {
     new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { clock.getDelta(); loop(); } }).observe(el);
   }
