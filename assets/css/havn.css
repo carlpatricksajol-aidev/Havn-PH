@@ -377,6 +377,8 @@ img.ok { opacity: 1 !important; }
   font: 500 14.5px var(--font-body); box-shadow: 0 1px 2px rgba(17, 24, 39, .05), 0 3px 10px rgba(17, 24, 39, .05);
 }
 .hdr-find .i { width: 18px; height: 18px; color: var(--text); }
+.hdr-find span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1023px) { .hdr-find { grid-column: 1 / -1; } }
 .site-header.find-on .hdr-find { display: flex; animation: rise .25s var(--ease); }
 .site-header.is-home:not(.find-on) { border-bottom-color: transparent; }
 
@@ -456,7 +458,7 @@ img.ok { opacity: 1 !important; }
 
 
 /* A note from Kapi, with Kapi leaning in from the edge of the screen */
-.kapi-note { position: relative; overflow: hidden; margin-top: 56px; padding: 40px 16px 250px; background: linear-gradient(180deg, #fff 0%, #EDF4FF 100%); }
+.kapi-note { position: relative; overflow: hidden; margin-top: 40px; padding: 56px 16px 290px; background: linear-gradient(180deg, #fff 0%, #F1F8FB 35%, #BCF4F1 100%); }
 .note-in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; }
 .note-card {
   position: relative; width: min(470px, 100%); padding: 26px 26px 22px 54px; border-radius: 18px; transform: rotate(-2.5deg);
@@ -472,30 +474,18 @@ img.ok { opacity: 1 !important; }
 .btn-lg .i { width: 20px; height: 20px; }
 .btn-light { background: #fff; color: #0B1F44; box-shadow: 0 2px 8px rgba(11, 31, 68, .12); }
 .btn-light:hover { background: #F4F7FB; }
-.capy-peek { position: absolute; right: -90px; bottom: -36px; width: 320px; height: 320px; z-index: 1; cursor: pointer; }
-.capy-peek .capy-still { left: 10%; right: auto; width: 80%; height: 92%; bottom: -12%; transform: rotate(-9deg); transform-origin: 50% 100%; }
+.capy-peek { position: absolute; right: -58px; bottom: 8px; width: 270px; height: 270px; z-index: 1; }
 
 /* The closing scene: Davao hills with Kapi and friends */
-.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: #C0F6EB; }
-.scene-art { position: absolute; bottom: 0; left: -50%; width: 200%; aspect-ratio: 2400 / 1029; }
+.scene { position: relative; overflow: hidden; padding-bottom: 80vw; background: #BCF4F1; }
+.scene-art { position: absolute; bottom: 0; left: -50%; width: 200%; aspect-ratio: 2400 / 1029; will-change: transform; }
 .scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .scene-copy { position: relative; z-index: 3; max-width: 900px; margin: 0 auto; padding: 44px 20px 0; text-align: center; }
 .scene-copy h2 { font: 800 34px/1.06 var(--font-display); letter-spacing: -0.03em; color: #0D3550; text-wrap: balance; }
 .scene-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
 .scene-sub { margin-top: 14px; font-size: 14.5px; color: #2A5468; }
-.friend { position: absolute; display: block; z-index: 1; }
-.friend img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 10px rgba(20, 50, 20, .18)); }
-.f-carabao { left: 4.5%; bottom: 4%; width: 8.5%; transform-origin: 50% 100%; animation: breathe 4.5s ease-in-out infinite; }
-.f-tarsier { left: 11.5%; bottom: 44%; width: 6%; transform-origin: 50% 0; animation: sway 5s ease-in-out infinite; }
-.f-kitten { left: 72.4%; bottom: 24.2%; width: 6.6%; height: 9.5%; overflow: hidden; }
-.f-kitten img { position: absolute; left: 0; bottom: 0; animation: peekup 7s ease-in-out infinite; }
-.f-eagle { left: 87.5%; bottom: 62%; width: 6.4%; transform-origin: 50% 100%; animation: rock 3.4s ease-in-out infinite; }
 .capy-jump { position: absolute; left: 50%; bottom: 1.5%; width: 30%; height: auto; aspect-ratio: 1; margin-left: -15%; z-index: 2; }
 .capy-jump .capy-still { height: 62%; bottom: 6%; }
-@keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, .975); } }
-@keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg); } }
-@keyframes rock { 0%, 100% { transform: rotate(-4deg) translateY(0); } 25% { transform: rotate(5deg) translateY(-4%); } 50% { transform: rotate(-2deg) translateY(0); } }
-@keyframes peekup { 0%, 12% { transform: translateY(95%); } 22%, 62% { transform: translateY(0); } 70%, 100% { transform: translateY(95%); } }
 
 /* Footer on the grass */
 .foot-scene { margin: 0; padding: 18px clamp(16px, 4vw, 80px) calc(22px + var(--nav-h)); border-top: 0; background: linear-gradient(180deg, #4F7D2A 0%, #3F6926 100%); color: rgba(255, 255, 255, .82); }
@@ -991,13 +981,13 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-title { font-size: 16px; }
   .hrow .card-near, .hrow .card-meta { font-size: 14px; }
   .hrow .card-price b { font-size: 17px; }
-  .kapi-note { margin-top: 72px; padding: 72px clamp(24px, 4vw, 80px) 80px; min-height: 480px; }
+  .kapi-note { margin-top: 56px; padding: 88px clamp(24px, 4vw, 80px) 140px; min-height: 560px; }
   .note-in { max-width: 1360px; margin: 0 auto; padding-left: clamp(0px, 6vw, 120px); }
   .note-hi { font-size: 40px; }
   .note-text { font-size: 28px; line-height: 40px; }
   .note-card { width: 520px; padding: 32px 34px 26px 64px; background-position: 0 38px; background-image: repeating-linear-gradient(180deg, transparent 0 39px, #D3E2F6 39px 40px); }
   .note-card::after { left: 48px; }
-  .capy-peek { right: -170px; bottom: -110px; width: min(44vw, 600px); height: min(44vw, 600px); }
+  .capy-peek { right: -120px; bottom: 10px; width: min(40vw, 540px); height: min(40vw, 540px); }
   .scene { padding-bottom: 0; height: max(640px, min(calc(100vw * 1029 / 2400), 960px)); }
   .scene-art { left: 0; width: 100%; }
   .scene-copy { padding-top: clamp(56px, 6vw, 120px); }
@@ -1020,5 +1010,4 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
-  .f-kitten img { animation: none !important; }
 }

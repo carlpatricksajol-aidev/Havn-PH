@@ -98,13 +98,12 @@
     '</section>';
   }
 
-  /* The closing scene: Davao hills, Kapi hopping on the grass, friends peeking from the trees. */
+  /* The closing scene: Davao hills with Kapi's friends painted in (tarsier on the tree, carabao reading,
+   * kitten behind the bush, eagle chick on a branch) and Kapi cheering on the grass. */
   function scene() {
-    var friend = function (name, cls) { return '<span class="friend f-' + name + (cls ? ' ' + cls : '') + '"><img src="/assets/scene/' + name + '.webp" alt="" loading="lazy" decoding="async"></span>'; };
     return '<section class="scene" aria-labelledby="scene-t">' +
       '<div class="scene-art" aria-hidden="true">' +
-        '<img class="scene-bg" src="/assets/scene/davao-hills-1280.webp" srcset="/assets/scene/davao-hills-1280.webp 1280w, /assets/scene/davao-hills-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
-        friend('carabao') + friend('tarsier') + friend('kitten') + friend('eagle') +
+        '<img class="scene-bg" src="/assets/scene/davao-friends-1280.webp" srcset="/assets/scene/davao-friends-1280.webp 1280w, /assets/scene/davao-friends-2400.webp 2400w" sizes="(max-width: 1023px) 200vw, 100vw" width="2400" height="1029" alt="" loading="lazy" decoding="async">' +
         '<div class="capy capy-jump" data-capy="jump">' + kapiStill() + '</div>' +
       '</div>' +
       '<div class="scene-copy">' +
@@ -128,7 +127,31 @@
     '</div>';
     bindRows(host);
     startCapy(host);
+    bindParallax(host);
   };
+
+  /* Parallax: the landscape rises into place more slowly than the page scrolls, and the headline
+   * drifts the other way, so the note above flows into the sky with no hard edge. */
+  function bindParallax(host) {
+    var sc = host.querySelector('.scene');
+    if (!sc || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var art = sc.querySelector('.scene-art'), copy = sc.querySelector('.scene-copy'), queued = false;
+    function update() {
+      queued = false;
+      if (!sc.isConnected) { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); return; }
+      var r = sc.getBoundingClientRect(), vh = window.innerHeight;
+      if (r.bottom < -50 || r.top > vh + 50) return;
+      // 1 while the scene is still entering from below, 0 once its bottom reaches the bottom of the screen.
+      var left = Math.max(0, Math.min(1, (r.bottom - vh) / r.height));
+      var lift = Math.min(220, r.height * (window.innerWidth < 1024 ? 0.14 : 0.32));
+      art.style.transform = 'translate3d(0,' + (left * lift).toFixed(1) + 'px,0)';
+      copy.style.transform = 'translate3d(0,' + (-left * lift * 0.25).toFixed(1) + 'px,0)';
+    }
+    function onScroll() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  }
 
   /* Kapi the capybara: still pictures first, then the moving 3D Kapi when the browser can draw it.
    * The one at the top starts when the page is idle; the others when they come near the screen. */

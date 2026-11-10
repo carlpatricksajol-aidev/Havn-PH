@@ -2,8 +2,8 @@
  * three.js draws a rigged model (/assets/capy/kapi.glb, loaded once and shared) on see-through canvases.
  * Modes (data-capy on the element):
  *   stand  next to the search: idles, waves hello, turns toward the pointer, hops when tapped
- *   peek   big, leaning in from the edge of the screen: looks at the pointer, waves now and then
- *   jump   in the bottom scene: happy hops with a wave
+ *   peek   big, at the edge of the screen beside his note: talks with open hands, looks at the pointer, waves now and then
+ *   jump   in the bottom scene: cheers with both hands up while hopping
  * With "reduce motion" on, Kapi stands still. Model made for Havn with Higgsfield (Meshy). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -25,7 +25,7 @@ function loadKapi() {
 // Camera framing per mode, in model units (Kapi is 1 tall, feet at 0).
 const FRAMES = {
   stand: { y: 0.62, h: 1.5, turn: 0.45, tilt: 0, face: 0 },
-  peek: { y: 0.6, h: 1.32, turn: 0.22, tilt: 0.2, face: -0.22 },
+  peek: { y: 0.6, h: 1.42, turn: 0.25, tilt: 0.06, face: -0.38 },
   jump: { y: 0.66, h: 1.55, turn: 0.3, tilt: 0, face: 0 },
 };
 
@@ -68,13 +68,12 @@ export function mount(el) {
   sctx.fillRect(0, 0, 128, 128);
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2;
-  shadow.visible = mode !== 'peek';
   scene.add(shadow);
 
   const root = new THREE.Group();
   scene.add(root);
 
-  let mixer = null, actions = {}, head = null, current = null;
+  let mixer = null, actions = {}, head = null, current = null, base = 'idle';
   const look = { x: 0, y: 0 };
   let hop = 0, lastWave = -99, lastHop = 0, visible = true, raf = 0, ready = false;
   const clock = new THREE.Clock();
@@ -125,13 +124,15 @@ export function mount(el) {
     if (gltf.animations.length) {
       mixer = new THREE.AnimationMixer(model);
       gltf.animations.forEach((clip) => {
-        const n = /wave|hello/i.test(clip.name) ? 'wave' : /idle/i.test(clip.name) ? 'idle' : clip.name;
+        const n = /wave|hello/i.test(clip.name) ? 'wave' : /talk/i.test(clip.name) ? 'talk' : /cheer/i.test(clip.name) ? 'cheer' : /idle/i.test(clip.name) ? 'idle' : clip.name;
         actions[n] = mixer.clipAction(clip);
       });
       if (!actions.idle) actions.idle = mixer.clipAction(gltf.animations[0]);
-      mixer.addEventListener('finished', () => play('idle'));
+      // Each Kapi has his own everyday movement.
+      base = mode === 'peek' && actions.talk ? 'talk' : mode === 'jump' && actions.cheer ? 'cheer' : 'idle';
+      mixer.addEventListener('finished', () => play(base));
       if (reduce) { actions.idle.play(); mixer.update(0.5); actions.idle.paused = true; }
-      else { play('idle'); mixer.update(Math.random() * 3); }
+      else { play(base); mixer.update(Math.random() * 3); }
     }
     // Measure the posed model (a rigged mesh only has its real size once posed): feet on the ground, 1 tall.
     const measure = () => {
@@ -155,7 +156,7 @@ export function mount(el) {
     renderer.render(scene, camera);
     ready = true;
     el.classList.add('live');
-    if (!reduce && mode !== 'jump') setTimeout(wave, mode === 'peek' ? 1600 : 700);
+    if (!reduce && mode === 'stand') setTimeout(wave, 700);
     loop();
   }).catch(() => { canvas.remove(); });
 
@@ -180,7 +181,7 @@ export function mount(el) {
         head.quaternion.multiply(extra);
       }
       // In the scene, hop every couple of seconds; elsewhere when tapped.
-      if (mode === 'jump' && hop === 0 && t - lastHop > 2.2) { hop = 1; lastHop = t; if (t - lastWave > 6) wave(); }
+      if (mode === 'jump' && hop === 0 && t - lastHop > 1.9) { hop = 1; lastHop = t; }
       if (hop > 0) {
         hop = Math.max(0, hop - dt * 1.6);
         const p = 1 - hop, s = Math.sin(p * Math.PI * 2) * 0.05;
@@ -190,7 +191,7 @@ export function mount(el) {
         shadow.scale.set(k, k, 1);
       }
       // Wave again now and then.
-      if (mode !== 'jump' && actions.wave && current === actions.idle && t - lastWave > (mode === 'peek' ? 9 : 11)) wave();
+      if (mode !== 'jump' && actions.wave && current === actions[base] && t - lastWave > (mode === 'peek' ? 13 : 11)) wave();
     }
     renderer.render(scene, camera);
   }
@@ -202,7 +203,7 @@ export function mount(el) {
     if (!reduce) raf = requestAnimationFrame(loop);
   }
 
-  el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; wave(); });
+  el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; if (mode !== 'jump') wave(); });
 
   if (window.ResizeObserver) new ResizeObserver(() => { size(); if (ready) renderer.render(scene, camera); }).observe(el);
   if (window.IntersectionObserver) {
