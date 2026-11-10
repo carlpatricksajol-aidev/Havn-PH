@@ -1,4 +1,4 @@
-/* Havn PH — landlords: a small "Do you own a boarding house?" card and the listing form.
+/* Havn PH — landlords: the "Do you own a boarding house?" pop-up and the listing form.
  *
  * Settings live in data.js (HAVN_CONFIG):
  *   phone            number landlords can call or text; empty = the Call/Text buttons are hidden
@@ -9,9 +9,10 @@
   var L = (window.Landlord = {});
   var C = window.HAVN_CONFIG || {};
   var PHONE = String(C.phone || '').trim();
-  var DISMISS_KEY = 'havn-landlord-nudge', SENT_KEY = 'havn-landlord-sent';
-  var NUDGE_DELAY = 15000, NUDGE_REST_DAYS = 14;
-  var nudgeEl = null, timer = 0, dlg = null;
+  var ASK_KEY = 'havn-landlord-ask', SENT_KEY = 'havn-landlord-sent';
+  var ASK_DELAY = 15000;                   // first visit: ask after 15 seconds
+  var REST_CLOSED = 14, REST_RENTER = 90;  // days before asking again (closed / "I'm looking for a room")
+  var askEl = null, opener = null, timer = 0, dlg = null;
 
   function $(s, r) { return (r || document).querySelector(s); }
   function telHref() {
@@ -27,48 +28,68 @@
   }
   function showPhone(d) { return /^09\d{9}$/.test(d) ? d.slice(0, 4) + ' ' + d.slice(4, 7) + ' ' + d.slice(7) : d; }
 
-  /* ---------------- The card ---------------- */
-  function rested() {
+  /* ---------------- The pop-up: centered, page dimmed behind it ---------------- */
+  function due() {
     if (H.store.get(SENT_KEY, false)) return false;
-    var at = H.store.get(DISMISS_KEY, 0);
-    return !at || Date.now() - at > NUDGE_REST_DAYS * 864e5;
+    return Date.now() > H.store.get(ASK_KEY, 0);
   }
+  function rest(days) { H.store.set(ASK_KEY, Date.now() + days * 864e5); }
   function canShow() {
     if (document.querySelector('.dlg-wrap, .viewer')) return false;
-    if (document.body.classList.contains('map-open')) return false;
-    var room = document.getElementById('view-room');
-    if (room && !room.hidden && !window.matchMedia('(min-width: 1024px)').matches) return false;
-    return true;
+    var a = document.activeElement;
+    return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); // never interrupt someone typing
   }
-  function showNudge() {
-    if (nudgeEl) return;
-    nudgeEl = document.createElement('aside');
-    nudgeEl.className = 'll-nudge';
-    nudgeEl.setAttribute('aria-label', t('For landlords'));
-    nudgeEl.innerHTML =
-      '<span class="ll-nudge-ic" aria-hidden="true">' + H.icon('home') + '</span>' +
-      '<div class="ll-nudge-b">' +
-        '<p class="ll-nudge-t">' + H.esc(t('Do you own a boarding house?')) + '</p>' +
-        '<p class="ll-nudge-s">' + H.esc(PHONE ? t('List your rooms on Havn. Fill up a short form, or call or text us.') : t('List your rooms on Havn. Fill up a short form and we\'ll get back to you.')) + '</p>' +
-        '<a class="btn btn-primary btn-sm" href="/list" data-ll-open>' + H.esc(t('List my place')) + '</a>' +
-      '</div>' +
-      '<button type="button" class="icon-btn ll-nudge-x" data-ll-dismiss aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>';
-    document.body.appendChild(nudgeEl);
+  function showAsk() {
+    if (askEl) return;
+    opener = document.activeElement;
+    askEl = document.createElement('div');
+    askEl.className = 'll-ask';
+    askEl.innerHTML =
+      '<div class="ll-ask-backdrop" data-ll-close="' + REST_CLOSED + '"></div>' +
+      '<div class="ll-ask-card" role="dialog" aria-modal="true" aria-labelledby="ll-ask-t" aria-describedby="ll-ask-s" tabindex="-1">' +
+        '<button type="button" class="icon-btn ll-ask-x" data-ll-close="' + REST_CLOSED + '" aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>' +
+        '<span class="ll-ask-ic" aria-hidden="true">' + H.icon('home') + '</span>' +
+        '<h2 id="ll-ask-t">' + H.esc(t('Do you own a boarding house?')) + '</h2>' +
+        '<p id="ll-ask-s">' + H.esc(PHONE ? t('List your rooms on Havn. Fill up a short form, or call or text us.') : t('List your rooms on Havn. Fill up a short form and we\'ll get back to you.')) + '</p>' +
+        '<div class="ll-ask-btns">' +
+          '<a class="btn btn-primary btn-block" href="/list" data-ll-open>' + H.esc(t('List my place')) + '</a>' +
+          '<button type="button" class="btn btn-ghost btn-block" data-ll-close="' + REST_RENTER + '">' + H.esc(t('No, I\'m looking for a room')) + '</button>' +
+        '</div>' +
+        (PHONE ? '<p class="ll-ask-call">' + H.esc(t('Prefer to talk?')) + ' <a href="tel:' + H.esc(telHref()) + '">' + H.icon('phone') + H.esc(PHONE) + '</a></p>' : '') +
+      '</div>';
+    document.body.appendChild(askEl);
+    H.lockScroll(true);
+    document.addEventListener('keydown', onAskKey);
+    requestAnimationFrame(function () { if (askEl) askEl.classList.add('open'); });
+    $('.ll-ask-card', askEl).focus({ preventScroll: true });
   }
-  function hideNudge() {
+  function onAskKey(e) {
+    if (!askEl) return;
+    var card = $('.ll-ask-card', askEl);
+    if (e.key === 'Escape') { e.preventDefault(); closeAsk(REST_CLOSED); }
+    else if (e.key === 'Tab' && document.activeElement === card) {
+      e.preventDefault();
+      var f = card.querySelectorAll('a[href], button');
+      f[e.shiftKey ? f.length - 1 : 0].focus();
+    } else if (e.key === 'Tab') H.trap(e, card);
+  }
+  function closeAsk(days, keepFocus) {
     clearTimeout(timer);
-    H.store.set(DISMISS_KEY, Date.now());
-    if (!nudgeEl) return;
-    var el = nudgeEl; nudgeEl = null;
-    el.classList.add('out');
+    if (days) rest(days);
+    if (!askEl) return;
+    var el = askEl; askEl = null;
+    document.removeEventListener('keydown', onAskKey);
+    H.lockScroll(false);
+    el.classList.remove('open');
     setTimeout(function () { el.remove(); }, 200);
+    if (!keepFocus && opener && opener.focus) opener.focus({ preventScroll: true });
   }
-  L.startNudge = function () {
-    if (!rested()) return;
+  L.startAsk = function () {
+    if (!due()) return;
     timer = setTimeout(function tick() {
-      if (!rested()) return;
-      if (canShow()) showNudge(); else timer = setTimeout(tick, 4000);
-    }, NUDGE_DELAY);
+      if (!due()) return;
+      if (canShow()) showAsk(); else timer = setTimeout(tick, 3000);
+    }, ASK_DELAY);
   };
 
   /* ---------------- The form ---------------- */
@@ -189,7 +210,7 @@
   }
 
   L.open = function () {
-    hideNudge();
+    closeAsk(REST_CLOSED, true);
     if (dlg) return;
     var hasKey = !!C.landlordFormKey;
     dlg = H.dialog({
@@ -239,6 +260,7 @@
   document.addEventListener('click', function (e) {
     var a = e.target.closest('[data-ll-open]');
     if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) { e.preventDefault(); L.open(); return; }
-    if (e.target.closest('[data-ll-dismiss]')) hideNudge();
+    var x = e.target.closest('[data-ll-close]');
+    if (x) closeAsk(+x.getAttribute('data-ll-close'));
   });
 })();

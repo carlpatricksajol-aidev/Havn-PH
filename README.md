@@ -25,7 +25,7 @@ The button opens Messenger (`m.me/<messenger>` from `HAVN_CONFIG` in `data.js`) 
 
 ## Landlords (List your place)
 
-`assets/js/landlord.js`: a small "Do you own a boarding house?" card (shows once after 15 seconds, comes back at most every 14 days, never after someone sends the form) and the listing form. "List your place" links and **havnph.com/list** open the form directly; share that link with landlords.
+`assets/js/landlord.js`: the "Do you own a boarding house?" pop-up (centered, page dimmed behind it; shows 15 seconds into a first visit, asks again after 14 days if closed or 90 days after "No, I'm looking for a room", never after someone sends the form) and the listing form. "List your place" links and **havnph.com/list** open the form directly; share that link with landlords.
 
 Two settings in `HAVN_CONFIG` (`data.js`):
 

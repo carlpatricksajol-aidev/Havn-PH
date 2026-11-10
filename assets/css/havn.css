@@ -493,21 +493,36 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 .chip-in:has(input:checked) { background: var(--blue); border-color: var(--blue); color: #fff; }
 .chip-in:has(input:focus-visible) { box-shadow: var(--ring); }
 
-/* Landlords: the card and the listing form */
-.ll-nudge {
-  position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px); z-index: 36;
-  display: flex; gap: 12px; align-items: flex-start; padding: 16px 44px 16px 16px;
-  background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-pop);
-  animation: rise .3s var(--ease);
-  transition: opacity .18s, transform .18s var(--ease);
+/* Landlords: "Do you own a boarding house?" pop-up (centered, page dimmed behind) */
+.ll-ask { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: 16px; }
+.ll-ask-backdrop {
+  position: absolute; inset: 0; background: rgba(17, 24, 39, .55);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  opacity: 0; transition: opacity .22s;
 }
-.ll-nudge.out { opacity: 0; transform: translateY(12px); }
-body.map-open .ll-nudge, body:has(#view-room:not([hidden])) .ll-nudge { display: none; }
-.ll-nudge-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--blue-50, #E6EFFE); color: var(--blue); }
-.ll-nudge-ic .i { width: 20px; height: 20px; }
-.ll-nudge-t { font: 700 15.5px var(--font-display); color: var(--text); }
-.ll-nudge-s { margin: 4px 0 12px; font-size: 13.5px; color: var(--ink-2); }
-.ll-nudge-x { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; }
+.ll-ask-card {
+  position: relative; width: min(460px, 100%); max-height: calc(100dvh - 32px); overflow: auto;
+  padding: 44px 32px 28px; border-radius: 24px; background: #fff; text-align: center; outline: 0;
+  box-shadow: 0 24px 64px rgba(17, 24, 39, .3);
+  opacity: 0; transform: translateY(14px) scale(.96); transition: opacity .2s, transform .28s var(--ease);
+}
+.ll-ask.open .ll-ask-backdrop { opacity: 1; }
+.ll-ask.open .ll-ask-card { opacity: 1; transform: none; }
+.ll-ask-x { position: absolute; top: 12px; right: 12px; }
+.ll-ask-ic { display: inline-grid; place-items: center; width: 76px; height: 76px; margin-bottom: 20px; border-radius: 24px; background: #E6EFFE; color: var(--blue); }
+.ll-ask-ic .i { width: 36px; height: 36px; stroke-width: 1.8; }
+.ll-ask h2 { font-size: 25px; line-height: 1.2; margin-bottom: 10px; }
+.ll-ask-card > p { font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.ll-ask-btns { display: grid; gap: 10px; margin-top: 26px; }
+.ll-ask-btns .btn { min-height: 52px; font-size: 16px; }
+.ll-ask-call { margin-top: 18px; font-size: 14px; color: var(--muted); }
+.ll-ask-call a { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; font-weight: 700; color: var(--blue); text-decoration: none; }
+.ll-ask-call .i { width: 16px; height: 16px; }
+@media (max-width: 479px) {
+  .ll-ask-card { padding: 40px 22px 22px; border-radius: 22px; }
+  .ll-ask h2 { font-size: 22px; }
+  .ll-ask-card > p { font-size: 15px; }
+}
 .ll-talk { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--surface); }
 .ll-talk p { display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-2); }
 .ll-talk b { font: 600 14px var(--font-display); color: var(--text); }
@@ -617,10 +632,7 @@ body.map-open .ll-nudge, body:has(#view-room:not([hidden])) .ll-nudge { display:
   .results-head h1 { font-size: 20px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 32px 22px; }
   .bottom-nav { display: none; }
-  .browse .map-count, .browse.mode-map .map-count { display: none; }
-  .ll-nudge { left: 24px; right: auto; bottom: 24px; width: 380px; }
-  body:has(#view-room:not([hidden])) .ll-nudge { display: flex; }
-  .lang-foot { display: none; }
+  .browse .map-count, .browse.mode-map .map-count { display: none; }  .lang-foot { display: none; }
   .toast { bottom: 32px; }
 
   .room { padding: 0 32px 64px; }
