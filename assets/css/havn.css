@@ -251,14 +251,14 @@ img.ok { opacity: 1 !important; }
 .heart[aria-pressed="true"] .i, .save-btn[aria-pressed="true"] .i { fill: var(--heart); stroke: var(--heart); }
 .heart[aria-pressed="true"] .i { stroke: #fff; animation: pop .3s var(--ease); }
 .card-body { display: block; padding-top: 10px; text-decoration: none; color: var(--text); }
-.card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15.5px; font-weight: 600; }
+.card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 650 16px/1.3 var(--font-body); letter-spacing: -0.005em; color: var(--text); }
 .card-title span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag { flex: none; font: 600 11px/1 var(--font-display); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; letter-spacing: .02em; vertical-align: middle; }
-.card-near { display: flex; align-items: center; gap: 6px; margin-top: 3px; color: var(--blue); font-weight: 500; font-size: 14px; }
+.tag { flex: none; font: 600 11.5px/1 var(--font-display); color: var(--ink-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; letter-spacing: .02em; vertical-align: middle; }
+.card-near { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--evergreen); font-weight: 600; font-size: 14.5px; }
 .card-near .i { width: 16px; height: 16px; }
-.card-meta { color: var(--muted); font-size: 14px; }
-.card-price { margin-top: 5px; font-size: 14.5px; color: var(--ink-2); }
-.card-price b { font: 700 16px var(--font-display); color: var(--text); }
+.card-meta { margin-top: 1px; color: var(--ink-2); font-size: 14.5px; }
+.card-price { margin-top: 6px; font-size: 14.5px; color: var(--ink-2); }
+.card-price b { font: 700 17px var(--font-display); letter-spacing: -0.01em; color: var(--text); }
 .card.is-full .card-media img { filter: grayscale(1); }
 .card.is-full .card-price b { color: var(--muted); }
 .card.pin-hover .card-media { box-shadow: 0 0 0 3px var(--blue); }
@@ -469,7 +469,7 @@ img.ok { opacity: 1 !important; }
 .js .static-home { display: none; }
 .static-home { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
 
-/* A note from Kapi, with Kapi leaning in from the edge of the screen */
+/* A note from Kapi, with Kapi walking in from the edge of the screen */
 .kapi-note { --peek: min(92vw, 380px); position: relative; overflow: hidden; margin-top: 40px; padding: 56px 16px calc(var(--peek) - 10px); background: linear-gradient(180deg, var(--page) 0%, var(--sky-soft) 45%, var(--sky) 100%); }
 .note-in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; }
 .note-card {
@@ -480,6 +480,31 @@ img.ok { opacity: 1 !important; }
 .note-hi { margin-top: 14px; font: 500 32px/1.1 var(--font-serif); letter-spacing: -0.02em; color: var(--navy); }
 .note-text { margin-top: 12px; font: 400 20px/1.5 var(--font-serif); color: var(--ink-2); }
 .note-sign { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--linen-line); font: 500 14.5px/1.4 var(--font-body); color: var(--muted); }
+/* Kapi's picks: pick a place, see the three nearest rooms */
+.picks-ask { margin-top: 24px; font: 600 15px/1.3 var(--font-body); color: var(--text); }
+.pick-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 12px -4px 0; padding: 2px 4px 4px; }
+.pick-chips::-webkit-scrollbar { display: none; }
+@media (min-width: 640px) { .pick-chips { flex-wrap: wrap; overflow: visible; } }
+.pchip { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border-strong); background: #fff; font: 600 14px var(--font-body); color: var(--text); transition: background-color .15s, color .15s, border-color .15s; }
+.pchip:hover { border-color: var(--text); }
+.pchip[aria-pressed="true"] { background: var(--evergreen); border-color: var(--evergreen); color: #fff; }
+.picks-box { min-height: 340px; }
+.picks-head { margin-top: 20px; font: 600 13px var(--font-body); color: var(--muted); }
+.picks { display: grid; gap: 2px; margin: 6px -10px 0; }
+.pick { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 9px 10px; border-radius: 14px; text-decoration: none; color: var(--text); transition: background-color .15s; }
+.pick:hover { background: var(--surface); }
+.pick img { width: 92px; height: 69px; object-fit: cover; border-radius: 10px; background: #EEE9E0; }
+.pick-b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pick-b b { font: 650 15.5px/1.3 var(--font-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick-near { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; color: var(--evergreen); }
+.pick-near .i { width: 15px; height: 15px; }
+.pick-meta { font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick-price { text-align: right; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.pick-price b { display: block; font: 700 16.5px var(--font-body); color: var(--text); }
+.picks-none { margin-top: 14px; color: var(--muted); }
+.picks-all { margin-top: 16px; }
+.picks-all .i { width: 18px; height: 18px; }
+@media (max-width: 479px) { .pick { grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; } .pick img { width: 76px; height: 57px; } .pick-meta { display: none; } }
 .btn-lg { min-height: 56px; padding: 0 30px; font-size: 16px; border-radius: 999px; letter-spacing: .01em; }
 .btn-lg .i { width: 20px; height: 20px; }
 .btn-light { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(23, 34, 29, .12); }
@@ -547,7 +572,7 @@ img.ok { opacity: 1 !important; }
 .b-school { background: var(--blue-light); color: var(--blue-dark); }
 .b-status { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .room-sec h2 { font-size: 19px; font-weight: 600; margin-bottom: 14px; }
-.room-sec h3 { font-size: 16px; font-weight: 600; margin: 24px 0 6px; }
+.room-sec h3 { font: 600 16px/1.3 var(--font-body); margin: 24px 0 6px; }
 .room-desc { color: var(--ink-2); font-size: 15.5px; line-height: 1.65; max-width: 62ch; }
 .amenities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
 .amenities li { display: flex; align-items: center; gap: 12px; font-size: 15px; }
@@ -912,11 +937,11 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .results-head h1 { font-size: 20px; }
   /* At most 3 rooms per row; 2 when a third would be narrower than 180px. */
   .grid { grid-template-columns: repeat(auto-fill, minmax(max(180px, calc((100% - 32px) / 3)), 1fr)); gap: 24px 16px; }
-  .browse .card-title { font-size: 14.5px; }
-  .browse .card-near, .browse .card-meta { font-size: 13px; }
+  .browse .card-title { font-size: 15px; }
+  .browse .card-near, .browse .card-meta { font-size: 13.5px; }
   .browse .card-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .browse .card-price { font-size: 13.5px; }
-  .browse .card-price b { font-size: 15px; }
+  .browse .card-price { font-size: 14px; }
+  .browse .card-price b { font-size: 16px; }
   .bottom-nav { display: none; }
   .browse .map-count, .browse.mode-map .map-count { display: none; }  .lang-foot { display: none; }
   .toast { bottom: 32px; }
@@ -989,14 +1014,15 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow-nav[hidden] { display: none; }
   .hrow-track { margin: 0; padding: 2px 0 8px; scroll-padding: 0; gap: 24px; }
   .hrow-track .card { flex-basis: calc((100% - 2 * 24px) / 3); }
-  .hrow .card-title { font-size: 16px; }
-  .hrow .card-near, .hrow .card-meta { font-size: 14px; }
-  .hrow .card-price b { font-size: 17px; }
+  .hrow .card-title { font-size: 17px; }
+  .hrow .card-near, .hrow .card-meta { font-size: 15px; }
+  .hrow .card-price { font-size: 15px; }
+  .hrow .card-price b { font-size: 18px; }
   .kapi-note { --peek: min(52vw, 780px); margin-top: 56px; padding: 96px clamp(24px, 4vw, 80px) 120px; min-height: calc(var(--peek) + 24px); }
   .note-in { max-width: 1360px; margin: 0 auto; padding-left: clamp(0px, 6vw, 120px); }
   .note-hi { font-size: 44px; }
   .note-text { font-size: 23px; }
-  .note-card { width: 540px; padding: 40px 42px 32px; }
+  .note-card { width: 620px; padding: 40px 42px 32px; }
   .capy-peek { right: calc(var(--peek) * -0.24); bottom: 0; }
   .scene { padding-bottom: 0; height: max(640px, min(calc(100vw * 1029 / 2400), 960px)); }
   .scene-art { left: 0; width: 100%; }

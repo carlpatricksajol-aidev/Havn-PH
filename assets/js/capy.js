@@ -2,9 +2,10 @@
  * three.js draws a rigged model (/assets/capy/kapi.glb, loaded once and shared) on see-through canvases.
  * Modes (data-capy on the element):
  *   stand  next to the search: idles, waves hello, turns toward the pointer, hops when tapped
- *   peek   big, beside his note, facing you: talks with open hands, looks at the pointer, waves now and then
+ *   peek   big, beside his note: walks in from the edge of the screen when the section comes into view, turns to you,
+ *          waves, then talks with open hands, looks at the pointer and waves now and then (and when a place is picked)
  *   jump   in the bottom scene: happy hops, with a wave now and then
- * With "reduce motion" on, Kapi stands still. Model made for Havn with Higgsfield (Meshy). */
+ * With "reduce motion" on, Kapi stands still. Model made for ECStay with Higgsfield (Meshy); clips Idle, Wave, Talk, Walk. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -76,6 +77,9 @@ export function mount(el) {
   let mixer = null, actions = {}, head = null, current = null, base = 'idle';
   const look = { x: 0, y: 0 };
   let hop = 0, lastWave = -99, lastHop = 0, visible = true, raf = 0, ready = false;
+  // Walk-in (peek mode): wait off to the right, walk to the spot, turn to face you, wave. Units: Kapi is 1 tall.
+  const WALK = { from: 0.95, speed: 0.4, yaw: -Math.PI / 2 + 0.55, turn: 0.5 };
+  let enter = null; // { phase: 'wait' | 'walk' | 'turn' | 'done', t }
   const clock = new THREE.Clock();
   const extra = new THREE.Quaternion(), euler = new THREE.Euler();
 
@@ -124,7 +128,7 @@ export function mount(el) {
     if (gltf.animations.length) {
       mixer = new THREE.AnimationMixer(model);
       gltf.animations.forEach((clip) => {
-        const n = /wave|hello/i.test(clip.name) ? 'wave' : /talk/i.test(clip.name) ? 'talk' : /cheer/i.test(clip.name) ? 'cheer' : /idle/i.test(clip.name) ? 'idle' : clip.name;
+        const n = /wave|hello/i.test(clip.name) ? 'wave' : /talk/i.test(clip.name) ? 'talk' : /walk/i.test(clip.name) ? 'walk' : /cheer/i.test(clip.name) ? 'cheer' : /idle/i.test(clip.name) ? 'idle' : clip.name;
         actions[n] = mixer.clipAction(clip);
       });
       if (!actions.idle) actions.idle = mixer.clipAction(gltf.animations[0]);
@@ -153,6 +157,20 @@ export function mount(el) {
     shadow.scale.set(0.62, 0.62, 1);
     shadow.position.y = 0.002;
     root.rotation.set(0, F.face, F.tilt);
+    if (mode === 'peek' && !reduce && actions.walk) {
+      // Off to the right until the section is in view, then walk in.
+      enter = { phase: 'wait', t: 0 };
+      root.position.x = WALK.from;
+      root.rotation.y = WALK.yaw;
+      actions.walk.timeScale = 1.25;
+      if (window.IntersectionObserver) {
+        const io = new IntersectionObserver((es) => {
+          if (es[0].intersectionRatio >= 0.3 && enter.phase === 'wait') { enter = { phase: 'walk', t: clock.elapsedTime }; play('walk'); io.disconnect(); }
+        }, { threshold: [0, 0.3, 0.6] });
+        io.observe(el);
+      } else { enter.phase = 'done'; root.position.x = 0; root.rotation.y = F.face; }
+    }
+    shadow.position.x = root.position.x;
     size();
     renderer.render(scene, camera);
     ready = true;
@@ -161,10 +179,28 @@ export function mount(el) {
     loop();
   }).catch(() => { canvas.remove(); });
 
+  // The walk-in, one frame at a time. Returns true while it is running (pointer-following waits).
+  function walkIn(t) {
+    if (!enter || enter.phase === 'done') return false;
+    if (enter.phase === 'walk') {
+      const dur = WALK.from / WALK.speed, p = Math.min(1, (t - enter.t) / dur);
+      root.position.x = WALK.from * (1 - (p < 0.8 ? p : 0.8 + (1 - Math.pow(1 - (p - 0.8) / 0.2, 2)) * 0.2));
+      root.rotation.y = WALK.yaw;
+      if (p >= 1) { root.position.x = 0; enter = { phase: 'turn', t }; play('idle'); }
+    } else if (enter.phase === 'turn') {
+      const q = Math.min(1, (t - enter.t) / WALK.turn), e = q * q * (3 - 2 * q);
+      root.rotation.y = WALK.yaw + (F.face - WALK.yaw) * e;
+      if (q >= 1) { enter = { phase: 'done', t }; look.x = 0; look.y = 0; wave(); }
+    }
+    shadow.position.x = root.position.x;
+    return enter.phase !== 'done';
+  }
+
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
     if (mixer && !reduce) mixer.update(dt);
+    if (!reduce && walkIn(t)) { renderer.render(scene, camera); return; }
     if (!reduce) {
       // Look toward the pointer (or straight out until it moves): body a little, head more.
       const r = el.getBoundingClientRect();
@@ -205,7 +241,9 @@ export function mount(el) {
     if (!reduce) raf = requestAnimationFrame(loop);
   }
 
-  el.addEventListener('click', () => { if (reduce || !ready) return; hop = 1; wave(); });
+  el.addEventListener('click', () => { if (reduce || !ready || (enter && enter.phase !== 'done')) return; hop = 1; wave(); });
+  // The home page asks for a wave when a place is picked in Kapi's note.
+  el.addEventListener('kapi:wave', () => { if (!reduce && ready && (!enter || enter.phase === 'done')) wave(); });
 
   if (window.ResizeObserver) new ResizeObserver(() => { size(); if (ready) renderer.render(scene, camera); }).observe(el);
   if (window.IntersectionObserver) {

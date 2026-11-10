@@ -66,18 +66,55 @@
     return '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" loading="lazy">';
   }
 
-  /* A note from Kapi, with Kapi leaning in from the edge of the screen. */
-  function kapiNote() {
+  /* A note from Kapi that does what it says: pick a place and he lists the nearest rooms.
+   * Kapi walks in from the edge of the screen when the section comes into view (capy.js, mode "peek"). */
+  var PICK_PLACES = ['addu', 'um', 'usep', 'gmall', 'sm-lanang', 'abreeza', 'spmc', 'cybergate'];
+
+  function picksHtml(api, id) {
+    var p = H.school(id), all = api.list({ place: 'school:' + id });
+    var top3 = all.filter(function (l) { return l.status !== 'full'; }).slice(0, 3);
+    return '<p class="picks-head">' + H.esc(t('Nearest rooms to {place}', { place: p.short })) + '</p>' +
+      (top3.length ? '<ul class="picks">' + top3.map(function (l) {
+        return '<li><a class="pick" href="/room/' + l.id + '" data-link>' +
+          '<img src="' + H.photo(l.photos[0], 640) + '" width="640" height="480" alt="" loading="lazy" decoding="async">' +
+          '<span class="pick-b"><b>' + H.esc(l.name) + '</b>' +
+            '<span class="pick-near">' + H.icon('walk') + '<span>' + H.esc(H.nearText(l, id)) + '</span></span>' +
+            '<span class="pick-meta">' + H.esc(t(l.type) + ' · ' + H.genderLabel(l.gender) + (l.sample ? ' · ' + t('Sample') : '')) + '</span></span>' +
+          '<span class="pick-price"><b>' + H.peso(l.price) + '</b>' + H.esc(t('/ month')) + '</span>' +
+        '</a></li>';
+      }).join('') + '</ul>' : '<p class="picks-none">' + H.esc(t('No rooms nearby yet')) + '</p>') +
+      (all.length ? '<a class="btn btn-primary picks-all" href="' + api.url({ place: 'school:' + id }) + '" data-link>' +
+        H.esc(all.length === 1 ? t('See 1 room near {place}', { place: p.short }) : t('See all {n} rooms near {place}', { n: all.length, place: p.short })) +
+        H.icon('arrow-right') + '</a>' : '');
+  }
+
+  function kapiNote(api) {
     return '<section class="kapi-note" aria-labelledby="note-t"><div class="note-in">' +
         '<div class="note-card">' +
           '<h2 id="note-t" class="note-hi">' + H.esc(t('Hi, I\'m Kapi!')) + '</h2>' +
           '<p class="note-text">' + H.esc(t('Tell me where you study, work or shop, and I\'ll show you rooms nearby, with photos, the price and the exact spot on the map.')) + '</p>' +
+          '<p class="picks-ask" id="picks-ask">' + H.esc(t('Where do you study, work or shop?')) + '</p>' +
+          '<div class="pick-chips" role="group" aria-labelledby="picks-ask">' + PICK_PLACES.map(function (id, i) {
+            return '<button type="button" class="pchip" data-pick="' + id + '" aria-pressed="' + (i === 0) + '">' + H.esc(H.school(id).short) + '</button>';
+          }).join('') + '</div>' +
+          '<div class="picks-box" aria-live="polite">' + picksHtml(api, PICK_PLACES[0]) + '</div>' +
           '<p class="note-sign">— Kapi, ' + H.esc(t('your ECStay concierge')) + '</p>' +
         '</div>' +
-        '<button type="button" class="btn btn-primary btn-lg" data-find>' + H.icon('search') + '<span>' + H.esc(t('Start searching')) + '</span></button>' +
       '</div>' +
       '<div class="capy capy-peek" data-capy="peek" aria-hidden="true">' + kapiStill() + '</div>' +
     '</section>';
+  }
+
+  function bindPicks(host, api) {
+    var box = host.querySelector('.picks-box'), kapi = host.querySelector('.capy-peek');
+    if (!box) return;
+    host.querySelector('.pick-chips').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pick]');
+      if (!b || b.getAttribute('aria-pressed') === 'true') return;
+      Array.prototype.forEach.call(this.querySelectorAll('[data-pick]'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      box.innerHTML = picksHtml(api, b.getAttribute('data-pick'));
+      if (kapi) kapi.dispatchEvent(new CustomEvent('kapi:wave'));
+    });
   }
 
   /* The closing scene: Davao at golden hour with Kapi's friends painted in (tarsier on the tree, carabao reading,
@@ -105,9 +142,10 @@
       '<div class="home-wrap">' +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
       '</div>' +
-      kapiNote() + scene() + api.footScene +
+      kapiNote(api) + scene() + api.footScene +
     '</div>';
     bindRows(host);
+    bindPicks(host, api);
     startCapy(host);
     bindParallax(host);
   };

@@ -7,8 +7,8 @@ Plain HTML, CSS and JavaScript. No build step.
 - `index.html`: the page shell
 - `assets/js/data.js`: **all rooms, schools, landmarks (malls, hospitals, offices) and settings** (edit this to add or change a room)
 - `assets/js/app.js`: rooms list (`/rooms`), search, filters, saved rooms, routing
-- `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, Kapi's note, the closing scene
-- `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections). Three Kapis: next to the search (`data-capy="stand"`), leaning in beside his note (`peek`) and hopping in the closing scene (`jump`); they share one model file.
+- `assets/js/home.js`: the home page (`/`): room-type tabs + big search with Kapi the capybara, popular places, rows of rooms, Kapi's note with his picks (tap a place, see the 3 nearest rooms), the closing scene
+- `assets/js/capy.js` + `assets/capy/`: Kapi, the moving 3D capybara (clips Idle, Wave, Talk, Walk; the note Kapi walks in from the screen edge when his section comes into view) (three.js, loaded only on the home page; `kapi.webp` is the still picture shown first and on slow connections). Three Kapis: next to the search (`data-capy="stand"`), leaning in beside his note (`peek`) and hopping in the closing scene (`jump`); they share one model file.
 - `assets/scene/`: the closing scene, one picture (davao-golden-*.webp): Davao and Mt Apo at golden hour with Kapi's friends painted in (tarsier on the tree, carabao reading, kitten behind the bush, eagle chick on a branch), made with Higgsfield. Its bottom edge fades into the footer colour `--foot`; its top row is `--sky`. The 3D Kapi hops on the grass; the picture rises with a parallax as you scroll.
 - `assets/js/room.js`: the room page (photos, details, map, Contact Landlord)
 - `assets/js/map.js`: the map (OpenStreetMap data via OpenFreeMap, no API key; shops, restaurants, hotels and other places are removed)
