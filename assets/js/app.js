@@ -120,8 +120,6 @@
       }).join('') + '</div>';
   }
 
-  function listPlaceUrl() { return H.messengerUrl(t('Hi Havn! I\'d like to list my boarding house.')); }
-
   function budgetOptions() {
     var opts = '<option value="0">' + H.esc(t('Any budget')) + '</option>';
     var list = BUDGETS.slice();
@@ -169,7 +167,7 @@
             '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>') +
         '<div class="hdr-actions">' +
           '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
-          '<a class="hdr-link list-link" href="' + H.esc(listPlaceUrl()) + '" target="_blank" rel="noopener">' + H.esc(t('List your place')) + '</a>' +
+          '<a class="hdr-link list-link" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
           langButtons() +
         '</div>' +
       '</div>' +
@@ -473,7 +471,7 @@
           '<div id="results-body"></div>' +
           '<footer class="foot">' +
             '<p>© 2026 Havn PH · Davao City</p>' +
-            '<p><a href="' + H.esc(listPlaceUrl()) + '" target="_blank" rel="noopener">' + H.esc(t('List your place')) + '</a></p>' +
+            '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
             langButtons('lang-foot') +
             '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
           '</footer>' +
@@ -643,7 +641,12 @@
   function route() {
     var m = location.pathname.match(/^\/room\/([\w-]+)\/?$/);
     if (m) showRoom(m[1]);
-    else {
+    else if (/^\/list\/?$/.test(location.pathname)) {
+      // havnph.com/list: the link to share with landlords opens the listing form.
+      history.replaceState(null, '', '/' + location.search);
+      showBrowse();
+      Landlord.open();
+    } else {
       if (location.pathname !== '/') history.replaceState(null, '', '/' + location.search);
       showBrowse();
     }
@@ -729,4 +732,5 @@
   HAVN_I18N.set(HAVN_I18N.get());
   route();
   measure();
+  Landlord.startNudge();
 })();

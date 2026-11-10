@@ -23,6 +23,15 @@ Plain HTML, CSS and JavaScript. No build step.
 
 The button opens Messenger (`m.me/<messenger>` from `HAVN_CONFIG` in `data.js`) with a ready message copied. Nothing is sent from the site itself.
 
+## Landlords (List your place)
+
+`assets/js/landlord.js`: a small "Do you own a boarding house?" card (shows once after 15 seconds, comes back at most every 14 days, never after someone sends the form) and the listing form. "List your place" links and **havnph.com/list** open the form directly; share that link with landlords.
+
+Two settings in `HAVN_CONFIG` (`data.js`):
+
+- `phone`: the number landlords can call or text, written the way it should be shown (`'0917 123 4567'`). Empty hides the Call / Text buttons.
+- `landlordFormKey`: where the form answers go. At web3forms.com, type the email that should receive them; the key is emailed to it. Paste it here. Each form arrives as an email titled "New landlord: <name> (<place>)". Empty = the form opens Messenger with the details filled in instead.
+
 ## Run locally
 
 Any static server that sends `/room/*` to `index.html`, for example `npx serve -s .`
