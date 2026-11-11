@@ -12,7 +12,7 @@ Plain HTML, CSS and JavaScript. No build step.
 - `assets/scene/`: older painted scenes (the house with Kapi's friends, the hills). Not used on the site since 11 Nov: Carl found them too colorful for the brand. The home page now closes with two brand-colored cards (renters / Keepers) and a "Browse rooms by place" link list (`closing()` in home.js).
 - `assets/js/room.js`: the room page (photos, details, map, Contact Landlord)
 - `assets/js/map.js`: the map (OpenStreetMap data via OpenFreeMap, no API key; shops, restaurants, hotels and other places are removed)
-- `assets/js/i18n.js`: English, Tagalog and Cebuano text
+- `assets/js/i18n.js`: English and Tagalog text
 - `assets/css/havn.css`: styles
 
 ## Pages, landlord accounts and emails

@@ -2,7 +2,7 @@
 
 > ECStay (Explore, Come, Stay; formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City, Philippines. Slogan: "Explore. Come. Stay." Mascot: Kapi the capybara.
 
-Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities and its exact location on a map, plus the walking time to the nearest school or landmark. The site is in English, Tagalog and Cebuano. Note: the rooms listed now are samples with stock photos (each marked "Sample") while real boarding houses are being added.
+Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities and its exact location on a map, plus the walking time to the nearest school or landmark. The site is in English and Tagalog. Note: the rooms listed now are samples with stock photos (each marked "Sample") while real boarding houses are being added.
 
 ## Main pages
 - [Home](https://www.havnph.com/): search by school, mall or area; room types; popular places; questions and answers
