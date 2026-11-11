@@ -102,17 +102,20 @@
     if (s) ECS.session().then(function (x) { if (x) s.setAttribute('href', '/host/new'); });
   };
 
-  /* Backdrop for the sign-in steps: columns of real room photos drifting slowly up and down behind a soft
+  /* Backdrop for the sign-in steps: tilted rows of real room photos, all drifting slowly the same way (bottom left to upper right) behind a soft
    * ivory veil (still when "reduce motion" is on). Decorative only. */
   var BG_PHOTOS = ['r-76fbd04a', 'r-a7ecbd80', 'u-6a9f6d5f', 's-56af3e05', 'r-e2c8eb45', 'u-0d45ed16', 'r-739c2161', 'r-4a0f0f98', 'u-72a75649',
     'r-8f9ec210', 'r-d48d41fc', 's-002abe42', 'r-e9bd5b70', 'u-0eb0c9a3', 'r-69add83d', 'r-62de96e3', 'r-c3f664ea', 'u-bab0e564'];
   function authBg() {
-    var cols = [[], [], [], [], [], []];
-    BG_PHOTOS.forEach(function (id, i) { cols[i % cols.length].push(id); });
-    return '<div class="auth-bg" aria-hidden="true">' + cols.map(function (c, k) {
-      var imgs = c.concat(c).concat(c).concat(c).map(function (id, j) { return '<img src="/assets/photos/' + id + '-640.webp" alt="" loading="lazy" class="' + ((j + k) % 3 === 0 ? 'tall' : '') + '">'; }).join('');
-      return '<div class="auth-col"><div class="auth-strip">' + imgs + '</div></div>';
-    }).join('') + '</div>';
+    var rows = [], n = BG_PHOTOS.length;
+    for (var k = 0; k < 9; k++) {
+      var set = [];
+      for (var j = 0; j < 6; j++) set.push(BG_PHOTOS[(k * 2 + j) % n]);
+      rows.push('<div class="auth-row"><div class="auth-strip">' + set.concat(set).map(function (id) {
+        return '<img src="/assets/photos/' + id + '-640.webp" alt="" loading="lazy">';
+      }).join('') + '</div></div>');
+    }
+    return '<div class="auth-bg" aria-hidden="true"><div class="auth-tilt">' + rows.join('') + '</div></div>';
   }
 
   /* ================= /signin ================= */
