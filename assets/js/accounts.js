@@ -25,7 +25,9 @@
     if (/[?&]demo=0(&|$)/.test(location.search)) ss(DEMO_FLAG, null);
   } catch (e) { /* storage blocked: demo stays off */ }
 
-  ECS.mode = C.supabaseUrl && C.supabaseAnonKey ? 'live' : ss(DEMO_FLAG) === '1' ? 'demo' : 'off';
+  // ?demo=1 always wins, so the whole flow can be shown without touching real accounts.
+  ECS.mode = ss(DEMO_FLAG) === '1' ? 'demo' : C.supabaseUrl && C.supabaseAnonKey ? 'live' : 'off';
+  ECS.google_on = ECS.mode === 'demo' || !!C.googleSignIn;
   ECS.enabled = function () { return ECS.mode !== 'off'; };
   ECS.DEMO_CODE = '123456';
 

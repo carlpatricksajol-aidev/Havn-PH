@@ -20,8 +20,10 @@ window.HAVN_CONFIG = {
   landlordFormKey: '',
   // Landlord accounts, listings, renter messages and emails (see supabase/README.md). Both empty = accounts are
   // off and the site keeps the form above. Add ?demo=1 to any address to try the whole flow without them.
-  supabaseUrl: '',      // e.g. 'https://abcdefghijkl.supabase.co'
-  supabaseAnonKey: '',  // the project's public "anon" key (safe to publish; row-level security protects the data)
+  supabaseUrl: 'https://wzxftbwguliztfcfjbqo.supabase.co',      // e.g. 'https://abcdefghijkl.supabase.co'
+  supabaseAnonKey: 'sb_publishable_-ayRrpCY8rhUW23qsugebw_A_ck6K8F',
+  // Set to true once Google sign-in is switched on in Supabase (Authentication > Providers > Google).
+  googleSignIn: false,  // the project's public "anon" key (safe to publish; row-level security protects the data)
 };
 
 window.HAVN_SCHOOLS = [

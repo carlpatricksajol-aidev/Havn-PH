@@ -126,15 +126,15 @@
       clearInterval(timer);
       card.innerHTML =
         '<h1>' + esc(t('Log in or sign up')) + '</h1>' +
-        '<button type="button" class="btn btn-google btn-block" data-google>' + GOOGLE_G + '<span>' + esc(t('Continue with Google')) + '</span></button>' +
-        '<div class="auth-or"><span>' + esc(t('or')) + '</span></div>' +
+        (ECS.google_on ? '<button type="button" class="btn btn-google btn-block" data-google>' + GOOGLE_G + '<span>' + esc(t('Continue with Google')) + '</span></button>' +
+        '<div class="auth-or"><span>' + esc(t('or')) + '</span></div>' : '') +
         '<form class="auth-form" novalidate>' +
           '<label class="field"><span class="vh">' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="' + esc(t('Email address')) + '" value="' + esc(email) + '" required></label>' +
           '<p class="field-err" role="alert" hidden></p>' +
           '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Continue with email')) + '</button>' +
         '</form>' + legal;
       var f = $('form', card), e = $('.field-err', card), input = $('input', f);
-      $('[data-google]', card).addEventListener('click', function () {
+      if ($('[data-google]', card)) $('[data-google]', card).addEventListener('click', function () {
         var b = this; busy(b, true, t('Opening Google'));
         ECS.google(next).then(function (r) { if (r && r.user) done(r); }).catch(function (x) { busy(b, false); err(e, x.message); });
       });

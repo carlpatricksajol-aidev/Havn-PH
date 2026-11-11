@@ -161,22 +161,25 @@ create table public.contact_messages (
 );
 
 -- Simple flood protection: at most 5 inquiries per mobile per hour, 5 contact messages per email per hour.
-create or replace function public.limit_rate() returns trigger language plpgsql security definer set search_path = public as $$
+-- (Two functions: a shared one cannot read new.email on a table that has no such column.)
+create or replace function public.limit_inquiries() returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if tg_table_name = 'inquiries' and (select count(*) from public.inquiries where renter_mobile = new.renter_mobile and created_at > now() - interval '1 hour') >= 5 then
-    raise exception 'Too many messages. Please wait a little and try again.';
-  end if;
-  if tg_table_name = 'contact_messages' and (select count(*) from public.contact_messages where email = new.email and created_at > now() - interval '1 hour') >= 5 then
+  if (select count(*) from public.inquiries where renter_mobile = new.renter_mobile and created_at > now() - interval '1 hour') >= 5 then
     raise exception 'Too many messages. Please wait a little and try again.';
   end if;
   -- Link the inquiry to a real listing when the room id is one.
-  if tg_table_name = 'inquiries' then
-    new.listing_id := (select id from public.listings where id::text = new.listing_ref and status = 'live');
+  new.listing_id := (select id from public.listings where id::text = new.listing_ref and status = 'live');
+  return new;
+end $$;
+create or replace function public.limit_contact() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.contact_messages where email = new.email and created_at > now() - interval '1 hour') >= 5 then
+    raise exception 'Too many messages. Please wait a little and try again.';
   end if;
   return new;
 end $$;
-create trigger inquiries_rate before insert on public.inquiries for each row execute function public.limit_rate();
-create trigger contact_rate before insert on public.contact_messages for each row execute function public.limit_rate();
+create trigger inquiries_rate before insert on public.inquiries for each row execute function public.limit_inquiries();
+create trigger contact_rate before insert on public.contact_messages for each row execute function public.limit_contact();
 
 -- ---------------------------------------------------------------------------------------------------------
 -- Row-level security
