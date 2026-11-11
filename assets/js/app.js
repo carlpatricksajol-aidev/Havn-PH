@@ -167,7 +167,8 @@
         '<div class="hdr-actions">' +
           '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
           (window.ECS && ECS.user ? '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('home') + '<span>' + H.esc(t('Your listings')) + '</span></a>'
-            : '<a class="hdr-link list-link" href="/list" data-link>' + H.esc(t('List your place')) + '</a>') +
+            : '<a class="hdr-link list-link" href="/list" data-link>' + H.esc(t('List your place')) + '</a>' +
+              (window.ECS && ECS.enabled() && !/^\/signin/.test(location.pathname) ? '<a class="signin-link" href="/signin?next=/host" data-link>' + H.esc(t('Sign in')) + '</a>' : '')) +
           langButtons() +
         '</div>' +
       '</div>' +
@@ -513,7 +514,7 @@
 
   function footHtml(cls) {
     return '<footer class="foot' + (cls ? ' ' + cls : '') + '">' +
-      '<p class="foot-brand"><img src="/assets/brand/ecstay-mark-light.svg" width="42" height="28" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
+      '<p class="foot-brand"><img src="/assets/brand/' + (cls === 'foot-scene' ? 'ecstay-mark-light.svg' : 'ecstay-mark.svg') + '" width="42" height="28" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
       '<nav class="foot-cols" aria-label="' + H.esc(t('Site')) + '">' +
         '<div><h3>' + H.esc(t('Renters')) + '</h3><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a><a href="/rooms?saved=1" data-link>' + H.esc(t('Saved rooms')) + '</a><a href="/help#stay-safe" data-link>' + H.esc(t('Stay safe')) + '</a></div>' +
         '<div><h3>' + H.esc(t('Landlords')) + '</h3><a href="/list" data-link>' + H.esc(t('List your place')) + '</a><a href="/listing-standards" data-link>' + H.esc(t('Listing standards')) + '</a>' + (window.ECS && ECS.enabled() ? '<a href="/signin?next=/host" data-link>' + H.esc(t('Sign in')) + '</a>' : '') + '</div>' +
@@ -590,7 +591,8 @@
     };
     var inner = document.createElement('div'); inner.className = 'page-in';
     host.innerHTML = ''; host.appendChild(inner);
-    var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild);
+    // Account screens are tools, not pages: no footer there.
+    if (!/^(signin|dashboard|editor|profile|review)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
     if (kind === 'doc') {
       var P = (window.ECS_PAGES || {})[arg];
       if (!P) { kind = 'missing'; }

@@ -61,47 +61,42 @@
     }).catch(function () { host.innerHTML = '<div class="host-wrap"><p class="host-error">' + esc(t('Something went wrong. Please try again.')) + '</p></div>'; });
   }
 
+  /* A real room photo with an optional overlay (the painted house belongs to the home page only). */
+  var SIGNIN_PHOTO = '/assets/photos/r-76fbd04a-2000.webp', LIST_PHOTO = '/assets/photos/u-bab0e564-2000.webp';
+  function photoPanel(cls, src, overlay) {
+    return '<div class="ph-panel ' + cls + '"><img src="' + src + '" alt="" width="2000" height="1500" decoding="async">' + (overlay || '') + '</div>';
+  }
+  // What their listing will look like to renters (a preview of the product, not a real listing).
+  function listingPreview() {
+    return '<div class="ph-card" aria-hidden="true"><span class="ph-card-k">' + esc(t('Your listing')) + '</span>' +
+      '<b>' + esc(t('Your boarding house')) + '</b>' +
+      '<span class="ph-card-near">' + H.icon('walk') + esc(t('{n} min walk to {school}', { n: 5, school: 'AdDU' })) + '</span>' +
+      '<span class="ph-card-row"><strong>' + H.peso(4500) + '</strong> ' + esc(t('/ month')) + '<em><i></i>' + esc(t('Available now')) + '</em></span></div>';
+  }
+
   /* ================= /list: for landlords ================= */
   HV.landing = function (host) {
     var start = ECS.enabled()
       ? '<a class="btn btn-primary btn-lg" href="/signin?next=/host/new" data-link data-start>' + esc(t('Get started')) + H.icon('arrow-right') + '</a>'
       : '<button type="button" class="btn btn-primary btn-lg" data-ll-open>' + esc(t('Get started')) + H.icon('arrow-right') + '</button>';
     var step = function (n, title, text) { return '<li><span class="lp-n">' + n + '</span><div><h3>' + esc(t(title)) + '</h3><p>' + esc(t(text)) + '</p></div></li>'; };
-    var need = function (icon, text) { return '<li>' + H.icon(icon) + '<span>' + esc(t(text)) + '</span></li>'; };
-    var qa = function (q, a) { return '<details class="lp-qa"><summary>' + esc(t(q)) + H.icon('chev-right') + '</summary><p>' + esc(t(a)) + '</p></details>'; };
     host.innerHTML = HV.demoBar() +
       '<div class="lp">' +
         '<section class="lp-hero">' +
           '<div class="lp-copy">' +
             '<p class="lp-kicker">' + esc(t('For landlords in Davao City')) + '</p>' +
             '<h1>' + esc(t('List your boarding house on ECStay')) + '</h1>' +
-            '<p class="lp-lead">' + esc(t('Show your rooms to students and young workers looking for a place near their school or work. Add photos, monthly prices and the exact spot on the map. We review every listing before it goes live.')) + '</p>' +
-            '<div class="lp-ctas">' + start + '<a class="btn btn-ghost btn-lg" href="/listing-standards" data-link>' + esc(t('Listing standards')) + '</a></div>' +
-            (ECS.enabled() ? '<p class="lp-signin">' + esc(t('Already listed with us?')) + ' <a href="/signin?next=/host" data-link>' + esc(t('Sign in')) + '</a></p>' : '') +
+            '<p class="lp-lead">' + esc(t('Reach students and young workers looking for a room near their school or work. We review every listing before it goes live.')) + '</p>' +
+            '<div class="lp-ctas">' + start +
+              (ECS.enabled() ? '<a class="btn btn-ghost btn-lg" href="/signin?next=/host" data-link>' + esc(t('Sign in')) + '</a>' : '') + '</div>' +
           '</div>' +
-          '<div class="lp-art"><img src="/assets/scene/hood-1600.webp" width="1600" height="679" alt="' + esc(t('A boarding house in Davao with Kapi\'s friends at the windows, on the balcony and on the porch')) + '"></div>' +
+          photoPanel('lp-photo', LIST_PHOTO, listingPreview()) +
         '</section>' +
-        '<section class="lp-sec"><h2>' + esc(t('How it works')) + '</h2><ol class="lp-steps">' +
-          step(1, 'Create your account', 'Continue with Google, or get a 6-digit code by email. No password to remember.') +
-          step(2, 'Add your place', 'Name, location pin, rooms and monthly prices, rules and photos. It saves as you go, so you can finish later.') +
-          step(3, 'We review it, renters reach you', 'We check every listing before it goes live. Renters\' messages come to your email and your dashboard.') +
-        '</ol></section>' +
-        '<section class="lp-sec lp-two">' +
-          '<div><h2>' + esc(t('What you\'ll need')) + '</h2><ul class="lp-need">' +
-            need('image', 'At least 5 recent photos of the rooms, the CR and the outside') +
-            need('wallet', 'Monthly price for each room type, plus advance and deposit') +
-            need('pin', 'The exact location, so renters see the walk to school or work') +
-            need('book', 'House rules: curfew, visitors, cooking, who can stay') +
-            need('phone', 'A mobile number where renters can reach you') +
-          '</ul></div>' +
-          '<div><h2>' + esc(t('Questions from landlords')) + '</h2>' +
-            qa('How long does the review take?', 'We review each listing and email you as soon as it is live, or if we need a change first.') +
-            qa('Can I edit my listing later?', 'Yes. Small changes are quick. Bigger changes, like new photos or a new location, are checked again before they show.') +
-            qa('Will renters see my mobile number?', 'Not on the listing. Renters send you a message through ECStay, with their name, mobile and move-in month, and you reply when it suits you.') +
-            qa('Does ECStay handle payments?', 'No. Renters pay you directly, after they have seen the room. ECStay never asks anyone for payment.') +
-          '</div>' +
-        '</section>' +
-        '<section class="lp-band"><h2>' + esc(t('Ready when you are')) + '</h2><p>' + esc(t('It takes about 10 minutes, and you can stop and come back anytime.')) + '</p>' + start + '</section>' +
+        '<ol class="lp-steps">' +
+          step(1, 'Create your account', 'Google, or a 6-digit code by email.') +
+          step(2, 'Add your place', 'Photos, prices and the exact spot on the map.') +
+          step(3, 'We review it, renters reach you', 'Messages come to your email and dashboard.') +
+        '</ol>' +
       '</div>';
     var s = $('[data-start]', host);
     if (s) ECS.session().then(function (x) { if (x) s.setAttribute('href', '/host/new'); });
@@ -111,17 +106,21 @@
   HV.signin = function (host) {
     if (!ECS.enabled()) { go('/list'); return; }
     var next = nextParam(), email = '', timer = 0;
+    var chip = '<span class="ph-chip"><img src="/assets/brand/ecstay-mark.svg" width="36" height="24" alt="">' + esc(t('For landlords in Davao City')) + '</span>';
     host.innerHTML = HV.demoBar() +
       '<div class="auth">' +
-        '<div class="auth-card" aria-live="polite"></div>' +
-        '<div class="auth-art" aria-hidden="true"><img src="/assets/scene/hood-1600.webp" width="1600" height="679" alt="">' +
-          '<p>' + esc(t('List your place, keep it up to date, and get renters\' messages in one place.')) + '</p></div>' +
+        '<div class="auth-main"><div class="auth-card" aria-live="polite"></div></div>' +
+        photoPanel('auth-photo', SIGNIN_PHOTO, chip) +
       '</div>';
     var card = $('.auth-card', host);
     var legal = '<p class="auth-legal">' + t('By continuing, you agree to the {terms} and the {privacy}.', {
       terms: '<a href="/terms" data-link>' + esc(t('Terms of Use')) + '</a>', privacy: '<a href="/privacy" data-link>' + esc(t('Privacy Notice')) + '</a>' }) + '</p>';
+    var points = '<ul class="auth-points">' +
+      '<li><span>' + H.icon('lock') + '</span>' + esc(t('No password. We email you a 6-digit code each time.')) + '</li>' +
+      '<li><span>' + H.icon('phone') + '</span>' + esc(t('Your mobile number is never shown on your listing.')) + '</li>' +
+      '<li><span>' + H.icon('shield') + '</span>' + esc(t('We review every listing before renters see it.')) + '</li></ul>';
 
-    function done(r) {
+    function done() {
       clearInterval(timer);
       // First sign-in: ask for the details renters need, then carry on.
       ECS.profile().then(function (p) {
@@ -132,16 +131,15 @@
     function stepEmail() {
       clearInterval(timer);
       card.innerHTML =
-        '<a href="/" class="auth-logo" data-link aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="45" height="30" alt=""><span class="logo-word">ECStay</span></a>' +
-        '<h1>' + esc(t('Sign in or create your account')) + '</h1>' +
-        '<p class="auth-sub">' + esc(t('For landlords who want to list their boarding house, bedspace or rooms.')) + '</p>' +
+        '<h1>' + esc(t('Welcome to ECStay')) + '</h1>' +
+        '<p class="auth-sub">' + esc(t('Sign in, or create your account, to list and manage your boarding house.')) + '</p>' +
         '<button type="button" class="btn btn-google btn-block" data-google>' + GOOGLE_G + '<span>' + esc(t('Continue with Google')) + '</span></button>' +
-        '<div class="auth-or"><span>' + esc(t('or')) + '</span></div>' +
+        '<div class="auth-or"><span>' + esc(t('or with your email')) + '</span></div>' +
         '<form class="auth-form" novalidate>' +
-          '<label class="field"><span>' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" value="' + esc(email) + '" required></label>' +
+          '<label class="field"><span class="vh">' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="' + esc(t('Email address')) + '" value="' + esc(email) + '" required></label>' +
           '<p class="field-err" role="alert" hidden></p>' +
           '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Email me a code')) + '</button>' +
-        '</form>' + legal;
+        '</form>' + legal + points;
       var f = $('form', card), e = $('.field-err', card), input = $('input', f);
       $('[data-google]', card).addEventListener('click', function () {
         var b = this; busy(b, true, t('Opening Google'));
@@ -155,7 +153,7 @@
         var b = $('button[type=submit]', f); busy(b, true, t('Sending'));
         ECS.sendCode(v).then(function () { email = v; stepCode(); }).catch(function (x) { busy(b, false); err(e, x.message); });
       });
-      input.focus();
+      if (window.innerWidth >= 1024) input.focus({ preventScroll: true });
     }
 
     function stepCode() {
@@ -171,7 +169,7 @@
           '<p class="field-err" role="alert" hidden></p>' +
           '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Continue')) + '</button>' +
         '</form>' +
-        '<p class="auth-resend"><button type="button" class="btn-link" data-resend disabled></button></p>' + legal;
+        '<p class="auth-resend"><button type="button" class="btn-link" data-resend disabled></button></p>';
       var boxes = $$('.otp input', card), f = $('form', card), e = $('.field-err', card), rs = $('[data-resend]', card);
       var left = 30;
       function tick() { rs.disabled = left > 0; rs.textContent = left > 0 ? t('Send a new code in {n}s', { n: left }) : t('Send a new code'); left--; if (left < -1) clearInterval(timer); }
