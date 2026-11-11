@@ -62,7 +62,7 @@
   }
 
   /* A real room photo with an optional overlay (the painted house belongs to the home page only). */
-  var SIGNIN_PHOTO = '/assets/photos/r-76fbd04a-2000.webp', LIST_PHOTO = '/assets/photos/u-bab0e564-2000.webp';
+  var LIST_PHOTO = '/assets/photos/u-bab0e564-2000.webp';
   function photoPanel(cls, src, overlay) {
     return '<div class="ph-panel ' + cls + '"><img src="' + src + '" alt="" width="2000" height="1500" decoding="async">' + (overlay || '') + '</div>';
   }
@@ -106,20 +106,14 @@
   HV.signin = function (host) {
     if (!ECS.enabled()) { go('/list'); return; }
     var next = nextParam(), email = '', timer = 0;
-    var chip = '<span class="ph-chip"><img src="/assets/brand/ecstay-mark.svg" width="36" height="24" alt="">' + esc(t('For landlords in Davao City')) + '</span>';
     host.innerHTML = HV.demoBar() +
       '<div class="auth">' +
-        '<div class="auth-main"><div class="auth-card" aria-live="polite"></div></div>' +
-        photoPanel('auth-photo', SIGNIN_PHOTO, chip) +
+        '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' +
+        '<div class="auth-card" aria-live="polite"></div>' +
       '</div>';
     var card = $('.auth-card', host);
     var legal = '<p class="auth-legal">' + t('By continuing, you agree to the {terms} and the {privacy}.', {
       terms: '<a href="/terms" data-link>' + esc(t('Terms of Use')) + '</a>', privacy: '<a href="/privacy" data-link>' + esc(t('Privacy Notice')) + '</a>' }) + '</p>';
-    var points = '<ul class="auth-points">' +
-      '<li><span>' + H.icon('lock') + '</span>' + esc(t('No password. We email you a 6-digit code each time.')) + '</li>' +
-      '<li><span>' + H.icon('phone') + '</span>' + esc(t('Your mobile number is never shown on your listing.')) + '</li>' +
-      '<li><span>' + H.icon('shield') + '</span>' + esc(t('We review every listing before renters see it.')) + '</li></ul>';
-
     function done() {
       clearInterval(timer);
       // First sign-in: ask for the details renters need, then carry on.
@@ -131,15 +125,14 @@
     function stepEmail() {
       clearInterval(timer);
       card.innerHTML =
-        '<h1>' + esc(t('Welcome to ECStay')) + '</h1>' +
-        '<p class="auth-sub">' + esc(t('Sign in, or create your account, to list and manage your boarding house.')) + '</p>' +
+        '<h1>' + esc(t('Log in or sign up')) + '</h1>' +
         '<button type="button" class="btn btn-google btn-block" data-google>' + GOOGLE_G + '<span>' + esc(t('Continue with Google')) + '</span></button>' +
-        '<div class="auth-or"><span>' + esc(t('or with your email')) + '</span></div>' +
+        '<div class="auth-or"><span>' + esc(t('or')) + '</span></div>' +
         '<form class="auth-form" novalidate>' +
           '<label class="field"><span class="vh">' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="' + esc(t('Email address')) + '" value="' + esc(email) + '" required></label>' +
           '<p class="field-err" role="alert" hidden></p>' +
-          '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Email me a code')) + '</button>' +
-        '</form>' + legal + points;
+          '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Continue with email')) + '</button>' +
+        '</form>' + legal;
       var f = $('form', card), e = $('.field-err', card), input = $('input', f);
       $('[data-google]', card).addEventListener('click', function () {
         var b = this; busy(b, true, t('Opening Google'));

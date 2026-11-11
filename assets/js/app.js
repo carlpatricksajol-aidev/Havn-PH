@@ -566,7 +566,7 @@
   function leavePage() {
     if (window.HostView) HostView.leave();
     var p = $('#view-page'); if (p) { p.hidden = true; p.innerHTML = ''; }
-    document.body.classList.remove('is-pageview');
+    document.body.classList.remove('is-pageview', 'is-auth');
   }
 
   /* Business pages, landlord screens and "not found": one container, the normal header and footer. */
@@ -580,6 +580,7 @@
     var room = $('#view-room'); room.hidden = true; RoomView.destroy(); room.innerHTML = '';
     var host = $('#view-page'); host.hidden = false;
     document.body.classList.add('is-pageview');
+    document.body.classList.toggle('is-auth', kind === 'signin');
     renderHeader(); renderNav();
     var meta = function (title, desc, noindex) {
       document.title = title + ' · ECStay';
