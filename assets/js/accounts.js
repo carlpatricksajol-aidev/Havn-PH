@@ -187,7 +187,7 @@
       },
       sendInquiry: function (q) {
         var d = db();
-        q = Object.assign({ id: uid(), created_at: now() }, q);
+        q = Object.assign({ id: uid(), created_at: now(), renter_id: me() ? me().id : null }, q);
         d.inquiries.unshift(q);
         mail(d, 'landlord', 'new-inquiry', q);
         if (q.renter_email) mail(d, q.renter_email, 'inquiry-sent', q);
@@ -195,7 +195,35 @@
       },
       sendContact: function (m) { var d = db(); d.contacts.unshift(Object.assign({ id: uid(), created_at: now() }, m)); save(d); return Promise.resolve(); },
       outbox: function () { return Promise.resolve(db().outbox); },
-      myInquiries: function () { return Promise.resolve([]); },
+      myInquiries: function () { var u = me(), d = db(); return Promise.resolve(u ? d.inquiries.filter(function (q) { return q.renter_id === u.id && !q.example; }) : []); },
+      // Demo inbox: the person's own conversations, plus two examples (one as Keeper, one as renter) the first time.
+      threads: function () {
+        var u = me(); if (!u) return fail(t('Please sign in first.'));
+        var d = db(); d.messages = d.messages || [];
+        if (!d.seeded || !d.seeded[u.id]) {
+          var ago = function (h) { return new Date(Date.now() - h * 36e5).toISOString(); };
+          var a = uid(), b = uid();
+          d.inquiries.push({ id: a, example: true, photo: 'r-a7ecbd80', as_keeper: u.id, listing_ref: 'example', listing_name: "Bajada Ladies' Boarding House (example)", renter_name: 'Maria Santos', renter_mobile: '09171234567', move_in: 'January', message: "Hi! Is the bedspace still available? I'm a nursing student at SPC starting in January.", created_at: ago(27) });
+          [['keeper', 'Hi Maria! Yes, one bed is left in the 4-person room. It is \u20b12,800 a month with water and WiFi included.', 26], ['renter', 'Is there a curfew? And can I see the room this Saturday?', 25.5], ['keeper', 'Curfew is 10 PM. Saturday at 2 PM works. I will meet you at the gate.', 24], ['renter', 'Great, see you Saturday. Thank you!', 3]].forEach(function (m) {
+            d.messages.push({ id: uid(), inquiry_id: a, sender_role: m[0], body: m[1], created_at: ago(m[2]) });
+          });
+          d.inquiries.push({ id: b, example: true, photo: 'u-6a9f6d5f', renter_id: u.id, listing_ref: 'example', listing_name: 'Matina Student Rooms (example)', listing_id: 'example', renter_name: u.name || 'You', renter_mobile: '09170000000', move_in: 'December', message: 'Hi! Is the private room still available? I work near SM Ecoland.', created_at: ago(50) });
+          [['keeper', 'Hello! Yes, it is free from December 1. \u20b15,500 a month, own CR, you pay your own electric meter.', 49], ['renter', 'How much do I need to move in?', 48], ['keeper', 'One month advance and one month deposit, so \u20b111,000. You can visit any day after 5 PM.', 47]].forEach(function (m) {
+            d.messages.push({ id: uid(), inquiry_id: b, sender_role: m[0], body: m[1], created_at: ago(m[2]) });
+          });
+          d.seeded = d.seeded || {}; d.seeded[u.id] = 1; save(d);
+        }
+        var mine = Object.keys(d.listings).map(function (k) { return d.listings[k]; }).filter(function (l) { return l.owner_id === u.id; });
+        var ids = mine.map(function (l) { return l.id; });
+        var inqs = d.inquiries.filter(function (q) { return q.renter_id === u.id || q.as_keeper === u.id || ids.indexOf(q.listing_id) >= 0; });
+        return Promise.resolve(ECS.buildThreads(inqs, mine, d.messages, u.id, function (q, own) { return q.as_keeper === u.id || (own && q.renter_id !== u.id) ? 'keeper' : 'renter'; }));
+      },
+      sendReply: function (inquiryId, role, body) {
+        var u = me(); if (!u) return fail(t('Please sign in first.'));
+        var d = db(); d.messages = d.messages || [];
+        var m = { id: uid(), inquiry_id: inquiryId, sender_id: u.id, sender_role: role, body: String(body).slice(0, 2000), created_at: now() };
+        d.messages.push(m); save(d); return Promise.resolve(m);
+      },
       adminData: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setLead: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setContact: function () { return fail(t('The admin workspace works with real accounts only.')); },
@@ -312,6 +340,21 @@
       myInquiries: function () {
         return Promise.all([client(), uidNow()]).then(function (a) { return a[0].from('inquiries').select('*').eq('renter_id', a[1]).order('created_at', { ascending: false }).limit(50); }).then(check);
       },
+      // The inbox. Row-level security decides what comes back: conversations the person started, ones about
+      // their own listings, and (admins) the rest.
+      threads: function () {
+        return Promise.all([client(), uidNow()]).then(function (a) {
+          var c = a[0];
+          return Promise.all([
+            c.from('inquiries').select('*').order('created_at', { ascending: false }).limit(200).then(check),
+            c.from('listings').select('id,name,area,photos,rooms,owner_id').limit(500).then(check),
+            c.from('inquiry_messages').select('*').order('created_at', { ascending: true }).limit(3000).then(check),
+          ]).then(function (r) { return ECS.buildThreads(r[0], r[1], r[2], a[1]); });
+        });
+      },
+      sendReply: function (inquiryId, role, body) {
+        return client().then(function (c) { return c.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_role: role, body: String(body).slice(0, 2000) }).select().single(); }).then(check);
+      },
       // Admins: everything, for the workspace at /admin (row-level security returns nothing to anyone else).
       adminData: function () {
         return client().then(function (c) {
@@ -352,6 +395,24 @@
     session: function () { return Promise.resolve(null); },
     onChange: function () {},
   };
+  /* Conversations for the inbox: each inquiry with its replies, which side the reader is on, and the room it is
+   * about. `waiting` = the last word was the other side's, so it is the reader's turn. */
+  ECS.buildThreads = function (inqs, listings, msgs, me, roleOf) {
+    var L = {}; (listings || []).forEach(function (l) { L[l.id] = l; });
+    var M = {}; (msgs || []).forEach(function (m) { (M[m.inquiry_id] = M[m.inquiry_id] || []).push(m); });
+    return (inqs || []).map(function (q) {
+      var own = L[q.listing_id], site = window.H && H.byId ? H.byId(q.listing_ref) : null;
+      var role = roleOf ? roleOf(q, own) : q.renter_id === me ? 'renter' : own && own.owner_id === me ? 'keeper' : 'team';
+      var cover = own && own.photos && own.photos[0];
+      var room = site ? { name: site.name, photo: site.photos && site.photos[0], price: site.price, area: site.area, url: '/room/' + q.listing_ref } :
+        own ? { name: q.listing_name || own.name || t('Untitled listing'), photo: cover && (cover.url || cover), price: ECS.priceFrom(own), area: own.area, url: role === 'keeper' ? '/host/edit/' + own.id : null } :
+        { name: q.listing_name || t('A room'), photo: q.photo || null, price: 0, area: '', url: null };
+      var list = [{ id: q.id + '-0', inquiry_id: q.id, sender_role: 'renter', body: q.message || '', created_at: q.created_at }]
+        .concat((M[q.id] || []).slice().sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); }));
+      return { q: q, role: role, room: room, msgs: list, waiting: list[list.length - 1].sender_role !== role };
+    }).sort(function (a, b) { return new Date(b.msgs[b.msgs.length - 1].created_at) - new Date(a.msgs[a.msgs.length - 1].created_at); });
+  };
+
   var impl = ECS.mode === 'live' ? live : ECS.mode === 'demo' ? demo : off;
   Object.keys(demo).forEach(function (k) {
     ECS[k] = function () { return impl[k] ? impl[k].apply(null, arguments) : fail(t('Accounts are not switched on yet.')); };

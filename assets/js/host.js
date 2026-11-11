@@ -243,11 +243,11 @@
             '</section>' : '') +
             '<section class="host-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
               (sent.length ? '<ul class="sent-list">' + sent.map(function (q) {
-                return '<li><a href="/room/' + esc(q.listing_ref) + '" data-link><b>' + esc(q.listing_name || q.listing_ref) + '</b><span>' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', t('Sent {date}', { date: new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) })].filter(Boolean).join(' · ')) + '</span></a></li>';
+                return '<li><a href="/messages/' + esc(q.id) + '" data-link><b>' + esc(q.listing_name || q.listing_ref) + '</b><span>' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', t('Sent {date}', { date: new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) })].filter(Boolean).join(' · ')) + '</span></a></li>';
               }).join('') + '</ul>' : '<p class="host-muted">' + esc(t('When you message a Keeper about a room, it shows here.')) + ' <a href="/rooms" data-link>' + esc(t('Find a room')) + '</a></p>') +
             '</section>' +
             (ECS.mode === 'demo' ? outboxHtml(out) : '') +
-            '<section class="host-sec host-links">' + (p.role === 'admin' ? '<a href="/admin" data-link>' + H.icon('grid') + '<span>' + esc(t('Admin')) + '</span></a>' : '') + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
+            '<section class="host-sec host-links">' + (p.role === 'admin' ? '<a href="/admin" data-link>' + H.icon('grid') + '<span>' + esc(t('Admin')) + '</span></a>' : '') + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/messages" data-link>' + H.icon('message') + '<span>' + esc(t('Messages')) + '</span></a><a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
               '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Keeper standards')) + '</span></a>' +
               '<a href="/help" data-link>' + H.icon('info') + '<span>' + esc(t('Help')) + '</span></a></section>' +
           '</div>';
@@ -284,7 +284,8 @@
     return '<li class="inq"><div class="inq-top"><b>' + esc(q.renter_name) + '</b><span>' + esc(new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })) + '</span></div>' +
       '<p class="inq-meta">' + esc([l ? l.name : q.listing_name, q.move_in ? t('Move-in: {m}', { m: q.move_in }) : ''].filter(Boolean).join(' · ')) + '</p>' +
       (q.message ? '<p class="inq-msg">' + esc(q.message) + '</p>' : '') +
-      '<div class="inq-act"><a class="btn btn-primary btn-sm" href="' + esc(sms) + '">' + H.icon('message') + '<span>' + esc(t('Text {m}', { m: ECS.showMobile(q.renter_mobile) })) + '</span></a>' +
+      '<div class="inq-act"><a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + H.icon('message') + '<span>' + esc(t('Reply')) + '</span></a>' +
+      '<a class="btn btn-ghost btn-sm" href="' + esc(sms) + '">' + esc(t('Text {m}', { m: ECS.showMobile(q.renter_mobile) })) + '</a>' +
       '<a class="btn btn-ghost btn-sm" href="tel:' + esc(q.renter_mobile || '') + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + '</span></a></div></li>';
   }
 
@@ -692,9 +693,9 @@
         move_in: f.move_in.value || null, message: f.message.value.trim().slice(0, 1000),
       }).then(function () {
         $('.dlg-body', root).innerHTML = '<div class="inq-done"><img src="/assets/capy/kapi.webp" width="120" height="120" alt="">' +
-          '<h3>' + esc(t('Message sent')) + '</h3><p>' + esc(l.sample ? t('The ECStay team will reply by text or call soon.') : t('The Keeper will reply by text or call. We\'ve also sent it to their email.')) + '</p>' +
+          '<h3>' + esc(t('Message sent')) + '</h3><p>' + esc(l.sample ? t('The ECStay team will reply here in Messages, or by text.') : t('The Keeper can reply here in Messages, or by text or call.')) + '</p>' +
           '<p class="fine">' + esc(t('Stay safe: see the room in person before paying anything, and get a receipt.')) + '</p></div>';
-        $('.dlg-foot', root).innerHTML = '<button type="button" class="btn btn-ghost btn-block" data-close>' + esc(t('Done')) + '</button>';
+        $('.dlg-foot', root).innerHTML = (ECS.user ? '<a class="btn btn-primary btn-block" href="/messages" data-link data-close>' + esc(t('See the conversation')) + '</a>' : '') + '<button type="button" class="btn btn-ghost btn-block" data-close>' + esc(t('Done')) + '</button>';
       }).catch(function (x) { busy(btn, false); err(e, x.message); });
     }
     btn.addEventListener('click', send);

@@ -123,6 +123,18 @@
       }).join('') + '</div>';
   }
 
+  /* Budget as a slider: drag left for a lower monthly budget; all the way right means any budget. */
+  var BUDGET_MIN = 2000;
+  function budgetText(min, max) {
+    if (min) return H.peso(min) + '\u2013' + (max ? H.peso(max) : H.peso(PRICE_MAX) + '+');
+    return max && max < PRICE_MAX ? t('Up to {p}', { p: H.peso(max) }) : t('Any budget');
+  }
+  function budgetSlider() {
+    var v = S.max && S.max < PRICE_MAX ? Math.max(BUDGET_MIN, S.max) : PRICE_MAX, txt = budgetText(S.min, S.max);
+    return '<div class="sf sf-select sf-budget"><label class="sf-label" for="budget"><span>' + H.esc(t('Budget')) + '</span><output id="budget-out" for="budget">' + H.esc(txt) + '</output></label>' +
+      '<input type="range" id="budget" min="' + BUDGET_MIN + '" max="' + PRICE_MAX + '" step="' + PRICE_STEP + '" value="' + v + '" aria-valuetext="' + H.esc(txt) + '" style="--p:' + ((v - BUDGET_MIN) / (PRICE_MAX - BUDGET_MIN) * 100) + '%"></div>';
+  }
+
   function budgetOptions() {
     var opts = '<option value="0">' + H.esc(t('Any budget')) + '</option>';
     var list = BUDGETS.slice();
@@ -151,7 +163,8 @@
       var here = location.pathname + location.search;
       return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
     }
-    return saved + (ECS.user.role === 'admin' ? '<a class="hdr-link list-link' + (/^\/admin/.test(location.pathname) ? ' on' : '') + '" href="/admin" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+    return saved + '<a class="hdr-link list-link msg-link' + (/^\/messages/.test(location.pathname) ? ' on' : '') + '" href="/messages" data-link>' + H.icon('message') + '<span>' + H.esc(t('Messages')) + '</span></a>' +
+      (ECS.user.role === 'admin' ? '<a class="hdr-link list-link' + (/^\/admin/.test(location.pathname) ? ' on' : '') + '" href="/admin" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
       '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
   }
   function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
@@ -202,7 +215,7 @@
                 '</div>' +
                 '<ul id="q-list" class="suggest" role="listbox" hidden></ul>' +
               '</div>' +
-              '<div class="sf sf-select"><label class="sf-label" for="budget">' + H.esc(t('Budget')) + '</label><select id="budget">' + budgetOptions() + '</select></div>' +
+              budgetSlider() +
               '<div class="sf sf-select"><label class="sf-label" for="rtype">' + H.esc(t('Room type')) + '</label><select id="rtype">' + typeOptions() + '</select></div>' +
               '<button class="sf-go" type="submit">' + H.icon('search') + '<span>' + H.esc(t('Search')) + '</span></button>' +
             '</form>';
@@ -288,9 +301,16 @@
         if (S.place && v === placeLabel(S)) { close(); commit(); return; }
         S.place = ''; S.q = v; if (v) S.bbox = null; close(); input.blur(); commit();
       });
-      $('#budget', form).addEventListener('change', function (e) {
-        var v = e.target.value; if (v === 'custom') return;
-        S.min = 0; S.max = +v; if (view !== 'home') apply(true);
+      var bud = $('#budget', form), budOut = $('#budget-out', form);
+      bud.addEventListener('input', function () {
+        var v = +bud.value;
+        budOut.textContent = budgetText(0, v >= PRICE_MAX ? 0 : v);
+        bud.style.setProperty('--p', ((v - BUDGET_MIN) / (PRICE_MAX - BUDGET_MIN) * 100) + '%');
+        bud.setAttribute('aria-valuetext', budOut.textContent);
+      });
+      bud.addEventListener('change', function () {
+        var v = +bud.value;
+        S.min = 0; S.max = v >= PRICE_MAX ? 0 : v; if (view !== 'home') apply(true);
       });
       $('#rtype', form).addEventListener('change', function (e) {
         var v = e.target.value; if (v === 'multi') return;
@@ -355,7 +375,7 @@
     var nav = $('#bottom-nav');
     var savedN = H.saved.count();
     var tab = view === 'home' ? 'home' : view === 'browse' ? (S.saved ? 'saved' : mode) : '';
-    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin|admin)/.test(location.pathname));
+    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin|admin|messages)/.test(location.pathname));
     nav.innerHTML =
       '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
@@ -618,7 +638,7 @@
     var inner = document.createElement('div'); inner.className = 'page-in';
     host.innerHTML = ''; host.appendChild(inner);
     // Account screens are tools, not pages: no footer there.
-    if (!/^(signin|dashboard|editor|profile|review|admin)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
+    if (!/^(signin|dashboard|editor|profile|review|admin|messages)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
     if (kind === 'doc') {
       var P = (window.ECS_PAGES || {})[arg];
       if (!P) { kind = 'missing'; }
@@ -640,7 +660,7 @@
       return;
     }
     window.scrollTo(0, 0);
-    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings'), admin: t('Admin') }[kind] || 'ECStay',
+    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings'), admin: t('Admin'), messages: t('Messages') }[kind] || 'ECStay',
       kind === 'landing' ? t('List your boarding house, bedspace or rooms in Davao City on ECStay. Add photos, prices and the exact spot on the map. We review every listing.') : '', kind !== 'landing');
     if (kind === 'landing') HostView.landing(inner);
     else if (kind === 'signin') HostView.signin(inner);
@@ -649,6 +669,7 @@
     else if (kind === 'profile') HostView.profile(inner);
     else if (kind === 'review') HostView.review(inner);
     else if (kind === 'admin') AdminView.render(inner);
+    else if (kind === 'messages') MsgView.render(inner, arg);
   }
 
   function showHome() {
@@ -860,6 +881,7 @@
     else if (/^\/host\/profile\/?$/.test(location.pathname)) showPage('profile');
     else if (/^\/host\/review\/?$/.test(location.pathname)) showPage('review');
     else if (/^\/admin\/?$/.test(location.pathname)) showPage('admin');
+    else if ((m = location.pathname.match(/^\/messages(?:\/([\w-]+))?\/?$/))) showPage('messages', m[1] || null);
     else if (PAGE_PATHS.test(location.pathname)) showPage('doc', location.pathname.replace(/^\/|\/$/g, ''));
     else if (/^\/rooms\/?$/.test(location.pathname)) {
       showBrowse();

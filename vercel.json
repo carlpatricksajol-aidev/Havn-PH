@@ -52,6 +52,14 @@
     {
       "source": "/admin",
       "destination": "/"
+    },
+    {
+      "source": "/messages",
+      "destination": "/"
+    },
+    {
+      "source": "/messages/:path*",
+      "destination": "/"
     }
   ],
   "headers": [
