@@ -289,7 +289,7 @@
   // Fill a template from /emails/dist with sample-shaped data and open it in a new tab.
   HV.openEmail = function (m) {
     var win = window.open('', '_blank');
-    fetch('/emails/dist/' + m.template + '.html').then(function (r) { if (!r.ok) throw new Error(); return r.text(); }).then(function (html) {
+    fetch('/emails/dist/' + m.template).then(function (r) { if (!r.ok) throw new Error(); return r.text(); }).then(function (html) {
       var d = Object.assign({ site_url: location.origin, name: (ECS.user && ECS.user.name) || 'there', unsubscribe_url: location.origin + '/host/profile' }, m.data || {});
       d.listing_url = d.listing_url || location.origin + '/host'; d.edit_url = d.edit_url || location.origin + '/host';
       html = html.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, function (_, k) { return H.esc(d[k] != null ? d[k] : ''); });

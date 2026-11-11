@@ -23,7 +23,7 @@ const priceFrom = (rooms: { price: number }[] = []) => Math.min(...rooms.map((r)
 let subjects: Record<string, { subject: string; preheader: string }> | null = null;
 async function template(name: string) {
   if (!subjects) subjects = await (await fetch(`${SITE}/emails/dist/subjects.json`)).json();
-  const [html, text] = await Promise.all([fetch(`${SITE}/emails/dist/${name}.html`), fetch(`${SITE}/emails/dist/${name}.txt`)]);
+  const [html, text] = await Promise.all([fetch(`${SITE}/emails/dist/${name}`), fetch(`${SITE}/emails/dist/${name}.txt`)]);
   if (!html.ok) throw new Error(`template ${name}: ${html.status}`);
   return { html: await html.text(), text: text.ok ? await text.text() : '', subject: subjects![name]?.subject ?? 'ECStay' };
 }
