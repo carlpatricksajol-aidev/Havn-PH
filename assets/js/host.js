@@ -84,9 +84,9 @@
       '<div class="lp">' +
         '<section class="lp-hero">' +
           '<div class="lp-copy">' +
-            '<p class="lp-kicker">' + esc(t('For landlords in Davao City')) + '</p>' +
+            '<p class="lp-kicker">' + esc(t('Become a Keeper')) + '</p>' +
             '<h1>' + esc(t('List your boarding house on ECStay')) + '</h1>' +
-            '<p class="lp-lead">' + esc(t('Reach students and young workers looking for a room near their school or work. We review every listing before it goes live.')) + '</p>' +
+            '<p class="lp-lead">' + esc(t('Open your door to students and young workers looking for a room near their school or work. We review every listing before it goes live.')) + '</p>' +
             '<div class="lp-ctas">' + start +
               (ECS.enabled() ? '<a class="btn btn-ghost btn-lg" href="/signin?next=/host" data-link>' + esc(t('Sign in')) + '</a>' : '') + '</div>' +
           '</div>' +
@@ -227,7 +227,7 @@
             '</section>' +
             (ECS.mode === 'demo' ? outboxHtml(out) : '') +
             '<section class="host-sec host-links">' + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
-              '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Listing standards')) + '</span></a>' +
+              '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Keeper standards')) + '</span></a>' +
               '<a href="/help" data-link>' + H.icon('info') + '<span>' + esc(t('Help')) + '</span></a></section>' +
           '</div>';
         bindDashboard(host);
@@ -520,7 +520,7 @@
               '<p class="card-meta">' + esc([(l.rooms || []).map(function (r) { return t(r.type); }).join(', '), l.gender ? H.genderLabel(l.gender) : ''].filter(Boolean).join(' · ')) + '</p>' +
               '<p class="card-price">' + (price ? '<b>' + H.peso(price) + '</b> ' + esc(t('/ month')) : '') + '</p></div></article></div>' +
           '<ul class="ed-check">' + ECS.STEPS.slice(0, 5).map(function (s, i) { return '<li class="' + (s.done(l) ? 'ok' : '') + '">' + H.icon(s.done(l) ? 'check' : 'info') + '<span>' + esc(t(s.label)) + '</span>' + (s.done(l) ? '' : '<button type="button" class="btn-link" data-step-go="' + i + '">' + esc(t('Finish')) + '</button>') + '</li>'; }).join('') + '</ul>' +
-          '<label class="check ed-confirm"><input type="checkbox" name="confirmed"' + (l.confirmed ? ' checked' : '') + '><span>' + t('These details are true, the photos are of this place, and I have the right to rent it out. I have read the {link}.', { link: '<a href="/listing-standards" target="_blank">' + esc(t('listing standards')) + '</a>' }) + '</span></label>' +
+          '<label class="check ed-confirm"><input type="checkbox" name="confirmed"' + (l.confirmed ? ' checked' : '') + '><span>' + t('These details are true, the photos are of this place, and I have the right to rent it out. I have read the {link}.', { link: '<a href="/listing-standards" target="_blank">' + esc(t('Keeper standards')) + '</a>' }) + '</span></label>' +
           (l.status === 'changes' && l.review_note ? '<p class="ed-note">' + H.icon('info') + '<span><b>' + esc(t('Our note:')) + '</b> ' + esc(l.review_note) + '</span></p>' : '') +
           (l.status === 'live' || l.status === 'paused' ? '<p class="ed-help">' + esc(t('Changes to a live listing are checked again before they show.')) + '</p>' : '') +
           '<p class="field-err" role="alert" hidden></p>';
@@ -652,7 +652,7 @@
           '<label class="field"><span>' + esc(t('Move-in month')) + '</span><select name="move_in">' + ms.map(function (m, i) { return '<option' + (i === 0 ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '<option value="">' + esc(t('Not sure yet')) + '</option></select></label>' +
           '<label class="field"><span>' + esc(t('Your message')) + '</span><textarea name="message" rows="4" maxlength="1000">' + esc(t('Hi! Is this still available? I\'d like to see the room.')) + '</textarea></label>' +
           '<p class="field-err" role="alert" hidden></p>' +
-          '<p class="fine">' + t('The landlord gets your name, mobile and message. See our {privacy}. Never pay before you\'ve seen the room.', { privacy: '<a href="/privacy" target="_blank">' + esc(t('Privacy Notice')) + '</a>' }) + '</p>' +
+          '<p class="fine">' + t('The Keeper gets your name, mobile and message. See our {privacy}. Never pay before you\'ve seen the room.', { privacy: '<a href="/privacy" target="_blank">' + esc(t('Privacy Notice')) + '</a>' }) + '</p>' +
         '</form>',
       foot: '<button type="button" class="btn btn-primary btn-block" data-inq-send>' + H.icon('message') + '<span>' + esc(t('Send message')) + '</span></button>',
       focus: '[name=renter_name]',
@@ -670,7 +670,7 @@
         move_in: f.move_in.value || null, message: f.message.value.trim().slice(0, 1000),
       }).then(function () {
         $('.dlg-body', root).innerHTML = '<div class="inq-done"><img src="/assets/capy/kapi.webp" width="120" height="120" alt="">' +
-          '<h3>' + esc(t('Message sent')) + '</h3><p>' + esc(l.sample ? t('The ECStay team will reply by text or call soon.') : t('The landlord will reply by text or call. We\'ve also sent it to their email.')) + '</p>' +
+          '<h3>' + esc(t('Message sent')) + '</h3><p>' + esc(l.sample ? t('The ECStay team will reply by text or call soon.') : t('The Keeper will reply by text or call. We\'ve also sent it to their email.')) + '</p>' +
           '<p class="fine">' + esc(t('Stay safe: see the room in person before paying anything, and get a receipt.')) + '</p></div>';
         $('.dlg-foot', root).innerHTML = '<button type="button" class="btn btn-ghost btn-block" data-close>' + esc(t('Done')) + '</button>';
       }).catch(function (x) { busy(btn, false); err(e, x.message); });
@@ -717,7 +717,7 @@
         if (ECS.mode === 'live' && p.role !== 'admin') { go('/host'); return; }
         host.innerHTML = HV.demoBar() + '<div class="host-wrap">' +
           '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a>' +
-          '<h1>' + esc(t('Review listings')) + '</h1><p class="host-muted">' + esc(t('Check the photos, price and pin against the listing standards. Approve it, or ask for changes with a short note; the landlord gets an email either way.')) + '</p>' +
+          '<h1>' + esc(t('Review listings')) + '</h1><p class="host-muted">' + esc(t('Check the photos, price and pin against the Keeper standards. Approve it, or ask for changes with a short note; the Keeper gets an email either way.')) + '</p>' +
           (q.length ? '<ul class="rv-list">' + q.map(function (l) {
             var o = l.owner || {}, rules = l.rules || {};
             return '<li class="rv" data-id="' + esc(l.id) + '">' +
@@ -727,9 +727,9 @@
                 '<p class="rv-rooms">' + esc((l.rooms || []).map(function (x) { return t(x.type) + ': ' + H.peso(x.price) + ' × ' + x.count; }).join(' · ')) + '</p>' +
                 '<p class="rv-desc">' + esc(l.description || '') + '</p>' +
                 '<dl class="rv-dl"><div><dt>' + esc(t('Address')) + '</dt><dd>' + esc(l.address || '') + ' <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + l.lat + '&mlon=' + l.lng + '#map=18/' + l.lat + '/' + l.lng + '">' + esc(t('Check the pin')) + '</a></dd></div>' +
-                  '<div><dt>' + esc(t('Landlord')) + '</dt><dd>' + esc([o.full_name, o.email, ECS.showMobile(l.contact_mobile || o.mobile || '')].filter(Boolean).join(' · ')) + '</dd></div>' +
+                  '<div><dt>' + esc(t('Keeper')) + '</dt><dd>' + esc([o.full_name, o.email, ECS.showMobile(l.contact_mobile || o.mobile || '')].filter(Boolean).join(' · ')) + '</dd></div>' +
                   '<div><dt>' + esc(t('Rules')) + '</dt><dd>' + esc(['visitors', 'cooking', 'pets', 'smoking'].map(function (k) { return rules[k] ? k + ': ' + rules[k] : ''; }).filter(Boolean).join(', ') + (rules.curfew ? ', curfew ' + rules.curfew : '')) + '</dd></div></dl>' +
-                '<label class="field"><span>' + esc(t('Note to the landlord')) + ' <small>' + esc(t('needed when asking for changes')) + '</small></span><textarea rows="2" maxlength="500" data-note></textarea></label>' +
+                '<label class="field"><span>' + esc(t('Note to the Keeper')) + ' <small>' + esc(t('needed when asking for changes')) + '</small></span><textarea rows="2" maxlength="500" data-note></textarea></label>' +
                 '<div class="rv-act"><button type="button" class="btn btn-primary" data-approve>' + esc(t('Approve and publish')) + '</button>' +
                 '<button type="button" class="btn btn-ghost" data-changes>' + esc(t('Ask for changes')) + '</button></div>' +
               '</div></li>';
@@ -740,10 +740,10 @@
           li.addEventListener('click', function (e) {
             var a = e.target.closest('[data-approve]'), c = e.target.closest('[data-changes]');
             if (!a && !c) return;
-            if (c && note.value.trim().length < 5) { note.focus(); H.toast(t('Write a short note so the landlord knows what to change.')); return; }
+            if (c && note.value.trim().length < 5) { note.focus(); H.toast(t('Write a short note so the Keeper knows what to change.')); return; }
             busy(a || c, true);
             ECS.review(id, a ? 'live' : 'changes', c ? note.value.trim() : null).then(function () {
-              H.toast(a ? t('Published. The landlord has been emailed.') : t('Sent back with your note.'));
+              H.toast(a ? t('Published. The Keeper has been emailed.') : t('Sent back with your note.'));
               HV.review(host);
             }).catch(function (x) { busy(a || c, false); H.toast(x.message); });
           });

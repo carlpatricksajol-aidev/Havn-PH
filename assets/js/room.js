@@ -98,7 +98,7 @@
               '<h3>' + H.esc(t('Distance to schools')) + '</h3><ul class="dist">' + dist + '</ul>' +
             '</section>' +
             '<section class="room-sec host"><span class="avatar" aria-hidden="true">' + H.esc(initials(l.host.name)) + '</span>' +
-              '<div><b>' + H.esc(t('Landlord')) + ': ' + H.esc(l.host.name) + '</b><span>' + H.esc(t('Renting out since {year}', { year: l.host.since })) + '</span></div></section>' +
+              '<div><b>' + H.esc(t('Keeper')) + ': ' + H.esc(l.host.name) + '</b><span>' + H.esc(t('Renting out since {year}', { year: l.host.since })) + '</span></div></section>' +
           '</div>' +
           '<aside class="room-side"><div class="price-card">' +
             '<p class="pc-price"><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
@@ -110,15 +110,15 @@
               '<div class="total"><dt>' + H.esc(t('Move-in total')) + '</dt><dd>' + H.peso(l.price * (adv + dep)) + '</dd></div>' +
             '</dl>' +
             '<p class="pc-bills">' + H.icon('zap') + '<span><b>' + H.esc(t('Bills')) + ':</b> ' + H.esc(l.bills) + '</span></p>' +
-            '<button type="button" class="btn btn-primary btn-block" data-contact>' + H.icon('message') + '<span>' + H.esc(t('Contact Landlord')) + '</span></button>' +
-            '<p class="pc-note">' + H.esc(t('ECStay is free for renters. You pay the landlord directly, only after you see the room.')) + '</p>' +
+            '<button type="button" class="btn btn-primary btn-block" data-contact>' + H.icon('message') + '<span>' + H.esc(t('Contact Keeper')) + '</span></button>' +
+            '<p class="pc-note">' + H.esc(t('ECStay is free for renters. You pay the Keeper directly, only after you see the room.')) + '</p>' +
           '</div></aside>' +
         '</div>' +
         '<section class="similar"><h2>' + H.esc(t('Similar rooms nearby')) + '</h2><div class="grid">' +
           sameArea.map(function (x) { return App.cardHtml(x, false); }).join('') + '</div></section>' +
         '<div class="contact-bar">' +
           '<div><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '<span class="cb-status s-' + l.status + '">' + H.esc(H.statusLabel(l)) + '</span></div>' +
-          '<button type="button" class="btn btn-primary" data-contact>' + H.esc(t('Contact Landlord')) + '</button>' +
+          '<button type="button" class="btn btn-primary" data-contact>' + H.esc(t('Contact Keeper')) + '</button>' +
         '</div>' +
       '</article>';
 

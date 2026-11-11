@@ -1,13 +1,23 @@
 A few changes before {{listing_name}} goes live
 
+
+
 Hi {{name}}, thanks for sending in your listing. We need a few things fixed before we can publish it:
+
+
 
 Note from our reviewer:
 "{{review_note}}"
 
+
+
 Once you’ve updated it, we’ll check it again and email you.
 
+
+
 Update your listing: {{edit_url}}
+
+
 
 Not sure what the note means? See our help page: {{site_url}}/help.
 

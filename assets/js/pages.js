@@ -9,7 +9,7 @@ window.ECS_PAGES = {
 <p>Finding a room usually means asking around and walking from gate to gate. On ECStay you see the room, the price and the exact spot before you go.</p>
 
 <h2>Who it is for</h2>
-<p>Students who need a place near school, young workers starting out in the city, and the landlords and boarding house owners who house them.</p>
+<p>Students who need a place near school, young workers starting out in the city, and the Keepers and boarding house owners who house them.</p>
 
 <h2>How it works for renters</h2>
 <ul>
@@ -17,18 +17,18 @@ window.ECS_PAGES = {
 <li>Filter by budget, room type, who can stay and amenities like aircon, own CR and Wi-Fi.</li>
 <li>Open a room to see its photos, monthly price, move-in costs, house rules and its pin on the map.</li>
 <li>Save the rooms you like. They stay on your phone or computer.</li>
-<li>Ask the landlord through ECStay, visit the room, then pay the landlord directly.</li>
+<li>Ask the Keeper through ECStay, visit the room, then pay the Keeper directly.</li>
 </ul>
 <p>ECStay is free for renters.</p>
 
-<h2>How it works for landlords</h2>
+<h2>How it works for Keepers</h2><p>We call the owners and managers who list their places on ECStay <strong>Keepers</strong>: they keep the home and hold the keys. Our line for them is simple: open your door.</p>
 <p>Create an account with Google, or with a code we send to your email. Add your boarding house: its pin on the map, room types and monthly prices, deposit and advance, who can stay, amenities, house rules and photos. We review every listing before it goes live. When a renter asks about a room, you get the message by email and in your dashboard.</p>
 
 <h2>What we promise</h2>
 <ul>
 <li><strong>Real photos and exact locations.</strong> Once real listings are live, each one shows the actual rooms and the true spot on the map.</li>
 <li><strong>We review every listing</strong> against our <a href="/listing-standards">listing standards</a> before it goes live.</li>
-<li><strong>We never take payments.</strong> You pay the landlord directly, only after you have seen the room. ECStay will never ask you to pay by email or chat.</li>
+<li><strong>We never take payments.</strong> You pay the Keeper directly, only after you have seen the room. ECStay will never ask you to pay by email or chat.</li>
 </ul>
 
 <h2>Where we are now</h2>
@@ -42,7 +42,7 @@ window.ECS_PAGES = {
 
   help: {
     title: 'Help',
-    description: 'Answers for renters and landlords on ECStay: finding rooms in Davao City, contacting landlords, listing a boarding house and staying safe.',
+    description: 'Answers for renters and Keepers on ECStay: finding rooms in Davao City, contacting Keepers, listing a boarding house and staying safe.',
     html: `
 <section>
 <h2>For renters</h2>
@@ -52,22 +52,22 @@ window.ECS_PAGES = {
 <details><summary>How do saved rooms work?</summary>
 <p>Tap the heart on a room to save it, then open Saved to see them all. Saved rooms are kept in your browser on this device, so you do not need an account. They will not show on your other devices, and clearing your browser data removes them.</p>
 </details>
-<details><summary>How do I contact a landlord?</summary>
-<p>Open the room and tap Contact Landlord. Fill in your name, mobile number, your email if you like, your move-in month and a short message. The landlord gets it by email and in their dashboard, and gets back to you directly.</p>
+<details><summary>How do I contact a Keeper?</summary>
+<p>Open the room and tap Contact Keeper. Fill in your name, mobile number, your email if you like, your move-in month and a short message. The Keeper gets it by email and in their dashboard, and gets back to you directly.</p>
 </details>
 <details><summary>What does "Sample" mean?</summary>
 <p>Rooms marked Sample are examples with stock photos, shown while we add real boarding houses. They are not for rent. If you ask about one, your message comes to the ECStay team, who can point you to real rooms like it.</p>
 </details>
 <details><summary>Are the rooms verified?</summary>
-<p>We review every listing before it goes live, checking the photos, price, location and details against our <a href="/listing-standards">listing standards</a>. Our review checks what the landlord sends us. It does not replace your own visit, so always see the room before you pay.</p>
+<p>We review every listing before it goes live, checking the photos, price, location and details against our <a href="/listing-standards">listing standards</a>. Our review checks what the Keeper sends us. It does not replace your own visit, so always see the room before you pay.</p>
 </details>
 <details><summary>How do I pay?</summary>
-<p>You pay the landlord directly, only after you have seen the room. ECStay does not take payments and will never ask you to pay by email or chat. Agree on the rent, advance, deposit and bills first, and ask for a receipt.</p>
+<p>You pay the Keeper directly, only after you have seen the room. ECStay does not take payments and will never ask you to pay by email or chat. Agree on the rent, advance, deposit and bills first, and ask for a receipt.</p>
 </details>
 </section>
 
 <section>
-<h2>For landlords</h2>
+<h2>For Keepers</h2>
 <details><summary>How do I create an account?</summary>
 <p>Tap List your place. Sign in with Google, or type your email and we will send you a 6-digit code. Your account is set up the first time you sign in.</p>
 </details>
@@ -97,7 +97,7 @@ window.ECS_PAGES = {
 <section>
 <h2>Your account and privacy</h2>
 <details><summary>How do I delete my account or my data?</summary>
-<p>Write to us through the <a href="/contact">contact form</a> and tell us what you would like deleted. We may ask you to confirm it is you. A landlord's listings come down when the account is deleted. Our <a href="/privacy">Privacy Notice</a> explains what we keep and for how long.</p>
+<p>Write to us through the <a href="/contact">contact form</a> and tell us what you would like deleted. We may ask you to confirm it is you. A Keeper's listings come down when the account is deleted. Our <a href="/privacy">Privacy Notice</a> explains what we keep and for how long.</p>
 </details>
 </section>
 
@@ -116,10 +116,10 @@ window.ECS_PAGES = {
   },
 
   'listing-standards': {
-    title: 'Listing Standards',
+    title: 'Keeper Standards',
     description: 'What every boarding house and room listing on ECStay in Davao City must include, what is not allowed, and what happens when a listing breaks the rules.',
     html: `
-<p>We review every listing on ECStay before it goes live. These standards are what we check. They help renters trust what they see, and they keep honest landlords from being crowded out by fake posts.</p>
+<p>We review every listing on ECStay before it goes live. These standards are what we check. They help renters trust what they see, and they keep honest Keepers from being crowded out by fake posts.</p>
 
 <h2>Every listing must have</h2>
 <ul>
@@ -148,7 +148,7 @@ window.ECS_PAGES = {
 <li><strong>Duplicate listings.</strong> One listing per boarding house, with all its room types under it.</li>
 <li><strong>Bait prices or hidden costs</strong>, such as a low price that does not match what renters are charged.</li>
 <li><strong>Discriminatory wording.</strong> Female-only and male-only housing is allowed. Turning people away, or describing who is welcome, by religion, ethnicity, home province, disability or similar grounds is not.</li>
-<li><strong>Asking for payment before a renter has seen the room, in person or on a live video call. Any reservation fee must come with a receipt.</strong> Our promise to renters is that they pay the landlord directly, only after seeing it.</li>
+<li><strong>Asking for payment before a renter has seen the room, in person or on a live video call. Any reservation fee must come with a receipt.</strong> Our promise to renters is that they pay the Keeper directly, only after seeing it.</li>
 </ul>
 
 <h2>If a listing breaks these standards</h2>
@@ -160,7 +160,7 @@ window.ECS_PAGES = {
 
   privacy: {
     title: 'Privacy Notice',
-    description: 'How ECStay collects, uses and protects personal data under the Philippine Data Privacy Act of 2012, for renters and landlords in Davao City.',
+    description: 'How ECStay collects, uses and protects personal data under the Philippine Data Privacy Act of 2012, for renters and Keepers in Davao City.',
     html: `
 <p><strong>Last updated: 11 November 2026</strong></p>
 <p>This notice explains what personal data ECStay collects, why, who we share it with, and how to use your rights under the Data Privacy Act of 2012 (Republic Act No. 10173). It covers the website at www.havnph.com and the emails we send.</p>
@@ -171,17 +171,17 @@ window.ECS_PAGES = {
 <h2>What we collect</h2>
 <ul>
 <li><strong>Account:</strong> your name and email address. If you sign in with Google, the name and profile photo on your Google account. We never receive your Google password.</li>
-<li><strong>Landlords:</strong> your contact mobile number (not shown on your listing; renters get it only when you reply to them) and your listing: the name of the place, its location pin, room types, prices, deposit and advance, who can stay, amenities, house rules and photos. Listing details and photos are public once live, and the exact location is shown on purpose. Please keep people's faces, names and IDs out of your photos.</li>
+<li><strong>Keepers:</strong> your contact mobile number (not shown on your listing; renters get it only when you reply to them) and your listing: the name of the place, its location pin, room types, prices, deposit and advance, who can stay, amenities, house rules and photos. Listing details and photos are public once live, and the exact location is shown on purpose. Please keep people's faces, names and IDs out of your photos.</li>
 <li><strong>Renters who ask about a room:</strong> your name, mobile number, email if you give it, move-in month and message.</li>
 <li><strong>Messages to us:</strong> what you send through the contact form.</li>
 <li><strong>Technical data:</strong> our host keeps basic server logs, such as IP address, browser type, the page requested and the time. When your browser loads the map, fonts or code libraries, the services that provide them also see your IP address.</li>
 </ul>
-<p><strong>On your device only:</strong> your browser stores your saved rooms, your language and whether you asked us not to show the landlord pop-up again. These are not sent to us. When you sign in, your browser also keeps a sign-in token, removed when you sign out.</p>
+<p><strong>On your device only:</strong> your browser stores your saved rooms, your language and whether you asked us not to show the Keeper pop-up again. These are not sent to us. When you sign in, your browser also keeps a sign-in token, removed when you sign out.</p>
 <p>We do not show ads or use analytics or advertising trackers today. If that changes, we will update this notice first. We do not ask for sensitive personal information such as government ID numbers or health details, so please leave these out of your messages.</p>
 
 <h2>Why we use it, and on what basis</h2>
 <ul>
-<li><strong>To run your account, show your listings and send your inquiry to the landlord.</strong> This is the service you ask us for.</li>
+<li><strong>To run your account, show your listings and send your inquiry to the Keeper.</strong> This is the service you ask us for.</li>
 <li><strong>To email you</strong> sign-in codes, review results and new inquiries, as part of that service.</li>
 <li><strong>To review listings and keep ECStay safe</strong>, by spotting fake listings and scams, preventing misuse and keeping logs. This is our legitimate interest in an honest, safe service, weighed against your rights.</li>
 <li><strong>To answer your messages</strong>, with the consent you give when you write to us.</li>
@@ -191,9 +191,9 @@ window.ECS_PAGES = {
 
 <h2>Who we share it with</h2>
 <ul>
-<li><strong>Landlords.</strong> When you ask about a room, the landlord receives your name, mobile number, email if given, move-in month and message, by email and in their dashboard. From then on, the landlord is also responsible for how they use it. Messages about sample listings come to the ECStay team instead.</li>
+<li><strong>Keepers.</strong> When you ask about a room, the Keeper receives your name, mobile number, email if given, move-in month and message, by email and in their dashboard. From then on, the Keeper is also responsible for how they use it. Messages about sample listings come to the ECStay team instead.</li>
 <li><strong>Service providers</strong> that handle data for us, only to provide their service: Supabase (database, sign-in and photo storage), Resend (sending emails), Google (Sign in with Google) and Vercel (website hosting).</li>
-<li><strong>Services your browser loads directly:</strong> OpenFreeMap for map tiles built from OpenStreetMap data, Google Fonts for the fonts, and jsDelivr and unpkg for the code behind the map and the 3D Kapi.</li><li><strong>While accounts are being switched on:</strong> the &quot;List your place&quot; form may send your details to us by email through Web3Forms, and &quot;Contact Landlord&quot; may open Facebook Messenger, which Meta runs under its own privacy policy. These stop once ECStay accounts are on.</li>
+<li><strong>Services your browser loads directly:</strong> OpenFreeMap for map tiles built from OpenStreetMap data, Google Fonts for the fonts, and jsDelivr and unpkg for the code behind the map and the 3D Kapi.</li><li><strong>While accounts are being switched on:</strong> the &quot;List your place&quot; form may send your details to us by email through Web3Forms, and &quot;Contact Keeper&quot; may open Facebook Messenger, which Meta runs under its own privacy policy. These stop once ECStay accounts are on.</li>
 <li><strong>Authorities</strong>, only when the law requires it.</li>
 </ul>
 
@@ -228,12 +228,12 @@ window.ECS_PAGES = {
 <ul>
 <li>Data travels over encrypted connections (HTTPS).</li>
 <li>Access to our systems and data is limited to the people who need it to run ECStay.</li>
-<li>Row-level access rules in our database let each landlord see and change only their own listings and the inquiries sent to them.</li>
+<li>Row-level access rules in our database let each Keeper see and change only their own listings and the inquiries sent to them.</li>
 </ul>
 <p>No system is perfectly secure. If a breach puts your personal data at risk, we will tell you and the National Privacy Commission as the law requires.</p>
 
 <h2>Children</h2>
-<p>ECStay is for people 18 and over. Students under 18 should ask a parent or guardian to send inquiries and talk to landlords for them. If you think someone under 18 has given us personal data, tell us and we will delete it.</p>
+<p>ECStay is for people 18 and over. Students under 18 should ask a parent or guardian to send inquiries and talk to Keepers for them. If you think someone under 18 has given us personal data, tell us and we will delete it.</p>
 
 <h2>Changes to this notice</h2>
 <p>We update this notice when our service or the law changes, and the date at the top shows the latest version. If a change affects how we use your data in an important way, we will tell account holders by email before it takes effect.</p>
@@ -248,10 +248,10 @@ window.ECS_PAGES = {
 <p>These terms apply when you use ECStay at www.havnph.com. By using the site, you agree to them. If you do not agree, please do not use ECStay. Our <a href="/privacy">Privacy Notice</a> explains how we handle personal data.</p>
 
 <h2>1. What ECStay is</h2>
-<p>ECStay is a listing platform. It helps renters find boarding houses and rooms in Davao City, and helps landlords show their places. We do not own or manage any property listed, and we do not act as anyone's agent. We are not a party to any rental agreement. The agreement, the payment and the room are between the renter and the landlord.</p>
+<p>ECStay is a listing platform. It helps renters find boarding houses and rooms in Davao City, and helps Keepers show their places. We do not own or manage any property listed, and we do not act as anyone's agent. We are not a party to any rental agreement. The agreement, the payment and the room are between the renter and the Keeper.</p>
 
 <h2>2. Who can use ECStay</h2>
-<p>You must be 18 or older to create an account or send an inquiry. If you are under 18, please ask a parent or guardian to contact landlords for you.</p>
+<p>You must be 18 or older to create an account or send an inquiry. If you are under 18, please ask a parent or guardian to contact Keepers for you.</p>
 
 <h2>3. Your account</h2>
 <ul>
@@ -261,7 +261,7 @@ window.ECS_PAGES = {
 <li>You are responsible for what is done through your account.</li>
 </ul>
 
-<h2>4. If you are a landlord</h2>
+<h2>4. If you are a Keeper</h2><p>A <strong>Keeper</strong> is anyone who lists a place on ECStay: the owner, or someone the owner allows to rent it out.</p>
 <ul>
 <li>Follow our <a href="/listing-standards">listing standards</a>.</li>
 <li>List only places you own or have the right to rent out.</li>
@@ -273,8 +273,8 @@ window.ECS_PAGES = {
 <h2>5. If you are a renter</h2>
 <ul>
 <li>Send honest inquiries about rooms you are really interested in.</li>
-<li>Do not send spam, bulk messages or advertising to landlords.</li>
-<li>Use a landlord's details only to arrange your stay.</li>
+<li>Do not send spam, bulk messages or advertising to Keepers.</li>
+<li>Use a Keeper's details only to arrange your stay.</li>
 <li>Do your own checks before you rent or pay. Our <a href="/help">Help page</a> has safety tips.</li>
 </ul>
 
@@ -294,19 +294,19 @@ window.ECS_PAGES = {
 <p>You keep ownership of the photos and text you post. By posting them, you give ECStay a non-exclusive, royalty-free license to store, show, resize, crop and translate them, on ECStay and in our posts that point people to your listing, in order to show and promote it. The license ends when your listing is removed, except for copies already shared and backups kept for a short time. You confirm you have the right to give this license.</p>
 
 <h2>8. Review and removal</h2>
-<p>We review every listing before it goes live and may review it again at any time. We may ask for changes, refuse, pause or remove a listing, or suspend or close an account, if we believe it breaks these terms or our listing standards, puts people at risk, or if the law requires it. Where it is safe and practical, we will tell you why and give you a chance to fix it. Our review checks what landlords send us. It is not an inspection or a guarantee.</p>
+<p>We review every listing before it goes live and may review it again at any time. We may ask for changes, refuse, pause or remove a listing, or suspend or close an account, if we believe it breaks these terms or our listing standards, puts people at risk, or if the law requires it. Where it is safe and practical, we will tell you why and give you a chance to fix it. Our review checks what Keepers send us. It is not an inspection or a guarantee.</p>
 
 <h2>9. No payments through ECStay</h2>
-<p>ECStay does not take payments for rooms. Renters pay landlords directly, only after seeing the room. We will never ask you to pay a reservation fee, advance or deposit to ECStay. If someone asks you to pay ECStay, it is not us. Please <a href="/contact">report it</a>.</p>
+<p>ECStay does not take payments for rooms. Renters pay Keepers directly, only after seeing the room. We will never ask you to pay a reservation fee, advance or deposit to ECStay. If someone asks you to pay ECStay, it is not us. Please <a href="/contact">report it</a>.</p>
 
 <h2>10. Disclaimers</h2>
-<p>We work to keep ECStay accurate and available, but we provide it as it is. Listings come from landlords. We check them, but we cannot promise every detail is correct or that a room is still free. Sample listings are examples only and are not for rent. The site may sometimes be unavailable.</p>
+<p>We work to keep ECStay accurate and available, but we provide it as it is. Listings come from Keepers. We check them, but we cannot promise every detail is correct or that a room is still free. Sample listings are examples only and are not for rent. The site may sometimes be unavailable.</p>
 
 <h2>11. Limits of our liability</h2>
 <p>To the extent the law allows, ECStay is not responsible for:</p>
 <ul>
 <li>the condition, safety or legality of any property listed;</li>
-<li>what landlords and renters say or do to each other, including any rental agreement, payment, deposit or dispute;</li>
+<li>what Keepers and renters say or do to each other, including any rental agreement, payment, deposit or dispute;</li>
 <li>losses caused by content others post, or by events outside our reasonable control;</li>
 <li>indirect losses, such as lost income or opportunities.</li>
 </ul>

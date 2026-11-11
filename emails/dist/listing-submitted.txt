@@ -1,14 +1,24 @@
 We got your listing
 
+
+
 Thanks, {{name}}. Here’s what you sent us:
+
+
 
 {{listing_name}}
 {{area}}
 From {{price}}/month
 
+
+
 What happens next
 
+
+
 We review every listing before it goes live. We’ll email you when yours is live, or if we need anything from you.
+
+
 
 View your listings: {{site_url}}/host
 

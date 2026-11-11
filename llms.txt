@@ -7,7 +7,7 @@ Each room shows photos, the monthly price, who can stay (female only, male only 
 ## Main pages
 - [Home](https://www.havnph.com/): search by school, mall or area; room types; popular places; questions and answers
 - [All rooms with map](https://www.havnph.com/rooms): every room, filter by budget, room type, who can stay, aircon, own CR and Wi-Fi
-- [List your place](https://www.havnph.com/list): form for landlords and boarding house owners
+- [Become a Keeper](https://www.havnph.com/list): for boarding house owners and landlords. ECStay calls the people who list their places Keepers.
 
 ## Search links
 - Near a school: https://www.havnph.com/rooms?near=addu (also um, um-matina, usep, spc, hcdc, ddc, upmin)
@@ -20,6 +20,6 @@ Each room shows photos, the monthly price, who can stay (female only, male only 
 - What is ECStay? ECStay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.
 - Where in Davao can I find a room? Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.
 - What kinds of rooms are listed? Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.
-- How do I contact a landlord? Open a room and tap Contact Landlord. ECStay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.
+- How do I contact a Keeper (the landlord)? Open a room and tap Contact Keeper. ECStay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.
 - How do I list my boarding house? Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The ECStay team will get back to you.
 - Are the rooms on ECStay real? The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.

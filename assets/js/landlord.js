@@ -65,7 +65,7 @@
           '</div>' +
         '</div>' +
         '<div class="ll-ask-body">' +
-          '<p class="ll-ask-eyebrow">' + H.esc(t('For landlords')) + '</p>' +
+          '<p class="ll-ask-eyebrow">' + H.esc(t('For Keepers')) + '</p>' +
           '<h2 id="ll-ask-t">' + H.esc(t('Do you own a boarding house?')) + '</h2>' +
           '<p id="ll-ask-s" class="ll-ask-lead">' + H.esc(t('ECStay helps students and young workers in Davao find rooms by school, budget and room type. Add yours.')) + '</p>' +
           '<ul class="ll-ask-points">' +
@@ -74,7 +74,7 @@
             point('clock', PHONE ? t('Fill up a short form, or just call or text us') : t('Fill up a short form and we\'ll get back to you')) +
           '</ul>' +
           '<div class="ll-ask-btns">' +
-            '<a class="btn ll-ask-go" href="/list" ' + (window.ECS && ECS.enabled() ? 'data-ll-go' : 'data-ll-open') + '><span>' + H.esc(t('List my place')) + '</span>' + H.icon('arrow-right') + '</a>' +
+            '<a class="btn ll-ask-go" href="/list" ' + (window.ECS && ECS.enabled() ? 'data-ll-go' : 'data-ll-open') + '><span>' + H.esc(t('Become a Keeper')) + '</span>' + H.icon('arrow-right') + '</a>' +
             '<button type="button" class="ll-ask-no" data-ll-close="' + REST_RENTER + '">' + H.esc(t('No, I\'m looking for a room')) + '</button>' +
           '</div>' +
           (PHONE ? '<p class="ll-ask-call">' + H.esc(t('Prefer to talk?')) + ' <a href="tel:' + H.esc(telHref()) + '">' + H.icon('phone') + H.esc(PHONE) + '</a></p>' : '') +
@@ -199,7 +199,7 @@
     var stop = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
     var body = {
       access_key: C.landlordFormKey,
-      subject: 'New landlord: ' + v.name + ' (' + v.where + ')',
+      subject: 'New Keeper: ' + v.name + ' (' + v.where + ')',
       from_name: 'ECStay website',
       botcheck: false,
       'Name': v.name,

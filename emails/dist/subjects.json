@@ -5,7 +5,7 @@
   },
   "inquiry-sent": {
     "subject": "Your message to {{listing_name}} was sent",
-    "preheader": "The landlord can now text or call you on {{renter_mobile}}. A few safety tips while you wait."
+    "preheader": "The Keeper can now text or call you on {{renter_mobile}}. A few safety tips while you wait."
   },
   "listing-live": {
     "subject": "{{listing_name}} is now live on ECStay",

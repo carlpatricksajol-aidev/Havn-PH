@@ -1,10 +1,20 @@
 {{listing_name}} is now live
 
+
+
 Good news, {{name}}. Your listing passed review, and renters can now find it on ECStay. When someone sends an inquiry, we’ll email you their name, mobile number and message.
+
+
 
 See your listing: {{listing_url}}
 
+
+
+
+
 Getting more inquiries
+
+
 
 1. Show the room in good light
 Bright, clear photos of the room, the bed, the CR and the entrance help renters decide before they visit.

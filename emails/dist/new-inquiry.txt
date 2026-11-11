@@ -1,15 +1,27 @@
 New inquiry for {{listing_name}}
 
+
+
 {{renter_name}} sent you a message through ECStay. Renters often contact a few places at once, so a quick reply helps.
+
+
 
 Name: {{renter_name}}
 Mobile: {{renter_mobile}}
 Move-in: {{move_in}}
 
+
+
 Their message:
 "{{message}}"
 
+
+
 Reply by text or call: {{renter_mobile}}
+
+
+
+
 
 A reminder: please don’t ask renters to pay anything before they’ve seen the room, in person or on a video call. They pay you directly, after the viewing.
 
