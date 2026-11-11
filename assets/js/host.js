@@ -102,12 +102,25 @@
     if (s) ECS.session().then(function (x) { if (x) s.setAttribute('href', '/host/new'); });
   };
 
+  /* Backdrop for the sign-in steps: columns of real room photos drifting slowly up and down behind a soft
+   * ivory veil (still when "reduce motion" is on). Decorative only. */
+  var BG_PHOTOS = ['r-76fbd04a', 'r-a7ecbd80', 'u-6a9f6d5f', 's-56af3e05', 'r-e2c8eb45', 'u-0d45ed16', 'r-739c2161', 'r-4a0f0f98', 'u-72a75649',
+    'r-8f9ec210', 'r-d48d41fc', 's-002abe42', 'r-e9bd5b70', 'u-0eb0c9a3', 'r-69add83d', 'r-62de96e3', 'r-c3f664ea', 'u-bab0e564'];
+  function authBg() {
+    var cols = [[], [], [], [], [], []];
+    BG_PHOTOS.forEach(function (id, i) { cols[i % cols.length].push(id); });
+    return '<div class="auth-bg" aria-hidden="true">' + cols.map(function (c, k) {
+      var imgs = c.concat(c).concat(c).concat(c).map(function (id, j) { return '<img src="/assets/photos/' + id + '-640.webp" alt="" loading="lazy" class="' + ((j + k) % 3 === 0 ? 'tall' : '') + '">'; }).join('');
+      return '<div class="auth-col"><div class="auth-strip">' + imgs + '</div></div>';
+    }).join('') + '</div>';
+  }
+
   /* ================= /signin ================= */
   HV.signin = function (host) {
     if (!ECS.enabled()) { go('/list'); return; }
     var next = nextParam(), email = '', timer = 0;
     host.innerHTML = HV.demoBar() +
-      '<div class="auth">' +
+      '<div class="auth">' + authBg() +
         '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' +
         '<div class="auth-card" aria-live="polite"></div>' +
       '</div>';
@@ -315,20 +328,21 @@
       ECS.profile().then(function (p) {
         p = p || {};
         host.innerHTML = HV.demoBar() +
-          '<div class="host-wrap host-narrow">' +
-            (welcome ? '<p class="host-hi">' + esc(t('Welcome to ECStay')) + '</p><h1>' + esc(t('A few details first')) + '</h1><p class="host-muted">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
+          (welcome ? '<div class="auth">' + authBg() + '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' + '<div class="auth-card auth-details">' : '<div class="host-wrap host-narrow">') +
+            (welcome ? '<h1>' + esc(t('A few details first')) + '</h1><p class="auth-sub">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
               : '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a><h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
               '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +
-              '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>' +
+              (welcome ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +
               '<label class="field"><span>' + esc(t('Mobile number')) + '</span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" value="' + esc(ECS.showMobile(p.mobile || '')) + '" required></label>' +
               '<fieldset class="field"><legend>' + esc(t('How should renters and our team reach you?')) + '</legend><div class="chip-wrap">' +
                 chip('radio', 'contact_pref', 'text', t('Text me'), p.contact_pref === 'text') + chip('radio', 'contact_pref', 'call', t('Call me'), p.contact_pref === 'call') + chip('radio', 'contact_pref', 'either', t('Either'), !p.contact_pref || p.contact_pref === 'either') +
               '</div></fieldset>' +
               '<label class="check"><input type="checkbox" name="marketing_ok"' + (p.marketing_ok !== false ? ' checked' : '') + '><span>' + esc(t('Send me tips and reminders about my listings by email. I can turn this off anytime.')) + '</span></label>' +
               '<p class="field-err" role="alert" hidden></p>' +
-              '<button type="submit" class="btn btn-primary btn-lg">' + esc(t(welcome ? 'Continue' : 'Save')) + '</button>' +
+              '<button type="submit" class="btn btn-primary ' + (welcome ? 'btn-block' : 'btn-lg') + '">' + esc(t(welcome ? 'Continue' : 'Save')) + '</button>' +
             '</form>' +
+            (welcome ? '<p class="auth-legal">' + esc(t('Signed in as {email}', { email: p.email || user.email || '' })) + '</p></div>' : '') +
             (welcome ? '' : '<section class="host-sec"><h2>' + esc(t('Account')) + '</h2>' +
               '<button type="button" class="btn btn-ghost" data-signout>' + esc(t('Sign out')) + '</button>' +
               '<p class="host-muted">' + t('To delete your account and listings, {link}. We\'ll confirm by email.', { link: '<a href="/contact?topic=privacy" data-link>' + esc(t('send us a request')) + '</a>' }) + '</p></section>') +

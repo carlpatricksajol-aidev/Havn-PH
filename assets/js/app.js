@@ -602,7 +602,7 @@
     var room = $('#view-room'); room.hidden = true; RoomView.destroy(); room.innerHTML = '';
     var host = $('#view-page'); host.hidden = false;
     document.body.classList.add('is-pageview');
-    document.body.classList.toggle('is-auth', kind === 'signin');
+    document.body.classList.toggle('is-auth', kind === 'signin' || (kind === 'profile' && /[?&]welcome=1/.test(location.search)));
     renderHeader(); renderNav();
     var meta = function (title, desc, noindex) {
       document.title = title + ' · ECStay';
