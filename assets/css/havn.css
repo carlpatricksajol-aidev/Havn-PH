@@ -1337,3 +1337,23 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .foot-bar .lang { justify-self: end; }
   .foot-brand .logo-word { display: inline; margin-right: 6px; }
 }
+
+/* Rooms page quick filters: three labelled groups with clear dividers */
+.chips { gap: 0; align-items: center; }
+.chip-group { display: flex; align-items: center; gap: 8px; flex: none; }
+.chip-group + .chip-group { margin-left: 16px; padding-left: 16px; border-left: 2px solid var(--border-strong); }
+.chip-label { flex: none; font: 600 13px var(--font-body); color: var(--muted); white-space: nowrap; }
+
+/* Home rows: arrows on the photos' left and right edges (computers); swipe on phones */
+.hrow-body { position: relative; }
+.hrow-track .slides { overflow: hidden; }
+.hrow-track { touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+.hrow-track a, .hrow-track img { -webkit-user-drag: none; user-select: none; }
+.hrow-nav { display: none; }
+.hrow-btn { position: absolute; z-index: 3; top: var(--mid, 120px); translate: 0 -50%; width: 48px; height: 48px; border: 0; background: #fff; box-shadow: 0 0 0 1px rgba(23, 34, 29, .08), 0 6px 18px rgba(23, 34, 29, .22); transition: opacity .2s, transform .15s; }
+.hrow-btn[data-row-step="-1"] { left: -24px; }
+.hrow-btn[data-row-step="1"] { right: -24px; }
+.hrow-btn:hover:not(:disabled) { transform: scale(1.06); }
+.hrow-btn:disabled { opacity: 0; pointer-events: none; }
+.hrow-btn .i { width: 20px; height: 20px; }
+@media (min-width: 1024px) { .hrow-nav { display: block; } .hrow-nav[hidden] { display: none; } }

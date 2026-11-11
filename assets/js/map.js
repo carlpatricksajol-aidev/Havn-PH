@@ -48,10 +48,17 @@
   }
   function style() {
     if (!styleP) {
-      styleP = fetch(STYLE_URL).then(function (r) {
-        if (!r.ok) throw new Error('map style ' + r.status);
-        return r.json();
-      }).then(cleanStyle).catch(function (e) { styleP = null; throw e; });
+      // The tile service sometimes drops a first connection: try up to 3 times before giving up.
+      var get = function (left) {
+        return fetch(STYLE_URL).then(function (r) {
+          if (!r.ok) throw new Error('map style ' + r.status);
+          return r.json();
+        }).catch(function (e) {
+          if (left <= 0) throw e;
+          return new Promise(function (res) { setTimeout(res, 1200); }).then(function () { return get(left - 1); });
+        });
+      };
+      styleP = get(2).then(cleanStyle).catch(function (e) { styleP = null; throw e; });
     }
     return styleP;
   }

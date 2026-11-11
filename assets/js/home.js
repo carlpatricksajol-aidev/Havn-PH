@@ -55,11 +55,12 @@
     return '<section class="hrow" aria-labelledby="row-' + idx + '">' +
       '<div class="h-head">' + ic(r.icon, 'h-ic') + '<h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
         '<a class="hrow-all" href="' + api.url(r.s) + '" data-link>' + H.esc(t('See all')) + H.icon('arrow-right') + '</a>' +
+      '</div>' +
+      '<div class="hrow-body">' +
         '<div class="hrow-nav"><button type="button" class="hrow-btn" data-row-step="-1" aria-label="' + H.esc(t('Previous')) + '">' + H.icon('chev-left') + '</button>' +
         '<button type="button" class="hrow-btn" data-row-step="1" aria-label="' + H.esc(t('Next')) + '">' + H.icon('chev-right') + '</button></div>' +
-      '</div>' +
       '<div class="hrow-track">' + list.map(function (l) { return api.card(l, false, { single: true, school: r.school }); }).join('') + '</div>' +
-    '</section>';
+    '</div></section>';
   }
 
   function kapiStill() {
@@ -138,6 +139,9 @@
         nav.hidden = max < 4;
         prev.disabled = track.scrollLeft < 4;
         next.disabled = track.scrollLeft > max - 4;
+        // the arrows sit at the middle of the photos, on the left and right edges
+        var media = sec.querySelector('.card-media'), body = sec.querySelector('.hrow-body');
+        if (media && body) body.style.setProperty('--mid', (media.getBoundingClientRect().top - body.getBoundingClientRect().top + media.offsetHeight / 2) + 'px');
       }
       sec.addEventListener('click', function (e) {
         var b = e.target.closest('[data-row-step]'); if (!b) return;

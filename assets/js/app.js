@@ -197,17 +197,18 @@
   function chip(label, on, attrs) {
     return '<button type="button" class="chip' + (on ? ' on' : '') + '" aria-pressed="' + !!on + '" ' + attrs + '>' + H.esc(label) + '</button>';
   }
+  // Quick filters in three labelled groups: one room type, who can stay, what the room has.
   function renderChips(n) {
-    var c = chip(t('All rooms'), !S.types.length, 'data-type=""');
-    HAVN_ROOM_TYPES.forEach(function (x) { c += chip(t(x), S.types.indexOf(x) !== -1, 'data-type="' + x + '"'); });
-    c += '<span class="chip-sep" aria-hidden="true"></span>';
-    c += chip(t('Available now'), S.avail, 'data-toggle="avail"');
-    c += chip(t('Female only'), S.gender === 'female', 'data-gender="female"');
-    c += chip(t('Male only'), S.gender === 'male', 'data-gender="male"');
-    c += chip(t('Aircon'), S.amen.indexOf('aircon') !== -1, 'data-amen="aircon"');
-    c += chip(t('Own CR'), S.amen.indexOf('own-cr') !== -1, 'data-amen="own-cr"');
-    c += chip(t('Wi-Fi'), S.amen.indexOf('wifi') !== -1, 'data-amen="wifi"');
-    return '<div class="chips-row"><div class="chips" role="group" aria-label="' + H.esc(t('Filters')) + '">' + c + '</div>' +
+    var group = function (label, chips) { return '<div class="chip-group" role="group" aria-label="' + H.esc(label) + '"><span class="chip-label">' + H.esc(label) + '</span>' + chips + '</div>'; };
+    var types = chip(t('All rooms'), !S.types.length, 'data-type=""');
+    HAVN_ROOM_TYPES.forEach(function (x) { types += chip(t(x), S.types.length === 1 && S.types[0] === x, 'data-type="' + x + '"'); });
+    var who = chip(t('Female only'), S.gender === 'female', 'data-gender="female"') + chip(t('Male only'), S.gender === 'male', 'data-gender="male"');
+    var has = chip(t('Aircon'), S.amen.indexOf('aircon') !== -1, 'data-amen="aircon"') +
+      chip(t('Own CR'), S.amen.indexOf('own-cr') !== -1, 'data-amen="own-cr"') +
+      chip(t('Shared CR'), S.amen.indexOf('shared-cr') !== -1, 'data-amen="shared-cr"') +
+      chip(t('Wi-Fi'), S.amen.indexOf('wifi') !== -1, 'data-amen="wifi"') +
+      chip(t('Available now'), S.avail, 'data-toggle="avail"');
+    return '<div class="chips-row"><div class="chips">' + group(t('Room type'), types) + group(t('Who can stay'), who) + group(t('Amenities'), has) + '</div>' +
       '<button type="button" class="filter-btn filter-btn-row" data-open-filters>' + H.icon('sliders') + '<span>' + H.esc(t('Filters')) + '</span>' + (n ? '<b class="count">' + n + '</b>' : '') + '</button></div>';
   }
 
@@ -289,16 +290,20 @@
       b.addEventListener('click', function () {
         if (b.hasAttribute('data-type')) {
           var x = b.getAttribute('data-type');
-          if (!x) S.types = [];
-          else if (S.types.indexOf(x) === -1) S.types.push(x);
-          else S.types.splice(S.types.indexOf(x), 1);
+          // One room type at a time; tapping the chosen one again goes back to all rooms.
+          S.types = !x || (S.types.length === 1 && S.types[0] === x) ? [] : [x];
         } else if (b.hasAttribute('data-toggle')) {
           S.avail = !S.avail;
         } else if (b.hasAttribute('data-gender')) {
           var g = b.getAttribute('data-gender'); S.gender = S.gender === g ? '' : g;
         } else if (b.hasAttribute('data-amen')) {
           var a = b.getAttribute('data-amen'), i = S.amen.indexOf(a);
-          if (i === -1) S.amen.push(a); else S.amen.splice(i, 1);
+          if (i === -1) {
+            S.amen.push(a);
+            // a room has its own CR or a shared one, never both
+            var other = a === 'own-cr' ? 'shared-cr' : a === 'shared-cr' ? 'own-cr' : '';
+            if (other && S.amen.indexOf(other) !== -1) S.amen.splice(S.amen.indexOf(other), 1);
+          } else S.amen.splice(i, 1);
         }
         apply(true);
       });
@@ -661,7 +666,6 @@
               }).join('') +
             '</select></div></div>' +
           '<div id="results-body"></div>' +
-          footHtml() +
         '</section>' +
         '<aside class="map-pane" aria-label="' + H.esc(t('Map')) + '"><div class="map" id="bmap"><div class="map-loading"></div></div>' +
           '<button type="button" class="map-count" data-show-list>' + H.icon('list') + '<span></span></button></aside>' +
