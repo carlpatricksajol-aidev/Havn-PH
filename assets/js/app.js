@@ -142,6 +142,19 @@
     return o;
   }
 
+  // Header account area. With accounts on: "Sign in" comes first and Saved only shows once signed in.
+  // With accounts off (no sign-in service connected yet) the older links stay, so nothing leads nowhere.
+  function accountLinks(savedN) {
+    var saved = '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>';
+    if (!(window.ECS && ECS.enabled())) return saved + '<a class="hdr-link list-link" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a>';
+    if (!ECS.user) {
+      var here = location.pathname + location.search;
+      return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
+    }
+    return saved + '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
+  }
+  function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
+
   function renderHeader() {
     var hdr = $('#site-header');
     var n = activeCount(S);
@@ -165,10 +178,7 @@
         '<a href="/" class="logo" data-link data-home aria-label="ECStay, home"><img class="logo-icon" src="/assets/brand/ecstay-mark.svg" width="45" height="30" alt=""><span class="logo-word">ECStay</span></a>' +
         middle +
         '<div class="hdr-actions">' +
-          '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
-          (window.ECS && ECS.user ? '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('home') + '<span>' + H.esc(t('Your listings')) + '</span></a>'
-            : '<a class="hdr-link list-link" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a>' +
-              (window.ECS && ECS.enabled() && !/^\/signin/.test(location.pathname) ? '<a class="signin-link" href="/signin?next=/host" data-link>' + H.esc(t('Sign in')) + '</a>' : '')) +
+          accountLinks(savedN) +
           langButtons() +
         '</div>' +
       '</div>' +
@@ -346,7 +356,8 @@
       '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
       '<button type="button" data-tab="map" aria-pressed="' + (tab === 'map') + '">' + H.icon('map') + '<span>' + H.esc(t('Map')) + '</span></button>' +
-      '<button type="button" data-tab="saved" aria-pressed="' + (tab === 'saved') + '">' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</button>';
+      (needSignIn() ? '' : '<button type="button" data-tab="saved" aria-pressed="' + (tab === 'saved') + '">' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</button>');
+    nav.classList.toggle('three', needSignIn());
   }
 
   $('#bottom-nav').addEventListener('click', function (e) {
@@ -879,6 +890,8 @@
     var save = e.target.closest('[data-save]');
     if (save) {
       e.preventDefault();
+      // Saving needs an account (when accounts are on): sign in, then come back here.
+      if (needSignIn()) { A.go('/signin?next=' + encodeURIComponent(location.pathname + location.search)); return; }
       var id = save.getAttribute('data-save');
       var on = H.saved.toggle(id);
       H.toast(on ? t('Saved') : t('Remove from saved'));
@@ -921,7 +934,7 @@
   });
 
   window.addEventListener('popstate', route);
-  document.addEventListener('ecs:auth', function () { if (view) renderHeader(); });
+  document.addEventListener('ecs:auth', function () { if (view) { renderHeader(); renderNav(); } });
   // Approved listings arrive from the service after the page loads: show them where they belong.
   document.addEventListener('havn:listings', function () {
     if (view === 'home') renderHome();

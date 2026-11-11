@@ -18,7 +18,7 @@
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function esc(s) { return H.esc(s); }
   function go(href) { App.go(href); }
-  function nextParam() { var n = new URLSearchParams(location.search).get('next') || '/host'; return /^\/(host|list)/.test(n) ? n : '/host'; }
+  function nextParam() { var n = new URLSearchParams(location.search).get('next') || '/'; return /^\/(?!\/)/.test(n) && !/^\/signin/.test(n) ? n : '/'; }
   function err(el, msg) { el.textContent = msg || ''; el.hidden = !msg; }
   function busy(btn, on, label) {
     if (!btn) return;
@@ -311,7 +311,7 @@
         p = p || {};
         host.innerHTML = HV.demoBar() +
           '<div class="host-wrap host-narrow">' +
-            (welcome ? '<p class="host-hi">' + esc(t('Welcome to ECStay')) + '</p><h1>' + esc(t('A few details first')) + '</h1><p class="host-muted">' + esc(t('We use these to reach you about your listings. Renters don\'t see your mobile number on the listing.')) + '</p>'
+            (welcome ? '<p class="host-hi">' + esc(t('Welcome to ECStay')) + '</p><h1>' + esc(t('A few details first')) + '</h1><p class="host-muted">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
               : '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a><h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
               '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +

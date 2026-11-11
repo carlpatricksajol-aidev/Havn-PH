@@ -107,6 +107,8 @@
       'Rooms and bedspaces in Davao, near malls, offices and schools.': 'Mga kwarto at bedspace sa Davao, malapit sa mall, opisina at school.',
       'Rooms and bedspaces in Davao': 'Mga kwarto at bedspace sa Davao',
       'your ECStay concierge': 'ang iyong concierge sa ECStay',
+      'Account': 'Account',
+      'So Keepers and our team can reach you. Your mobile number is never shown publicly.': 'Para makontak ka ng mga Keeper at ng aming team. Hindi kailanman ipapakita sa publiko ang mobile number mo.',
       'Looking for a room?': 'Naghahanap ng kwarto?',
       'Search near your school or work, compare prices, and see the exact spot on the map.': 'Maghanap malapit sa school o trabaho mo, ikumpara ang presyo, at tingnan ang eksaktong lugar sa mapa.',
       'Have a place to rent out?': 'May paupahan ka ba?',

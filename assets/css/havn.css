@@ -1357,3 +1357,8 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .hrow-btn:disabled { opacity: 0; pointer-events: none; }
 .hrow-btn .i { width: 20px; height: 20px; }
 @media (min-width: 1024px) { .hrow-nav { display: block; } .hrow-nav[hidden] { display: none; } }
+
+/* Sign-in first */
+.bottom-nav.three { grid-template-columns: repeat(3, 1fr); }
+.signin-link { min-height: 40px; padding: 0 20px; background: var(--evergreen); border-color: var(--evergreen); color: #fff; }
+.signin-link:hover { background: var(--evergreen-dark); border-color: var(--evergreen-dark); }
