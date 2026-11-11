@@ -512,18 +512,23 @@
     if (desktop.matches && window.scrollY > 0 && list.map(function (l) { return l.id; }).join() !== before) window.scrollTo(0, 0);
   }
 
-  function footHtml(cls) {
-    return '<footer class="foot' + (cls ? ' ' + cls : '') + '">' +
-      '<p class="foot-brand"><img src="/assets/brand/' + (cls === 'foot-scene' ? 'ecstay-mark-light.svg' : 'ecstay-mark.svg') + '" width="42" height="28" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
-      '<nav class="foot-cols" aria-label="' + H.esc(t('Site')) + '">' +
-        '<div><h3>' + H.esc(t('Renters')) + '</h3><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a><a href="/rooms?saved=1" data-link>' + H.esc(t('Saved rooms')) + '</a><a href="/help#stay-safe" data-link>' + H.esc(t('Stay safe')) + '</a></div>' +
-        '<div><h3>' + H.esc(t('Keepers')) + '</h3><a href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a><a href="/listing-standards" data-link>' + H.esc(t('Keeper standards')) + '</a>' + (window.ECS && ECS.enabled() ? '<a href="/signin?next=/host" data-link>' + H.esc(t('Sign in')) + '</a>' : '') + '</div>' +
-        '<div><h3>' + H.esc(t('ECStay')) + '</h3><a href="/about" data-link>' + H.esc(t('About')) + '</a><a href="/help" data-link>' + H.esc(t('Help')) + '</a><a href="/contact" data-link>' + H.esc(t('Contact')) + '</a></div>' +
-        '<div><h3>' + H.esc(t('Legal')) + '</h3><a href="/privacy" data-link>' + H.esc(t('Privacy Notice')) + '</a><a href="/terms" data-link>' + H.esc(t('Terms of Use')) + '</a></div>' +
-      '</nav>' +
-      '<p class="foot-copy">© 2026 ECStay · Davao City, Philippines</p>' +
-      langButtons('lang-foot') +
-      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
+  function footHtml() {
+    var a = function (href, label) { return '<a href="' + href + '" data-link>' + H.esc(t(label)) + '</a>'; };
+    return '<footer class="foot">' +
+      '<div class="foot-in">' +
+        '<nav class="foot-cols" aria-label="' + H.esc(t('Site')) + '">' +
+          '<div>' + a('/about', 'About') + a('/help', 'Help') + a('/contact', 'Contact') + '</div>' +
+          '<div>' + a('/rooms', 'All rooms') + a('/rooms?saved=1', 'Saved rooms') + a('/help#stay-safe', 'Stay safe') + '</div>' +
+          '<div>' + a('/list', 'Become a Keeper') + a('/listing-standards', 'Keeper standards') + (window.ECS && ECS.enabled() ? a('/signin?next=/host', 'Sign in') : '') + '</div>' +
+          '<div>' + a('/privacy', 'Privacy Notice') + a('/terms', 'Terms of Use') + '</div>' +
+        '</nav>' +
+        '<div class="foot-bar">' +
+          '<p class="foot-brand"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span><b class="logo-word">ECStay</b> ' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
+          '<p class="foot-copy">© 2026 ECStay · Davao City, Philippines</p>' +
+          langButtons('lang-foot') +
+        '</div>' +
+        '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
+      '</div>' +
     '</footer>';
   }
 

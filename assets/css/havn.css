@@ -272,9 +272,6 @@ img.ok { opacity: 1 !important; }
 .empty p { color: var(--muted); margin-bottom: 18px; }
 .empty .btn { margin-bottom: 20px; }
 
-.foot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
-.foot a { color: var(--text); font-weight: 600; }
-.foot-note { flex-basis: 100%; font-size: 12.5px; }
 
 /* ---------- Map pane ---------- */
 .map-pane { display: none; }
@@ -478,18 +475,8 @@ img.ok { opacity: 1 !important; }
 /* Kapi's friends at home: a full-screen painted boarding house (the closing section). The friends are painted in;
    only the speech bubbles float. Picture: assets/scene/hood-*.webp, its bottom edge fades into --foot. */
 
-.foot-brand { flex-basis: 100%; display: flex; align-items: center; gap: 8px; }
-.foot-brand .logo-word { font-size: 24px; }
-.foot-tag { margin-left: 6px; font-size: 13.5px; }
-.foot-scene .logo-word { color: #F6F0E5; }
-.foot-scene .foot-tag { color: #D7B98A; }
 
 /* Footer on the grass (under the house) */
-.foot-scene { margin: 0; padding: 22px clamp(16px, 4vw, 80px) calc(26px + var(--nav-h)); border-top: 0; background: var(--foot); color: rgba(246, 240, 229, .74); }
-.foot-scene a { color: #fff; }
-.foot-scene .lang { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); }
-.foot-scene .lang button { color: rgba(255, 255, 255, .85); }
-.foot-scene .lang button[aria-pressed="true"] { background: #F6F0E5; color: var(--foot); }
 
 /* The mall / hospital / office a search is "near", on the map */
 .place-pin { position: relative; width: 28px; height: 28px; pointer-events: none; z-index: 2; }
@@ -898,7 +885,7 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .browse .card-price { font-size: 14px; }
   .browse .card-price b { font-size: 16px; }
   .bottom-nav { display: none; }
-  .browse .map-count, .browse.mode-map .map-count { display: none; }  .lang-foot { display: none; }
+  .browse .map-count, .browse.mode-map .map-count { display: none; }
   .toast { bottom: 32px; }
 
   .room { padding: 0 32px 64px; }
@@ -973,7 +960,6 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-near, .hrow .card-meta { font-size: 15px; }
   .hrow .card-price { font-size: 15px; }
   .hrow .card-price b { font-size: 18px; }
-  .foot-scene { padding-bottom: 28px; }
 
   /* Rooms page: the map sits inset with rounded corners. */
   .browse .map-pane, .browse.mode-map .map-pane { padding: 16px 24px 24px 4px; }
@@ -996,7 +982,6 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
    ===================================================================== */
 #view-page { min-height: calc(100vh - var(--hdr-row1)); display: flex; flex-direction: column; }
 .page-in { flex: 1; }
-#view-page > .foot { margin: 0; padding: 32px 16px calc(28px + var(--nav-h)); background: var(--surface); border-top: 1px solid var(--border); }
 .page-find { display: flex; text-decoration: none; }
 @media (max-width: 1023px) { .site-header.is-page .page-find { display: none; } }
 .spin { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; vertical-align: -3px; }
@@ -1007,13 +992,6 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 .check a { color: var(--evergreen); font-weight: 600; }
 
 /* Footer columns */
-.foot-cols { flex-basis: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; margin: 6px 0 4px; }
-.foot-cols h3 { margin-bottom: 8px; font: 600 13px var(--font-body); letter-spacing: .02em; color: inherit; opacity: .8; }
-.foot-cols a { display: block; padding: 4px 0; font-weight: 500; text-decoration: none; }
-.foot-cols a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.foot-copy { flex-basis: 100%; }
-.foot-scene .foot-cols h3 { color: rgba(246, 240, 229, .7); opacity: 1; }
-@media (min-width: 760px) { .foot-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* Demo notice */
 .demo-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; background: var(--warm); border-bottom: 1px solid var(--warm-border); color: var(--warm-text); font-size: 14px; }
@@ -1303,21 +1281,7 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 @media (min-width: 1024px) { .rv-photos { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 /* Footer: readable sizes and room to breathe (all footers) */
-.foot { gap: 14px 28px; font-size: 15px; line-height: 1.55; }
-.foot-brand .logo-word { font-size: 26px; }
-.foot-brand img { width: 48px; height: 32px; }
-.foot-tag { font-size: 15.5px; }
-.foot-cols { gap: 32px 24px; margin: 18px 0 8px; max-width: 1040px; }
-.foot-cols h3 { margin-bottom: 10px; font: 600 15px var(--font-body); letter-spacing: 0; opacity: .75; }
-.foot-cols a { padding: 7px 0; font: 500 16.5px/1.4 var(--font-body); }
-.foot-copy { margin-top: 10px; font-size: 15px; }
-.foot-note { font-size: 14px; line-height: 1.6; }
-.foot .lang button { min-width: 44px; height: 36px; font-size: 13px; }
-#view-page > .foot { padding: 48px 20px calc(36px + var(--nav-h)); }
-.foot-scene { padding-top: 44px !important; padding-bottom: calc(40px + var(--nav-h)) !important; }
 @media (min-width: 1024px) {
-  #view-page > .foot { padding: 64px clamp(24px, 4vw, 80px) 56px; }
-  .foot-scene { padding-top: 56px !important; padding-bottom: 56px !important; }
 }
 
 /* Home closing: two brand cards + place links */
@@ -1350,4 +1314,26 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .end-keep::after { right: -60px; top: -40px; width: 520px; }
   .end-links { margin-top: 64px; }
   .end-links ul { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* Footer (every page): bold link columns on evergreen, then a rounded ivory bar */
+.foot { margin: 0; background: var(--evergreen); color: rgba(246, 240, 229, .8); }
+.foot-in { max-width: 1680px; margin: 0 auto; padding: 56px 20px calc(28px + var(--nav-h)); }
+.foot-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+.foot-cols a { display: block; padding: 9px 0; font: 700 17px/1.3 var(--font-body); color: #F6F0E5; text-decoration: none; }
+.foot-cols a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.foot-bar { display: grid; gap: 16px; justify-items: start; margin-top: 44px; padding: 22px; border-radius: 24px; background: var(--page); color: var(--ink-2); }
+.foot-brand { display: flex; align-items: center; gap: 12px; font: 600 16px/1.35 var(--font-body); color: var(--navy); }
+.foot-brand img { width: 54px; height: 36px; flex: none; }
+.foot-brand .logo-word { display: block; font-size: 22px; }
+.foot-copy { font-size: 14.5px; color: var(--muted); }
+.foot .lang button { min-width: 44px; height: 36px; font-size: 13px; }
+.foot-note { margin-top: 18px; font-size: 13.5px; color: rgba(246, 240, 229, .6); }
+@media (min-width: 1024px) {
+  .foot-in { padding: 96px clamp(24px, 4vw, 80px) 40px; }
+  .foot-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; }
+  .foot-cols a { padding: 12px 0; font-size: 19px; }
+  .foot-bar { grid-template-columns: 1fr auto 1fr; align-items: center; margin-top: 72px; padding: 28px 36px; border-radius: 28px; }
+  .foot-bar .lang { justify-self: end; }
+  .foot-brand .logo-word { display: inline; margin-right: 6px; }
 }

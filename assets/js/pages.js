@@ -35,7 +35,7 @@ window.ECS_PAGES = {
 <p>The rooms on the site today are samples with stock photos, each marked "Sample". They show how a listing will look while we add real boarding houses.</p>
 
 <h2>Meet Kapi</h2>
-<p>Kapi the capybara, in his evergreen bandana, is our concierge. He waits beside the search box. His friends live in the boarding house at the bottom of the home page: Bao the carabao, Tarsi the tarsier, Ming the kitten and Hari the eagle chick.</p>
+<p>Kapi the capybara, in his evergreen bandana, is our concierge. He waits beside the search box and waves you in at the bottom of the home page.</p>
 <p>Questions? See <a href="/help">Help</a> or <a href="/contact">write to us</a>.</p>
 `,
   },
