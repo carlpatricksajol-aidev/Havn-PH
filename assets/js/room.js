@@ -60,6 +60,7 @@
 
     host.innerHTML =
       '<article class="room">' +
+        (window.HavnBackLink ? window.HavnBackLink() : '') +
         '<div class="room-head">' +
           '<div><h1>' + H.esc(l.name) + (l.sample ? ' <span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h1>' +
           '<p class="room-sub">' + H.icon('pin') + '<span>' + H.esc([l.street, l.area, 'Davao City'].filter(Boolean).join(', ')) + '</span></p></div>' +

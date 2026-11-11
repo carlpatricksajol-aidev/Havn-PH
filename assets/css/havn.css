@@ -1456,3 +1456,9 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .auth-details .host-form .field:first-child { margin-top: 18px; }
 .auth-details .host-form .btn { margin-top: 18px; min-height: 52px; }
 .auth-details .check { font-size: 14px; }
+
+/* Room page: Back sits above the title */
+.room-back { display: inline-flex; margin: 0 0 10px -4px; padding: 0 10px 0 4px; border-radius: 999px; color: var(--muted, #5B665F); }
+.room-back:hover { color: var(--text); background: var(--linen); }
+.room-back:hover span { text-decoration: none; }
+.room-back + .room-head { margin-top: 0; padding-top: 4px; }

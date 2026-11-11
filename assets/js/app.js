@@ -156,19 +156,22 @@
   }
   function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
 
+  /* The Back link on a room page (sits above the room title, not in the top bar). */
+  window.HavnBackLink = function () {
+    return '<a class="back-link room-back" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(lastBrowseUrl === '/' ? t('Back') : t('Back to results')) + '</span></a>';
+  };
+
   function renderHeader() {
     var hdr = $('#site-header');
     var n = activeCount(S);
     var savedN = H.saved.count();
-    hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '') + (view === 'home' ? ' is-home' : '') + (view === 'page' ? ' is-page' : '');
+    hdr.className = 'site-header' + (view === 'home' ? ' is-home' : '') + (view === 'page' || view === 'room' ? ' is-page' : '');
     var middle;
-    if (view === 'room') {
-      middle = '<a class="back-link" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(lastBrowseUrl === '/' ? t('Back') : t('Back to results')) + '</span></a>';
-    } else if (view === 'home') {
+    if (view === 'home') {
       // Appears once the big search on the home page scrolls out of view.
       middle = HomeView.tabs(homeApi(), 'tabs-hdr') +
         '<button type="button" class="hdr-find" data-find>' + H.icon('search') + '<span>' + H.esc(t('Search a mall, school or area')) + '</span></button>';
-    } else if (view === 'page') {
+    } else if (view === 'page' || view === 'room') {
       middle = '<a class="hdr-find page-find" href="/rooms" data-link>' + H.icon('search') + '<span>' + H.esc(t('Search a mall, school or area')) + '</span></a>';
     } else {
       middle = searchHtml() +
