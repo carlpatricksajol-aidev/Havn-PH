@@ -477,23 +477,6 @@ img.ok { opacity: 1 !important; }
 
 /* Kapi's friends at home: a full-screen painted boarding house (the closing section). The friends are painted in;
    only the speech bubbles float. Picture: assets/scene/hood-*.webp, its bottom edge fades into --foot. */
-.hood { position: relative; display: flex; flex-direction: column; overflow: hidden; padding-top: 56px; background: var(--sky); }
-.hood::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 160px; z-index: 1; pointer-events: none; background: linear-gradient(180deg, var(--page), rgba(249, 246, 240, 0)); }
-.hood-copy { position: relative; z-index: 3; max-width: 760px; margin: 0 auto; padding: 0 20px; text-align: center; }
-.hood-copy h2 { font: 500 36px/1.06 var(--font-serif); letter-spacing: -0.03em; color: var(--navy); text-wrap: balance; }
-.hood-copy p { max-width: 560px; margin: 14px auto 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
-.hood-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
-.hood-stage { position: relative; left: 50%; width: 260vw; aspect-ratio: 3000 / 1273; translate: -50% 0; margin-top: -4vw; }
-.hood-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.capy-host { position: absolute; left: 40.8%; bottom: 5%; width: 59.2%; height: 28.6%; z-index: 2; pointer-events: none; }
-.capy-host .capy-still { left: 6%; right: auto; width: 20%; height: 82%; bottom: 3%; }
-.says { position: relative; z-index: 3; display: grid; gap: 10px; width: 100%; max-width: 520px; margin: 26px auto 0; padding: 0 16px; list-style: none; }
-.say { justify-self: start; max-width: 86%; padding: 10px 15px 12px; border-radius: 18px 18px 18px 6px; background: #fff; box-shadow: 0 1px 2px rgba(23, 34, 29, .06), 0 10px 28px -12px rgba(23, 34, 29, .3); }
-.say:nth-child(even) { justify-self: end; border-radius: 18px 18px 6px 18px; }
-.say b { display: block; font: 650 12.5px/1.3 var(--font-body); color: var(--brass-text); }
-.say b i { font-style: normal; font-weight: 500; color: var(--muted); }
-.say span { display: block; margin-top: 2px; font: 400 15px/1.45 var(--font-body); color: var(--text); }
-@keyframes say-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
 .foot-brand { flex-basis: 100%; display: flex; align-items: center; gap: 8px; }
 .foot-brand .logo-word { font-size: 24px; }
@@ -990,28 +973,6 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
   .hrow .card-near, .hrow .card-meta { font-size: 15px; }
   .hrow .card-price { font-size: 15px; }
   .hrow .card-price b { font-size: 18px; }
-  .hood { height: max(700px, 100vh); padding-top: 0; }
-  .hood-copy { position: absolute; left: 50%; top: clamp(112px, 13vh, 190px); translate: -50% 0; width: min(1400px, 92vw); max-width: none; padding: 0; }
-  .hood-copy h2 { font-size: clamp(44px, 3.6vw, 72px); }
-  .hood-copy p { font-size: clamp(16px, 1.05vw, 19px); }
-  .hood-stage, .says { position: absolute; left: 50%; bottom: 0; width: max(100%, calc(max(700px, 100vh) * .92 * 3000 / 1273)); max-width: none; aspect-ratio: 3000 / 1273; translate: -50% 0; margin: 0; padding: 0; }
-  .says { display: block; pointer-events: none; }
-  .say { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: max-content; max-width: clamp(220px, 15vw, 420px); padding: clamp(10px, .7vw, 16px) clamp(14px, 1vw, 22px);
-    opacity: 0; scale: .85; transition: opacity .45s ease, scale .6s cubic-bezier(.16, 1, .3, 1); animation: say-bob 5.5s ease-in-out infinite; animation-delay: var(--d); }
-  .say span { font-size: clamp(14.5px, .92vw, 23px); }
-  .say b { font-size: clamp(12px, .72vw, 17px); }
-  .say b i { display: none; }
-  .say-l { translate: -100% -100%; border-radius: 18px 18px 6px 18px; transform-origin: 100% 100%; }
-  .say-r { translate: 0 -100%; border-radius: 18px 18px 18px 6px; transform-origin: 0 100%; }
-  .say-c { translate: -50% -100%; border-radius: 18px; }
-  .say:nth-child(even) { border-radius: inherit; }
-  .say-l:nth-child(even) { border-radius: 18px 18px 6px 18px; }
-  .say-r:nth-child(even) { border-radius: 18px 18px 18px 6px; }
-  .hood.talk .say { opacity: 1; scale: 1; }
-  .hood.talk .say:nth-child(2) { transition-delay: 1s; }
-  .hood.talk .say:nth-child(3) { transition-delay: 2s; }
-  .hood.talk .say:nth-child(4) { transition-delay: 3s; }
-  .hood.talk:not(.kapi-here) .say-kapi { opacity: 0; scale: .85; }
   .foot-scene { padding-bottom: 28px; }
 
   /* Rooms page: the map sits inset with rounded corners. */
@@ -1357,4 +1318,36 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 @media (min-width: 1024px) {
   #view-page > .foot { padding: 64px clamp(24px, 4vw, 80px) 56px; }
   .foot-scene { padding-top: 56px !important; padding-bottom: 56px !important; }
+}
+
+/* Home closing: two brand cards + place links */
+.end { margin-top: 56px; padding: 0 16px 48px; }
+.end-cards { display: grid; gap: 16px; }
+.end-card { position: relative; overflow: hidden; display: flex; align-items: flex-end; min-height: 300px; padding: 28px 24px; border-radius: 28px; }
+.end-copy { position: relative; z-index: 1; max-width: 420px; }
+.end-card h2 { font: 500 32px/1.08 var(--font-serif); letter-spacing: -0.025em; text-wrap: balance; }
+.end-card p { margin: 12px 0 22px; font-size: 16.5px; line-height: 1.55; }
+.end-rent { background: var(--linen); color: var(--ink-2); padding-right: 150px; }
+.end-rent h2 { color: var(--navy); }
+.end-kapi { position: absolute; right: -6px; bottom: -6px; width: 170px; height: 190px; }
+.end-keep { background: var(--evergreen); color: rgba(246, 240, 229, .86); }
+.end-keep h2 { color: #F6F0E5; }
+.end-keep::after { content: ""; position: absolute; right: -40px; top: -20px; width: 300px; aspect-ratio: 3 / 2; background: url(/assets/brand/ecstay-mark-light.svg) no-repeat center / contain; opacity: .08; pointer-events: none; }
+.end-keep .btn-light { color: var(--evergreen); box-shadow: none; }
+.end-links { margin-top: 44px; }
+.end-links h2 { font: 650 17px/1.3 var(--font-body); color: var(--text); }
+.end-links ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 20px; margin-top: 14px; }
+.end-links a { display: block; padding: 6px 0; font-size: 15.5px; color: var(--ink-2); text-decoration: none; }
+.end-links a:hover { color: var(--evergreen); text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 760px) { .end-links ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1024px) {
+  .end { margin-top: 88px; padding: 0 clamp(24px, 4vw, 80px) 80px; }
+  .end-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .end-card { min-height: 400px; padding: 48px; }
+  .end-card h2 { font-size: clamp(36px, 3vw, 48px); }
+  .end-rent { padding-right: 300px; }
+  .end-kapi { right: 8px; bottom: -8px; width: 300px; height: 330px; }
+  .end-keep::after { right: -60px; top: -40px; width: 520px; }
+  .end-links { margin-top: 64px; }
+  .end-links ul { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }

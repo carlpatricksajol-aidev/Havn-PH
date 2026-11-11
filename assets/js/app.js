@@ -523,7 +523,7 @@
       '</nav>' +
       '<p class="foot-copy">© 2026 ECStay · Davao City, Philippines</p>' +
       langButtons('lang-foot') +
-      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + (cls ? ' ' + H.esc(t('Kapi and friends were made for ECStay.')) : '') + '</p>' +
+      '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + '</p>' +
     '</footer>';
   }
 

@@ -1,5 +1,5 @@
 /* ECStay — home page: room-type tabs + search (with Kapi the capybara), popular places,
- * rows of rooms, and Kapi's friends at home (the closing section; the questions live in llms.txt). Line icons from the sprite in index.html. */
+ * rows of rooms, and the closing cards + place links (the questions live in llms.txt). Line icons from the sprite in index.html. */
 (function () {
   var HV = (window.HomeView = {});
 
@@ -66,50 +66,29 @@
     return '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" loading="lazy">';
   }
 
-  /* Kapi's friends at home: one painted boarding house, four tenants who each found it on ECStay, and a short
-   * conversation. The friends are painted into the picture; only the speech bubbles float. Kapi walks in from the
-   * edge of the screen to the front door (capy.js "host") and has the last word. Lines only describe real features. */
-  var SAYS = [
-    { who: 'Bao', kind: 'carabao', cls: 'say-l', x: 38.5, y: 70.5, text: 'Funny how we all ended up in one house.' },
-    { who: 'Tarsi', kind: 'tarsier', cls: 'say-l', x: 38.8, y: 50, text: 'I searched near AdDU and found this place, a 4-minute walk away.' },
-    { who: 'Ming', kind: 'kitten', cls: 'say-r', x: 62, y: 50, text: 'I filtered by budget and aircon, and this house came up.' },
-    { who: 'Hari', kind: 'eagle chick', cls: 'say-c', x: 50.25, y: 45.5, text: 'I saw the exact spot on the map before I visited.' },
-    { who: 'Kapi', kind: 'capybara', cls: 'say-r say-kapi', x: 52.5, y: 73.5, text: 'Same search, same house. Now you\'re neighbours!' }
-  ];
-
-  function hood() {
-    return '<section class="hood" aria-labelledby="hood-t">' +
-      '<div class="hood-copy">' +
-        '<h2 id="hood-t">' + H.esc(t('From strangers to neighbours')) + '</h2>' +
-        '<p>' + H.esc(t('Kapi\'s friends each searched ECStay for a room near school or work, and ended up under one roof.')) + '</p>' +
-        '<div class="hood-btns">' +
-          '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find your room')) + '</a>' +
-          '<a class="btn btn-light btn-lg" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a>' +
+  /* Closing section, in brand colors only: one card for renters (with Kapi), one for Keepers, then a plain
+   * list of "Rooms near ..." links (the pattern rental sites end their home pages with; also crawlable). */
+  function closing(api) {
+    var places = HAVN_SCHOOLS.concat(window.HAVN_LANDMARKS || []);
+    return '<section class="end" aria-label="' + H.esc(t('Get started')) + '">' +
+      '<div class="end-cards">' +
+        '<div class="end-card end-rent">' +
+          '<div class="end-copy"><h2>' + H.esc(t('Looking for a room?')) + '</h2>' +
+            '<p>' + H.esc(t('Search near your school or work, compare prices, and see the exact spot on the map.')) + '</p>' +
+            '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a></div>' +
+          '<div class="capy end-kapi" data-capy="stand" aria-hidden="true">' + kapiStill() + '</div>' +
+        '</div>' +
+        '<div class="end-card end-keep">' +
+          '<div class="end-copy"><h2>' + H.esc(t('Have a place to rent out?')) + '</h2>' +
+            '<p>' + H.esc(t('Become a Keeper and open your door to students and young workers in Davao.')) + '</p>' +
+            '<a class="btn btn-light btn-lg" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a></div>' +
         '</div>' +
       '</div>' +
-      '<ol class="says" aria-label="' + H.esc(t('What Kapi\'s friends say')) + '">' + SAYS.map(function (x, i) {
-        return '<li class="say ' + x.cls + '" style="--x:' + x.x + ';--y:' + x.y + ';--d:' + (-i * 0.9).toFixed(1) + 's">' +
-          '<b>' + x.who + '<i> · ' + H.esc(t(x.kind)) + '</i></b><span>' + H.esc(t(x.text)) + '</span></li>';
-      }).join('') + '</ol>' +
-      '<div class="hood-stage">' +
-        '<img class="hood-bg" src="/assets/scene/hood-1600.webp" srcset="/assets/scene/hood-1600.webp 1600w, /assets/scene/hood-3000.webp 3000w" sizes="(max-width: 1023px) 260vw, 160vw" width="3000" height="1273" alt="' + H.esc(t('A boarding house in Davao with Kapi\'s friends at the windows, on the balcony and on the porch')) + '" loading="lazy" decoding="async">' +
-        '<div class="capy capy-host" data-capy="host" aria-hidden="true">' + kapiStill() + '</div>' +
-      '</div>' +
+      '<nav class="end-links" aria-labelledby="end-links-t"><h2 id="end-links-t">' + H.esc(t('Browse rooms by place')) + '</h2><ul>' +
+        places.map(function (p) {
+          return '<li><a href="' + api.url({ place: 'school:' + p.id }) + '" data-link>' + H.esc(t('Rooms near {place}', { place: p.short })) + '</a></li>';
+        }).join('') + '</ul></nav>' +
     '</section>';
-  }
-
-  /* The friends start talking when the house comes into view; Kapi's line waits for Kapi to arrive. */
-  function bindHood(host) {
-    var sec = host.querySelector('.hood'), kapi = host.querySelector('.capy-host');
-    if (!sec) return;
-    var here = function () { sec.classList.add('kapi-here'); };
-    if (kapi) kapi.addEventListener('kapi:arrived', function () { setTimeout(here, 250); });
-    var start = function () { sec.classList.add('talk'); setTimeout(here, 7000); };
-    if (!window.IntersectionObserver) { start(); here(); return; }
-    var io = new IntersectionObserver(function (es) {
-      if (es[0].intersectionRatio >= 0.35) { io.disconnect(); start(); }
-    }, { threshold: [0, 0.35, 0.7] });
-    io.observe(sec);
   }
 
   HV.render = function (host, api) {
@@ -117,11 +96,10 @@
       '<div class="home-wrap">' +
         '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
       '</div>' +
-      hood() + api.footScene +
+      closing(api) + api.footScene +
     '</div>';
     bindRows(host);
     startCapy(host);
-    bindHood(host);
   };
 
   /* Kapi the capybara: still pictures first, then the moving 3D Kapi when the browser can draw it.
