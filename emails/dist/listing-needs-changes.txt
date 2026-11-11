@@ -1,0 +1,20 @@
+A few changes before {{listing_name}} goes live
+
+Hi {{name}}, thanks for sending in your listing. We need a few things fixed before we can publish it:
+
+Note from our reviewer:
+"{{review_note}}"
+
+Once you’ve updated it, we’ll check it again and email you.
+
+Update your listing: {{edit_url}}
+
+Not sure what the note means? See our help page: {{site_url}}/help.
+
+--
+ECStay · Rooms and bedspaces in Davao City
+Help: {{site_url}}/help
+Privacy: {{site_url}}/privacy
+Terms: {{site_url}}/terms
+
+You got this email because you sent a listing for review on ECStay.

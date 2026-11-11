@@ -1,20 +1,85 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/room/:id", "destination": "/" },
-    { "source": "/list", "destination": "/" },
-    { "source": "/rooms", "destination": "/" }
+    {
+      "source": "/room/:id",
+      "destination": "/"
+    },
+    {
+      "source": "/list",
+      "destination": "/"
+    },
+    {
+      "source": "/rooms",
+      "destination": "/"
+    },
+    {
+      "source": "/about",
+      "destination": "/"
+    },
+    {
+      "source": "/help",
+      "destination": "/"
+    },
+    {
+      "source": "/listing-standards",
+      "destination": "/"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/"
+    },
+    {
+      "source": "/terms",
+      "destination": "/"
+    },
+    {
+      "source": "/contact",
+      "destination": "/"
+    },
+    {
+      "source": "/signin",
+      "destination": "/"
+    },
+    {
+      "source": "/host",
+      "destination": "/"
+    },
+    {
+      "source": "/host/:path*",
+      "destination": "/"
+    }
   ],
   "headers": [
     {
       "source": "/assets/photos/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/emails/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ]

@@ -55,7 +55,7 @@
         '<button type="button" class="ll-ask-x" data-ll-close="' + REST_CLOSED + '" aria-label="' + H.esc(t('Close')) + '">' + H.icon('x') + '</button>' +
         '<div class="ll-ask-media" aria-hidden="true">' +
           '<img src="' + ASK_PHOTO + '" alt="" width="1200" height="900">' +
-          '<span class="ll-ask-brand"><img src="/assets/brand/ecstay-mark.svg" width="30" height="30" alt=""><span class="logo-word">ECStay</span></span>' +
+          '<span class="ll-ask-brand"><img src="/assets/brand/ecstay-mark.svg" width="36" height="24" alt=""><span class="logo-word">ECStay</span></span>' +
           '<div class="ll-ask-preview">' +
             '<span class="ll-ask-preview-k">' + H.esc(t('Your listing')) + '</span>' +
             '<b>' + H.esc(t('Your boarding house')) + '</b>' +
@@ -74,7 +74,7 @@
             point('clock', PHONE ? t('Fill up a short form, or just call or text us') : t('Fill up a short form and we\'ll get back to you')) +
           '</ul>' +
           '<div class="ll-ask-btns">' +
-            '<a class="btn ll-ask-go" href="/list" data-ll-open><span>' + H.esc(t('List my place')) + '</span>' + H.icon('arrow-right') + '</a>' +
+            '<a class="btn ll-ask-go" href="/list" ' + (window.ECS && ECS.enabled() ? 'data-ll-go' : 'data-ll-open') + '><span>' + H.esc(t('List my place')) + '</span>' + H.icon('arrow-right') + '</a>' +
             '<button type="button" class="ll-ask-no" data-ll-close="' + REST_RENTER + '">' + H.esc(t('No, I\'m looking for a room')) + '</button>' +
           '</div>' +
           (PHONE ? '<p class="ll-ask-call">' + H.esc(t('Prefer to talk?')) + ' <a href="tel:' + H.esc(telHref()) + '">' + H.icon('phone') + H.esc(PHONE) + '</a></p>' : '') +
@@ -285,6 +285,8 @@
   };
 
   document.addEventListener('click', function (e) {
+    var g = e.target.closest('[data-ll-go]');
+    if (g && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) { e.preventDefault(); closeAsk(REST_RENTER, true); App.go('/list'); return; }
     var a = e.target.closest('[data-ll-open]');
     if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) { e.preventDefault(); L.open(); return; }
     var x = e.target.closest('[data-ll-close]');

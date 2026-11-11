@@ -1,4 +1,4 @@
-/* ECStay — app shell: header, home, browse (rooms + map), filters, routing. */
+/* ECStay — app shell: header, home, browse (rooms + map), filters, pages, routing. */
 (function () {
   var A = (window.App = {});
   // bbox = the map area [west, south, east, north] once someone moves the map themselves.
@@ -10,7 +10,7 @@
 
   var S = clone(DEFAULTS);
   var mode = 'list';            // phones/tablets: 'list' | 'map'
-  var view = '';                // 'home' | 'browse' | 'room'
+  var view = '';                // 'home' | 'browse' | 'room' | 'page'
   var bmap = null, bmapP = null;
   var browseScroll = 0, homeScroll = 0;
   var findObs = null;
@@ -146,7 +146,7 @@
     var hdr = $('#site-header');
     var n = activeCount(S);
     var savedN = H.saved.count();
-    hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '') + (view === 'home' ? ' is-home' : '');
+    hdr.className = 'site-header' + (view === 'room' ? ' is-room' : '') + (view === 'home' ? ' is-home' : '') + (view === 'page' ? ' is-page' : '');
     var middle;
     if (view === 'room') {
       middle = '<a class="back-link" href="' + H.esc(lastBrowseUrl) + '" data-link data-back>' + H.icon('arrow-left') + '<span>' + H.esc(lastBrowseUrl === '/' ? t('Back') : t('Back to results')) + '</span></a>';
@@ -154,17 +154,20 @@
       // Appears once the big search on the home page scrolls out of view.
       middle = HomeView.tabs(homeApi(), 'tabs-hdr') +
         '<button type="button" class="hdr-find" data-find>' + H.icon('search') + '<span>' + H.esc(t('Search a mall, school or area')) + '</span></button>';
+    } else if (view === 'page') {
+      middle = '<a class="hdr-find page-find" href="/rooms" data-link>' + H.icon('search') + '<span>' + H.esc(t('Search a mall, school or area')) + '</span></a>';
     } else {
       middle = searchHtml() +
         '<button type="button" class="filter-btn filter-btn-top" data-open-filters aria-label="' + H.esc(t('Filters')) + '">' + H.icon('sliders') + (n ? '<b class="count">' + n + '</b>' : '') + '</button>';
     }
     hdr.innerHTML =
       '<div class="hdr">' +
-        '<a href="/" class="logo" data-link data-home aria-label="ECStay, home"><img class="logo-icon" src="/assets/brand/ecstay-mark.svg" width="40" height="40" alt=""><span class="logo-word">ECStay</span></a>' +
+        '<a href="/" class="logo" data-link data-home aria-label="ECStay, home"><img class="logo-icon" src="/assets/brand/ecstay-mark.svg" width="45" height="30" alt=""><span class="logo-word">ECStay</span></a>' +
         middle +
         '<div class="hdr-actions">' +
           '<a class="hdr-link saved-link' + (S.saved && view === 'browse' ? ' on' : '') + '" href="/rooms?saved=1" data-link>' + H.icon('heart') + '<span>' + H.esc(t('Saved')) + '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>' +
-          '<a class="hdr-link list-link" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
+          (window.ECS && ECS.user ? '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('home') + '<span>' + H.esc(t('Your listings')) + '</span></a>'
+            : '<a class="hdr-link list-link" href="/list" data-link>' + H.esc(t('List your place')) + '</a>') +
           langButtons() +
         '</div>' +
       '</div>' +
@@ -332,7 +335,7 @@
     var nav = $('#bottom-nav');
     var savedN = H.saved.count();
     var tab = view === 'home' ? 'home' : view === 'browse' ? (S.saved ? 'saved' : mode) : '';
-    nav.hidden = view === 'room';
+    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin)/.test(location.pathname));
     nav.innerHTML =
       '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
@@ -510,10 +513,14 @@
 
   function footHtml(cls) {
     return '<footer class="foot' + (cls ? ' ' + cls : '') + '">' +
-      '<p class="foot-brand"><img src="/assets/brand/ecstay-mark-light.svg" width="30" height="30" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
-      '<p>© 2026 ECStay · Davao City</p>' +
-      '<p><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a></p>' +
-      '<p><a href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a></p>' +
+      '<p class="foot-brand"><img src="/assets/brand/ecstay-mark-light.svg" width="42" height="28" alt=""><span class="logo-word">ECStay</span><span class="foot-tag">' + H.esc(t('Rooms and bedspaces in Davao')) + '</span></p>' +
+      '<nav class="foot-cols" aria-label="' + H.esc(t('Site')) + '">' +
+        '<div><h3>' + H.esc(t('Renters')) + '</h3><a href="/rooms" data-link>' + H.esc(t('All rooms')) + '</a><a href="/rooms?saved=1" data-link>' + H.esc(t('Saved rooms')) + '</a><a href="/help#stay-safe" data-link>' + H.esc(t('Stay safe')) + '</a></div>' +
+        '<div><h3>' + H.esc(t('Landlords')) + '</h3><a href="/list" data-link>' + H.esc(t('List your place')) + '</a><a href="/listing-standards" data-link>' + H.esc(t('Listing standards')) + '</a>' + (window.ECS && ECS.enabled() ? '<a href="/signin?next=/host" data-link>' + H.esc(t('Sign in')) + '</a>' : '') + '</div>' +
+        '<div><h3>' + H.esc(t('ECStay')) + '</h3><a href="/about" data-link>' + H.esc(t('About')) + '</a><a href="/help" data-link>' + H.esc(t('Help')) + '</a><a href="/contact" data-link>' + H.esc(t('Contact')) + '</a></div>' +
+        '<div><h3>' + H.esc(t('Legal')) + '</h3><a href="/privacy" data-link>' + H.esc(t('Privacy Notice')) + '</a><a href="/terms" data-link>' + H.esc(t('Terms of Use')) + '</a></div>' +
+      '</nav>' +
+      '<p class="foot-copy">© 2026 ECStay · Davao City, Philippines</p>' +
       langButtons('lang-foot') +
       '<p class="foot-note">' + H.esc(t('Stock photos are used in sample listings.')) + (cls ? ' ' + H.esc(t('Kapi and friends were made for ECStay.')) : '') + '</p>' +
     '</footer>';
@@ -555,8 +562,69 @@
     var h = $('#view-home'); h.hidden = true; h.innerHTML = '';
   }
 
+  function leavePage() {
+    if (window.HostView) HostView.leave();
+    var p = $('#view-page'); if (p) { p.hidden = true; p.innerHTML = ''; }
+    document.body.classList.remove('is-pageview');
+  }
+
+  /* Business pages, landlord screens and "not found": one container, the normal header and footer. */
+  var PAGE_PATHS = /^\/(about|help|listing-standards|privacy|terms|contact)\/?$/;
+  function showPage(kind, arg) {
+    if (view === 'home') homeScroll = window.scrollY;
+    view = 'page';
+    leaveHome(); leavePage();
+    document.body.classList.remove('map-open');
+    $('#view-browse').hidden = true;
+    var room = $('#view-room'); room.hidden = true; RoomView.destroy(); room.innerHTML = '';
+    var host = $('#view-page'); host.hidden = false;
+    document.body.classList.add('is-pageview');
+    renderHeader(); renderNav();
+    var meta = function (title, desc, noindex) {
+      document.title = title + ' · ECStay';
+      var d = document.querySelector('meta[name="description"]'); if (d && desc) d.setAttribute('content', desc);
+      var c = document.querySelector('link[rel="canonical"]'); if (c) c.setAttribute('href', HAVN_CONFIG.siteUrl + location.pathname);
+      var r = document.querySelector('meta[name="robots"]');
+      if (noindex && !r) { r = document.createElement('meta'); r.name = 'robots'; document.head.appendChild(r); }
+      if (r) r.setAttribute('content', noindex ? 'noindex' : 'index, follow');
+    };
+    var inner = document.createElement('div'); inner.className = 'page-in';
+    host.innerHTML = ''; host.appendChild(inner);
+    var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild);
+    if (kind === 'doc') {
+      var P = (window.ECS_PAGES || {})[arg];
+      if (!P) { kind = 'missing'; }
+      else {
+        inner.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<article class="doc"><h1>' + H.esc(P.title) + '</h1>' + P.html + (arg === 'contact' ? '<div class="doc-form"></div>' : '') + '</article>';
+        if (arg === 'contact') HostView.contactForm($('.doc-form', inner));
+        meta(P.title, P.description, false);
+        var hash = location.hash && document.getElementById(location.hash.slice(1));
+        window.scrollTo(0, hash ? hash.getBoundingClientRect().top + window.scrollY - 90 : 0);
+        return;
+      }
+    }
+    if (kind === 'missing') {
+      inner.innerHTML = '<div class="nf"><img src="/assets/capy/kapi.webp" width="180" height="180" alt="">' +
+        '<h1>' + H.esc(t('We couldn\'t find that page')) + '</h1><p>' + H.esc(t('The link may be old, or the page has moved. Kapi can help you find a room instead.')) + '</p>' +
+        '<div class="nf-btns"><a class="btn btn-primary" href="/rooms" data-link>' + H.esc(t('See all rooms')) + '</a><a class="btn btn-ghost" href="/" data-link data-home>' + H.esc(t('Go to the home page')) + '</a></div></div>';
+      meta(t('Page not found'), '', true);
+      window.scrollTo(0, 0);
+      return;
+    }
+    window.scrollTo(0, 0);
+    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings') }[kind] || 'ECStay',
+      kind === 'landing' ? t('List your boarding house, bedspace or rooms in Davao City on ECStay. Add photos, prices and the exact spot on the map. We review every listing.') : '', kind !== 'landing');
+    if (kind === 'landing') HostView.landing(inner);
+    else if (kind === 'signin') HostView.signin(inner);
+    else if (kind === 'dashboard') HostView.dashboard(inner);
+    else if (kind === 'editor') HostView.editor(inner, arg);
+    else if (kind === 'profile') HostView.profile(inner);
+    else if (kind === 'review') HostView.review(inner);
+  }
+
   function showHome() {
     var fromRoom = view === 'room';
+    leavePage();
     view = 'home';
     S = clone(DEFAULTS);
     lastBrowseUrl = '/';
@@ -724,7 +792,7 @@
     if (view === 'home') homeScroll = window.scrollY;
     view = 'room';
     document.body.classList.remove('map-open');
-    leaveHome();
+    leaveHome(); leavePage();
     $('#view-browse').hidden = true;
     var host = $('#view-room');
     host.hidden = false;
@@ -739,7 +807,7 @@
     readUrl();
     lastBrowseUrl = urlFor(S);
     view = 'browse';
-    leaveHome();
+    leaveHome(); leavePage();
     var host = $('#view-room');
     host.hidden = true;
     RoomView.destroy();
@@ -756,21 +824,24 @@
   function route() {
     var m = location.pathname.match(/^\/room\/([\w-]+)\/?$/);
     if (m) showRoom(m[1]);
-    else if (/^\/list\/?$/.test(location.pathname)) {
-      // havnph.com/list: the link to share with landlords opens the listing form.
-      history.replaceState(null, '', '/');
-      showHome();
-      Landlord.open();
-    } else if (/^\/rooms\/?$/.test(location.pathname)) {
+    else if (/^\/list\/?$/.test(location.pathname)) showPage('landing');
+    else if (/^\/signin\/?$/.test(location.pathname)) showPage('signin');
+    else if (/^\/host\/?$/.test(location.pathname)) showPage('dashboard');
+    else if (/^\/host\/new\/?$/.test(location.pathname)) showPage('editor', null);
+    else if ((m = location.pathname.match(/^\/host\/edit\/([\w-]+)\/?$/))) showPage('editor', m[1]);
+    else if (/^\/host\/profile\/?$/.test(location.pathname)) showPage('profile');
+    else if (/^\/host\/review\/?$/.test(location.pathname)) showPage('review');
+    else if (PAGE_PATHS.test(location.pathname)) showPage('doc', location.pathname.replace(/^\/|\/$/g, ''));
+    else if (/^\/rooms\/?$/.test(location.pathname)) {
       showBrowse();
-    } else if (location.search) {
+    } else if (location.pathname === '/' && /[?&][a-z]/i.test(location.search.replace(/[?&]demo=[01]/g, ''))) {
       // Older links put the search on "/" (e.g. /?near=addu): they open the rooms list.
       history.replaceState(null, '', '/rooms' + location.search);
       showBrowse();
-    } else {
+    } else if (location.pathname === '/' || location.pathname === '/index.html') {
       if (location.pathname !== '/') history.replaceState(null, '', '/');
       showHome();
-    }
+    } else showPage('missing');
   }
 
   A.go = function (href) {
@@ -815,7 +886,7 @@
     if (lb) {
       HAVN_I18N.set(lb.getAttribute('data-lang'));
       renderHeader(); renderNav();
-      if (view === 'browse') renderBrowse(); else if (view === 'home') renderHome(); else RoomView.render($('#view-room'), H.byId(location.pathname.split('/')[2]));
+      if (view === 'browse') renderBrowse(); else if (view === 'home') renderHome(); else if (view === 'page') route(); else RoomView.render($('#view-room'), H.byId(location.pathname.split('/')[2]));
     }
   });
 
@@ -838,6 +909,13 @@
   });
 
   window.addEventListener('popstate', route);
+  document.addEventListener('ecs:auth', function () { if (view) renderHeader(); });
+  // Approved listings arrive from the service after the page loads: show them where they belong.
+  document.addEventListener('havn:listings', function () {
+    if (view === 'home') renderHome();
+    else if (view === 'browse') showBrowse();
+    else if (view === 'room') route();
+  });
   desktop.addEventListener('change', function () {
     document.body.classList.toggle('map-open', mode === 'map' && !desktop.matches);
     if (view === 'browse' && desktop.matches) ensureMap();
@@ -854,7 +932,7 @@
   if (window.ResizeObserver) new ResizeObserver(measure).observe(hdrEl);
 
   /* ---------------- Boot ---------------- */
-  $('#main').innerHTML = '<div id="view-home" hidden></div><div id="view-browse" hidden></div><div id="view-room" hidden></div>';
+  $('#main').innerHTML = '<div id="view-home" hidden></div><div id="view-browse" hidden></div><div id="view-room" hidden></div><div id="view-page" hidden></div>';
   HAVN_I18N.set(HAVN_I18N.get());
   route();
   measure();

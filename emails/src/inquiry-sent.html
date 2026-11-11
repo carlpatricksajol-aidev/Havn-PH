@@ -1,0 +1,24 @@
+<!--
+subject: Your message to {{listing_name}} was sent
+preheader: The landlord can now text or call you on {{renter_mobile}}. A few safety tips while you wait.
+reason: You got this email because you sent a message to a landlord on ECStay.
+marketing: no
+-->
+<h1 class="h1">Your message was&nbsp;sent</h1>
+<p class="p">The landlord of {{listing_name}} can now text or call you. Here’s what you sent:</p>
+<x-rows>
+  <x-row label="Place">{{listing_name}}</x-row>
+  <x-row label="Your mobile"><span class="nowrap">{{renter_mobile}}</span></x-row>
+  <x-row label="Move-in">{{move_in}}</x-row>
+</x-rows>
+<x-quote label="Your message">{{message}}</x-quote>
+<h2 class="h2">What happens next</h2>
+<p class="p">Landlords reply by text or call, so keep your phone close. If you don’t hear back, it’s fine to ask a few other places too.</p>
+<x-button href="{{search_url}}">See more rooms near {{near}}</x-button>
+<x-divider></x-divider>
+<h2 class="h2">Stay safe</h2>
+<x-list>
+  <x-item title="See the room first">Visit in person before you pay anything.</x-item>
+  <x-item title="Never pay a reservation fee to someone you haven’t met">That includes GCash and bank transfers.</x-item>
+  <x-item title="ECStay never asks for payment">You pay the landlord directly, after you’ve seen the room. If someone asks you to pay ECStay, it isn’t us.</x-item>
+</x-list>

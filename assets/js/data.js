@@ -18,6 +18,10 @@ window.HAVN_CONFIG = {
   // email that should receive the forms and the key is emailed to it. Paste it here.
   // Empty = the form hands the landlord's details to Messenger instead.
   landlordFormKey: '',
+  // Landlord accounts, listings, renter messages and emails (see supabase/README.md). Both empty = accounts are
+  // off and the site keeps the form above. Add ?demo=1 to any address to try the whole flow without them.
+  supabaseUrl: '',      // e.g. 'https://abcdefghijkl.supabase.co'
+  supabaseAnonKey: '',  // the project's public "anon" key (safe to publish; row-level security protects the data)
 };
 
 window.HAVN_SCHOOLS = [

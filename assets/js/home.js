@@ -84,7 +84,7 @@
         '<p>' + H.esc(t('Kapi\'s friends each searched ECStay for a room near school or work, and ended up under one roof.')) + '</p>' +
         '<div class="hood-btns">' +
           '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find your room')) + '</a>' +
-          '<a class="btn btn-light btn-lg" href="/list" data-ll-open>' + H.esc(t('List your place')) + '</a>' +
+          '<a class="btn btn-light btn-lg" href="/list" data-link>' + H.esc(t('List your place')) + '</a>' +
         '</div>' +
       '</div>' +
       '<ol class="says" aria-label="' + H.esc(t('What Kapi\'s friends say')) + '">' + SAYS.map(function (x, i) {

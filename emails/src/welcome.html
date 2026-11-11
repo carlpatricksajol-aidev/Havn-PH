@@ -1,0 +1,16 @@
+<!--
+subject: Welcome to ECStay, {{name}}
+preheader: Your account is ready. Here’s how listing your boarding house works.
+reason: You got this email because you created an ECStay account.
+marketing: yes
+-->
+<h1 class="h1">Welcome to ECStay, {{name}}</h1>
+<p class="p">Your account is ready. ECStay helps students and young workers find rooms and bedspaces in Davao City, and helps owners like you get found by them.</p>
+<h2 class="h2">How listing works</h2>
+<x-list>
+  <x-item title="Add your boarding house">Upload photos, set the monthly price and pin the exact spot on the&nbsp;map.</x-item>
+  <x-item title="We review it">We check every listing before it goes live, and we’ll email you when yours is up.</x-item>
+  <x-item title="Renters contact you">Inquiries come to your email with the renter’s name and mobile number. Renters pay you directly, after they’ve seen the room.</x-item>
+</x-list>
+<x-button href="{{site_url}}/host/new">Add your place</x-button>
+<p class="small">Have a few clear, bright photos of the room ready before you start.</p>

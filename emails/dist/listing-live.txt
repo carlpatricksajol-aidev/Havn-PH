@@ -1,0 +1,24 @@
+{{listing_name}} is now live
+
+Good news, {{name}}. Your listing passed review, and renters can now find it on ECStay. When someone sends an inquiry, we’ll email you their name, mobile number and message.
+
+See your listing: {{listing_url}}
+
+Getting more inquiries
+
+1. Show the room in good light
+Bright, clear photos of the room, the bed, the CR and the entrance help renters decide before they visit.
+
+2. Keep availability up to date
+Update your listing when a room or bed fills up, so renters only message you about free ones.
+
+3. Reply soon
+Renters often contact a few places at once. A quick text goes a long way.
+
+--
+ECStay · Rooms and bedspaces in Davao City
+Help: {{site_url}}/help
+Privacy: {{site_url}}/privacy
+Terms: {{site_url}}/terms
+
+You got this email because you list a place on ECStay.

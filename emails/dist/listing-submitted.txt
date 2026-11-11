@@ -1,0 +1,21 @@
+We got your listing
+
+Thanks, {{name}}. Here’s what you sent us:
+
+{{listing_name}}
+{{area}}
+From {{price}}/month
+
+What happens next
+
+We review every listing before it goes live. We’ll email you when yours is live, or if we need anything from you.
+
+View your listings: {{site_url}}/host
+
+--
+ECStay · Rooms and bedspaces in Davao City
+Help: {{site_url}}/help
+Privacy: {{site_url}}/privacy
+Terms: {{site_url}}/terms
+
+You got this email because you sent a listing for review on ECStay.

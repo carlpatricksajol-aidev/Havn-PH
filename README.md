@@ -15,6 +15,15 @@ Plain HTML, CSS and JavaScript. No build step.
 - `assets/js/i18n.js`: English, Tagalog and Cebuano text
 - `assets/css/havn.css`: styles
 
+## Pages, landlord accounts and emails
+
+- `assets/js/pages.js`: About, Help (with "Stay safe"), Listing standards, Privacy Notice, Terms of Use, Contact (English). Shown at `/about`, `/help`, `/listing-standards`, `/privacy`, `/terms`, `/contact`. **Have a Philippine lawyer review Privacy and Terms before relying on them.**
+- `assets/js/accounts.js`: sign-in and data (`window.ECS`). Modes: **live** once `supabaseUrl` + `supabaseAnonKey` are set in `data.js`; **demo** with `?demo=1` on any page (everything works, nothing leaves the browser, the code is 123456); **off** otherwise (the older listing form and Messenger stay).
+- `assets/js/host.js`: `/list` (for landlords), `/signin` (Google or a 6-digit email code), `/host` (dashboard: listings, status, renter messages), `/host/edit/:id` (6-step editor, saves as you type, map pin, photo upload), `/host/profile`, `/host/review` (admins approve or ask for changes), the renter inquiry form and the contact form.
+- `supabase/`: the database (tables, row-level security, photo bucket, email triggers, draft reminders) and the `notify` email function. **How to switch accounts on: `supabase/README.md`.**
+- `emails/`: the 8 branded emails (sign-in code, welcome, listing submitted / live / needs changes, new inquiry, inquiry sent, finish your listing). Edit `emails/src`, run `node emails/build.mjs`; see `emails/README.md`.
+- `404.html` is a copy of `index.html` with `noindex`, so unknown addresses get a real 404 with the ECStay "not found" page. Copy `index.html` over it again after editing `index.html`.
+
 ## Add a real room
 
 1. Put its photos in `assets/photos/` as `<name>-640.webp` and `<name>-1200.webp` (4:3, any number of photos).

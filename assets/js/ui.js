@@ -14,7 +14,7 @@
 
   H.peso = function (n) { return '₱' + Number(n).toLocaleString('en-PH'); };
 
-  H.photo = function (id, w) { return '/assets/photos/' + id + '-' + (w || 640) + '.webp'; };
+  H.photo = function (id, w) { return /^(https?:|data:|blob:)/.test(id) ? id : '/assets/photos/' + id + '-' + (w || 640) + '.webp'; };
 
   H.byId = function (id) {
     for (var i = 0; i < HAVN_LISTINGS.length; i++) if (HAVN_LISTINGS[i].id === id) return HAVN_LISTINGS[i];

@@ -296,6 +296,30 @@
   };
 
   /* ---------- Room map: one exact pin + schools ---------- */
+  /* Landlords set the exact spot: tap the map or drag the pin. onMove(lat, lng) fires after each change. */
+  M.pick = function (el, at, onMove) {
+    var start = at && typeof at.lat === 'number' ? [at.lng, at.lat] : DAVAO;
+    return baseMap(el, { center: start, zoom: at && typeof at.lat === 'number' ? 16 : 13, cooperative: false }).then(function (b) {
+      var pinEl = document.createElement('div');
+      pinEl.className = 'home-pin pick-pin';
+      pinEl.innerHTML = '<span>' + H.icon('home') + '</span>';
+      var marker = null;
+      function place(lngLat, fire) {
+        if (!marker) marker = new b.ml.Marker({ element: pinEl, anchor: 'bottom', draggable: true }).setLngLat(lngLat).addTo(b.map)
+          .on('dragend', function () { var p = marker.getLngLat(); onMove(+p.lat.toFixed(6), +p.lng.toFixed(6)); });
+        else marker.setLngLat(lngLat);
+        if (fire) onMove(+lngLat[1].toFixed(6), +lngLat[0].toFixed(6));
+      }
+      if (at && typeof at.lat === 'number') place(start, false);
+      b.map.on('click', function (e) { place([e.lngLat.lng, e.lngLat.lat], true); });
+      return {
+        map: b.map,
+        set: function (lat, lng) { place([lng, lat], true); b.map.flyTo({ center: [lng, lat], zoom: 16 }); },
+        destroy: function () { b.map.remove(); },
+      };
+    });
+  };
+
   M.room = function (el, l) {
     return baseMap(el, { center: [l.lng, l.lat], zoom: 16, cooperative: true }).then(function (b) {
       var pinEl = document.createElement('div');

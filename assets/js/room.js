@@ -62,7 +62,7 @@
       '<article class="room">' +
         '<div class="room-head">' +
           '<div><h1>' + H.esc(l.name) + (l.sample ? ' <span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h1>' +
-          '<p class="room-sub">' + H.icon('pin') + '<span>' + H.esc(l.street + ', ' + l.area + ', Davao City') + '</span></p></div>' +
+          '<p class="room-sub">' + H.icon('pin') + '<span>' + H.esc([l.street, l.area, 'Davao City'].filter(Boolean).join(', ')) + '</span></p></div>' +
           '<div class="room-actions">' +
             '<button type="button" class="btn btn-ghost btn-sm" data-share>' + H.icon('share') + '<span>' + H.esc(t('Share')) + '</span></button>' +
             '<button type="button" class="btn btn-ghost btn-sm save-btn" data-save="' + l.id + '" aria-pressed="' + saved + '">' + H.icon('heart') + '<span data-save-label>' + H.esc(saved ? t('Saved') : t('Save')) + '</span></button>' +
@@ -77,7 +77,7 @@
           '<div class="room-main">' +
             '<section class="room-intro">' +
               '<h2>' + H.esc(t('{type} in {area}', { type: t(l.type), area: l.area })) + '</h2>' +
-              '<p class="room-specs">' + H.esc(l.size + ' m² · ' + bath + ' · ' + H.genderLabel(l.gender)) + '</p>' +
+              '<p class="room-specs">' + H.esc([l.size ? l.size + ' m²' : '', bath, H.genderLabel(l.gender)].filter(Boolean).join(' · ')) + '</p>' +
               '<ul class="badges">' +
                 '<li class="b-school">' + H.icon('walk') + H.esc(H.nearText(l, App.placeSchoolId())) + '</li>' +
                 '<li class="b-status s-' + l.status + '"><i aria-hidden="true"></i>' + H.esc(H.statusLabel(l)) + '</li>' +
@@ -92,7 +92,7 @@
               '<div>' + H.icon('user') + '<dt>' + H.esc(t('Who can stay')) + '</dt><dd>' + H.esc(H.genderLabel(l.gender)) + '</dd></div>' +
             '</dl></section>' +
             '<section class="room-sec" id="where"><h2>' + H.esc(t('Where you will live')) + '</h2>' +
-              '<p class="room-addr">' + H.esc(l.street + ', ' + l.area + ', Davao City') + '</p>' +
+              '<p class="room-addr">' + H.esc([l.street, l.area, 'Davao City'].filter(Boolean).join(', ')) + '</p>' +
               '<div class="room-map map" id="rmap"><div class="map-loading"></div></div>' +
               '<a class="ext-link" href="' + gmaps + '" target="_blank" rel="noopener">' + H.icon('external') + H.esc(t('Open in Google Maps')) + '</a>' +
               '<h3>' + H.esc(t('Distance to schools')) + '</h3><ul class="dist">' + dist + '</ul>' +
@@ -213,6 +213,7 @@
   }
 
   function openContact(l) {
+    if (window.ECS && ECS.enabled() && window.HostView) { HostView.inquire(l); return; }
     var ms = months();
     var near = H.nearName(l);
     var msg = function (m) {

@@ -1,0 +1,17 @@
+<!--
+subject: New inquiry for {{listing_name}}
+preheader: {{renter_name}} is looking to move in {{move_in}}. Reply by text or call.
+reason: You got this email because you list a place on ECStay.
+marketing: no
+-->
+<h1 class="h1">New inquiry for {{listing_name}}</h1>
+<p class="p">{{renter_name}} sent you a message through ECStay. Renters often contact a few places at once, so a quick reply helps.</p>
+<x-rows>
+  <x-row label="Name">{{renter_name}}</x-row>
+  <x-row label="Mobile">{{renter_mobile}}</x-row>
+  <x-row label="Move-in">{{move_in}}</x-row>
+</x-rows>
+<x-quote label="Their message">{{message}}</x-quote>
+<x-button href="{{sms_url}}" text="Reply by text or call: {{renter_mobile}}" alt-href="{{tel_url}}" alt-label="Call {{renter_mobile}}">Reply by text</x-button>
+<x-divider></x-divider>
+<p class="small">A reminder: please don’t ask renters to pay anything before they’ve seen the room, in person or on a video call. They pay you directly, after the viewing.</p>

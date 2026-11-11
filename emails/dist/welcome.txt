@@ -1,0 +1,27 @@
+Welcome to ECStay, {{name}}
+
+Your account is ready. ECStay helps students and young workers find rooms and bedspaces in Davao City, and helps owners like you get found by them.
+
+How listing works
+
+1. Add your boarding house
+Upload photos, set the monthly price and pin the exact spot on the map.
+
+2. We review it
+We check every listing before it goes live, and we’ll email you when yours is up.
+
+3. Renters contact you
+Inquiries come to your email with the renter’s name and mobile number. Renters pay you directly, after they’ve seen the room.
+
+Add your place: {{site_url}}/host/new
+
+Have a few clear, bright photos of the room ready before you start.
+
+--
+ECStay · Rooms and bedspaces in Davao City
+Help: {{site_url}}/help
+Privacy: {{site_url}}/privacy
+Terms: {{site_url}}/terms
+
+You got this email because you created an ECStay account.
+Don’t want tips and reminders from ECStay? Unsubscribe: {{unsubscribe_url}}

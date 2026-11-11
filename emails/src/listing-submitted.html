@@ -1,0 +1,12 @@
+<!--
+subject: We got your listing: {{listing_name}}
+preheader: Thanks for sending it in. We’ll email you when it’s live or if we need anything.
+reason: You got this email because you sent a listing for review on ECStay.
+marketing: no
+-->
+<h1 class="h1">We got your listing</h1>
+<p class="p">Thanks, {{name}}. Here’s what you sent us:</p>
+<x-listing photo="{{photo_url}}" name="{{listing_name}}" area="{{area}}" price="{{price}}"></x-listing>
+<h2 class="h2">What happens next</h2>
+<p class="p">We review every listing before it goes live. We’ll email you when yours is live, or if we need anything from you.</p>
+<x-button href="{{site_url}}/host">View your listings</x-button>

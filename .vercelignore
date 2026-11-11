@@ -1,3 +1,6 @@
 *.md
 .git
 .vercel
+supabase
+emails/src
+emails/*.mjs

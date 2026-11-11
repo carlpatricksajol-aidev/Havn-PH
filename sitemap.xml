@@ -131,4 +131,11 @@
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url><loc>https://www.havnph.com/list</loc></url>
+  <url><loc>https://www.havnph.com/about</loc></url>
+  <url><loc>https://www.havnph.com/help</loc></url>
+  <url><loc>https://www.havnph.com/listing-standards</loc></url>
+  <url><loc>https://www.havnph.com/privacy</loc></url>
+  <url><loc>https://www.havnph.com/terms</loc></url>
+  <url><loc>https://www.havnph.com/contact</loc></url>
 </urlset>
