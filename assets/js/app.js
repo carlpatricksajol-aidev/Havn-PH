@@ -151,7 +151,8 @@
       var here = location.pathname + location.search;
       return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
     }
-    return saved + '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
+    return saved + (ECS.user.role === 'admin' ? '<a class="hdr-link list-link' + (/^\/admin/.test(location.pathname) ? ' on' : '') + '" href="/admin" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+      '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
   }
   function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
 
@@ -351,7 +352,7 @@
     var nav = $('#bottom-nav');
     var savedN = H.saved.count();
     var tab = view === 'home' ? 'home' : view === 'browse' ? (S.saved ? 'saved' : mode) : '';
-    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin)/.test(location.pathname));
+    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin|admin)/.test(location.pathname));
     nav.innerHTML =
       '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
@@ -614,7 +615,7 @@
     var inner = document.createElement('div'); inner.className = 'page-in';
     host.innerHTML = ''; host.appendChild(inner);
     // Account screens are tools, not pages: no footer there.
-    if (!/^(signin|dashboard|editor|profile|review)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
+    if (!/^(signin|dashboard|editor|profile|review|admin)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
     if (kind === 'doc') {
       var P = (window.ECS_PAGES || {})[arg];
       if (!P) { kind = 'missing'; }
@@ -636,7 +637,7 @@
       return;
     }
     window.scrollTo(0, 0);
-    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings') }[kind] || 'ECStay',
+    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings'), admin: t('Admin') }[kind] || 'ECStay',
       kind === 'landing' ? t('List your boarding house, bedspace or rooms in Davao City on ECStay. Add photos, prices and the exact spot on the map. We review every listing.') : '', kind !== 'landing');
     if (kind === 'landing') HostView.landing(inner);
     else if (kind === 'signin') HostView.signin(inner);
@@ -644,6 +645,7 @@
     else if (kind === 'editor') HostView.editor(inner, arg);
     else if (kind === 'profile') HostView.profile(inner);
     else if (kind === 'review') HostView.review(inner);
+    else if (kind === 'admin') AdminView.render(inner);
   }
 
   function showHome() {
@@ -854,6 +856,7 @@
     else if ((m = location.pathname.match(/^\/host\/edit\/([\w-]+)\/?$/))) showPage('editor', m[1]);
     else if (/^\/host\/profile\/?$/.test(location.pathname)) showPage('profile');
     else if (/^\/host\/review\/?$/.test(location.pathname)) showPage('review');
+    else if (/^\/admin\/?$/.test(location.pathname)) showPage('admin');
     else if (PAGE_PATHS.test(location.pathname)) showPage('doc', location.pathname.replace(/^\/|\/$/g, ''));
     else if (/^\/rooms\/?$/.test(location.pathname)) {
       showBrowse();

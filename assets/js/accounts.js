@@ -195,6 +195,10 @@
       },
       sendContact: function (m) { var d = db(); d.contacts.unshift(Object.assign({ id: uid(), created_at: now() }, m)); save(d); return Promise.resolve(); },
       outbox: function () { return Promise.resolve(db().outbox); },
+      myInquiries: function () { return Promise.resolve([]); },
+      adminData: function () { return fail(t('The admin workspace works with real accounts only.')); },
+      setLead: function () { return fail(t('The admin workspace works with real accounts only.')); },
+      setContact: function () { return fail(t('The admin workspace works with real accounts only.')); },
       liveListings: function () { var d = db(); return Promise.resolve(Object.keys(d.listings).map(function (k) { return d.listings[k]; }).filter(function (l) { return l.status === 'live'; })); },
       // Demo: anyone may play the reviewer, so the whole journey can be tried.
       reviewQueue: function () {
@@ -304,6 +308,28 @@
       },
       sendContact: function (m) { return client().then(function (c) { return c.from('contact_messages').insert(m); }).then(check); },
       outbox: function () { return Promise.resolve([]); },
+      // What the signed-in person sent to Keepers.
+      myInquiries: function () {
+        return Promise.all([client(), uidNow()]).then(function (a) { return a[0].from('inquiries').select('*').eq('renter_id', a[1]).order('created_at', { ascending: false }).limit(50); }).then(check);
+      },
+      // Admins: everything, for the workspace at /admin (row-level security returns nothing to anyone else).
+      adminData: function () {
+        return client().then(function (c) {
+          return Promise.all([
+            c.from('inquiries').select('*').order('created_at', { ascending: false }).limit(500).then(check),
+            c.from('listings').select('*').order('updated_at', { ascending: false }).limit(500).then(check),
+            c.from('profiles').select('*').order('created_at', { ascending: false }).limit(1000).then(check),
+            c.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(300).then(check),
+          ]);
+        }).then(function (r) { return { inquiries: r[0], listings: r[1], profiles: r[2], contacts: r[3] }; });
+      },
+      setLead: function (id, patch) {
+        var row = { updated_at: new Date().toISOString() }; ['status', 'admin_note'].forEach(function (k) { if (k in patch) row[k] = patch[k]; });
+        return client().then(function (c) { return c.from('inquiries').update(row).eq('id', id).select().single(); }).then(check);
+      },
+      setContact: function (id, patch) {
+        return client().then(function (c) { return c.from('contact_messages').update({ status: patch.status }).eq('id', id).select().single(); }).then(check);
+      },
       liveListings: function () { return client().then(function (c) { return c.from('listings_public').select('*'); }).then(check); },
       reviewQueue: function () {
         return client().then(function (c) {
@@ -363,5 +389,10 @@
   // The signed-in person, kept current for the header.
   ECS.user = null;
   ECS.onChange(function (s) { ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); });
-  ECS.session().then(function (s) { ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); }).catch(function () {});
+  function withRole() {
+    if (!ECS.user || ECS.mode !== 'live') return;
+    ECS.profile().then(function (p) { if (ECS.user && p) { ECS.user.role = p.role; document.dispatchEvent(new CustomEvent('ecs:auth')); } }).catch(function () {});
+  }
+  ECS.session().then(function (s) { ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); withRole(); }).catch(function () {});
+  ECS.onChange(function () { setTimeout(withRole, 0); });
 })();

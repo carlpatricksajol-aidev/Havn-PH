@@ -208,25 +208,30 @@
 
   HV.dashboard = function (host) {
     needUser(host, function (user) {
-      Promise.all([ECS.profile().catch(function () { return {}; }), ECS.myListings(), ECS.inquiries().catch(function () { return []; }), ECS.outbox().catch(function () { return []; })]).then(function (r) {
-        var p = r[0] || {}, ls = r[1] || [], inq = r[2] || [], out = r[3] || [];
+      Promise.all([ECS.profile().catch(function () { return {}; }), ECS.myListings(), ECS.inquiries().catch(function () { return []; }), ECS.outbox().catch(function () { return []; }), ECS.myInquiries().catch(function () { return []; })]).then(function (r) {
+        var p = r[0] || {}, ls = r[1] || [], inq = r[2] || [], out = r[3] || [], sent = r[4] || [];
         var first = (p.full_name || user.name || '').split(' ')[0];
         var byId = {}; ls.forEach(function (l) { byId[l.id] = l; });
+        // Only messages about your own listings (admins see every lead in the admin workspace instead).
+        if (ECS.mode === 'live') inq = inq.filter(function (q) { return byId[q.listing_id]; });
         host.innerHTML = HV.demoBar() +
           '<div class="host-wrap">' +
-            '<div class="host-head"><div><p class="host-hi">' + esc(first ? t('Hi, {name}', { name: first }) : t('Welcome')) + '</p><h1>' + esc(t('Your listings')) + '</h1></div>' +
+            '<div class="host-head"><div><p class="host-hi">' + esc(first ? t('Hi, {name}', { name: first }) : t('Welcome')) + '</p><h1>' + esc(t(ls.length ? 'Your listings' : 'Your account')) + '</h1></div>' +
               '<a class="btn btn-primary" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a></div>' +
             (!p.mobile ? '<a class="host-nudge" href="/host/profile" data-link>' + H.icon('phone') + '<span>' + esc(t('Add your mobile number so we can reach you about your listings.')) + '</span>' + H.icon('chev-right') + '</a>' : '') +
             (ls.length ? '<ul class="hl-list">' + ls.map(listingRow).join('') + '</ul>' :
-              '<div class="host-empty"><img src="/assets/capy/kapi.webp" width="160" height="160" alt="">' +
-                '<h2>' + esc(t('Let\'s add your first place')) + '</h2><p>' + esc(t('It takes about 10 minutes. You can stop anytime; your progress is saved.')) + '</p>' +
-                '<a class="btn btn-primary btn-lg" href="/host/new" data-link>' + esc(t('Add your place')) + '</a></div>') +
-            '<section class="host-sec"><h2>' + esc(t('Messages from renters')) + '</h2>' +
+              '<a class="host-keeper" href="/host/new" data-link><span>' + H.icon('home') + '</span><div><b>' + esc(t('Have a place to rent out?')) + '</b><small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small></div>' + H.icon('chev-right') + '</a>') +
+            (ls.length ? '<section class="host-sec"><h2>' + esc(t('Messages from renters')) + '</h2>' +
               (inq.length ? '<ul class="inq-list">' + inq.map(function (q) { return inqRow(q, byId); }).join('') + '</ul>' :
                 '<p class="host-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') +
+            '</section>' : '') +
+            '<section class="host-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
+              (sent.length ? '<ul class="sent-list">' + sent.map(function (q) {
+                return '<li><a href="/room/' + esc(q.listing_ref) + '" data-link><b>' + esc(q.listing_name || q.listing_ref) + '</b><span>' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', t('Sent {date}', { date: new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) })].filter(Boolean).join(' · ')) + '</span></a></li>';
+              }).join('') + '</ul>' : '<p class="host-muted">' + esc(t('When you message a Keeper about a room, it shows here.')) + ' <a href="/rooms" data-link>' + esc(t('Find a room')) + '</a></p>') +
             '</section>' +
             (ECS.mode === 'demo' ? outboxHtml(out) : '') +
-            '<section class="host-sec host-links">' + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
+            '<section class="host-sec host-links">' + (p.role === 'admin' ? '<a href="/admin" data-link>' + H.icon('grid') + '<span>' + esc(t('Admin')) + '</span></a>' : '') + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
               '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Keeper standards')) + '</span></a>' +
               '<a href="/help" data-link>' + H.icon('info') + '<span>' + esc(t('Help')) + '</span></a></section>' +
           '</div>';

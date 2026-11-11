@@ -48,6 +48,10 @@
     {
       "source": "/host/:path*",
       "destination": "/"
+    },
+    {
+      "source": "/admin",
+      "destination": "/"
     }
   ],
   "headers": [
