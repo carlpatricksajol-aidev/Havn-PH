@@ -226,7 +226,7 @@
       'Message us': 'I-message kami',
       'List your boarding house on ECStay': 'Ilista ang boarding house mo sa ECStay',
       'Show your rooms to students and young workers looking for a place near their school or work. Add photos, monthly prices and the exact spot on the map. We review every listing before it goes live.': 'Ipakita ang mga kwarto mo sa mga estudyante at batang manggagawa na naghahanap ng matitirhan malapit sa school o trabaho. Maglagay ng litrato, buwanang presyo at eksaktong lugar sa mapa. Sinusuri namin ang bawat listing bago ito lumabas.',
-      'Get started': 'Magsimula', 'List my place for free': 'Ilista ang lugar ko nang libre', 'Free to list. No card needed. About 10 minutes.': 'Libre ang paglista. Walang card na kailangan. Mga 10 minuto lang.',
+      'Get started': 'Magsimula', 'Your messages': 'Ang mga mensahe mo', 'Drag a lead here': 'I-drag dito ang lead', 'List my place for free': 'Ilista ang lugar ko nang libre', 'Free to list. No card needed. About 10 minutes.': 'Libre ang paglista. Walang card na kailangan. Mga 10 minuto lang.',
       'Already listed with us?': 'Nakalista ka na sa amin?',
       'How it works': 'Paano ito gumagana',
       'Create your account': 'Gumawa ng account',

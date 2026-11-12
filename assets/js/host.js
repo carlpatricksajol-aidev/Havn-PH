@@ -231,15 +231,17 @@
         // Free plan: shown to Keepers with a listing that is up without a paid plan.
         var onFree = p.role !== 'admin' && quota && ls.some(function (l) { return (l.status === 'live' || l.status === 'paused') && !ECS.planOn(l); });
         var first = (p.full_name || user.name || '').split(' ')[0];
+        // A Keeper has a listing (or is an admin). Everyone else is a renter and sees none of the Keeper parts here.
+        var keeper = ls.length > 0 || p.role === 'admin';
         var byId = {}; ls.forEach(function (l) { byId[l.id] = l; });
         // Only messages about your own listings (admins see every lead in the admin workspace instead).
         if (ECS.mode === 'live') inq = inq.filter(function (q) { return byId[q.listing_id]; });
         host.innerHTML = HV.demoBar() +
           '<div class="host-wrap">' +
             '<div class="host-head"><div><p class="host-hi">' + esc(first ? t('Hi, {name}', { name: first }) : t('Welcome')) + '</p><h1>' + esc(t(ls.length ? 'Your listings' : 'Your account')) + '</h1></div>' +
-              '<a class="btn btn-primary" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a></div>' +
-            (!p.mobile ? '<a class="host-nudge" href="/host/profile" data-link>' + H.icon('phone') + '<span>' + esc(t('Add your mobile number so we can reach you about your listings.')) + '</span>' + H.icon('chev-right') + '</a>' : '') +
-            (ls.length ? '<ul class="hl-list">' + ls.map(listingRow).join('') + '</ul>' :
+              (keeper ? '<a class="btn btn-primary" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a>' : '') + '</div>' +
+            (keeper && !p.mobile ? '<a class="host-nudge" href="/host/profile" data-link>' + H.icon('phone') + '<span>' + esc(t('Add your mobile number so we can reach you about your listings.')) + '</span>' + H.icon('chev-right') + '</a>' : '') +
+            (ls.length ? '<ul class="hl-list">' + ls.map(listingRow).join('') + '</ul>' : !keeper ? '' :
               '<a class="host-keeper" href="/host/new" data-link><span>' + H.icon('home') + '</span><div><b>' + esc(t('Have a place to rent out?')) + '</b><small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small></div>' + H.icon('chev-right') + '</a>') +
             (ls.length ? '<section class="host-sec"><h2>' + esc(t('Messages from renters')) + '</h2>' +
               (onFree ? '<p class="host-quota' + (quota.used >= quota.limit ? ' out' : '') + '">' + H.icon('message') + '<span>' + esc(quota.used >= quota.limit ?
@@ -248,14 +250,14 @@
               (inq.length ? '<ul class="inq-list">' + inq.map(function (q) { return inqRow(q, byId); }).join('') + '</ul>' :
                 '<p class="host-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') +
             '</section>' : '') +
-            '<section class="host-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
+            '<section class="host-sec"><h2>' + esc(t(keeper ? 'Rooms you asked about' : 'Your messages')) + '</h2>' +
               (sent.length ? '<ul class="sent-list">' + sent.map(function (q) {
                 return '<li><a href="/messages/' + esc(q.id) + '" data-link><b>' + esc(q.listing_name || q.listing_ref) + '</b><span>' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', t('Sent {date}', { date: new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) })].filter(Boolean).join(' · ')) + '</span></a></li>';
               }).join('') + '</ul>' : '<p class="host-muted">' + esc(t('When you message a Keeper about a room, it shows here.')) + ' <a href="/rooms" data-link>' + esc(t('Find a room')) + '</a></p>') +
             '</section>' +
             (ECS.mode === 'demo' ? outboxHtml(out) : '') +
             '<section class="host-sec host-links">' + (p.role === 'admin' ? '<a href="/admin" data-link>' + H.icon('grid') + '<span>' + esc(t('Admin')) + '</span></a>' : '') + (p.role === 'admin' || ECS.mode === 'demo' ? '<a href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(t(ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings')) + '</span></a>' : '') + '<a href="/messages" data-link>' + H.icon('message') + '<span>' + esc(t('Messages')) + '</span></a>' + (ls.length || p.role === 'admin' ? '<a href="/host/plans" data-link>' + H.icon('list') + '<span>' + esc(t('Plans for Keepers')) + '</span></a>' : '') + '<a href="/host/profile" data-link>' + H.icon('user') + '<span>' + esc(t('Your details')) + '</span></a>' +
-              '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Keeper standards')) + '</span></a>' +
+              (keeper ? '<a href="/listing-standards" data-link>' + H.icon('shield') + '<span>' + esc(t('Keeper standards')) + '</span></a>' : '') +
               '<a href="/help" data-link>' + H.icon('info') + '<span>' + esc(t('Help')) + '</span></a></section>' +
           '</div>';
         bindDashboard(host);
@@ -342,7 +344,7 @@
         host.innerHTML = HV.demoBar() +
           (welcome ? '<div class="auth">' + authBg() + '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' + '<div class="auth-card auth-details">' : '<div class="host-wrap host-narrow">') +
             (welcome ? '<h1>' + esc(t('A few details first')) + '</h1><p class="auth-sub">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
-              : '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a><h1>' + esc(t('Your details')) + '</h1>') +
+              : '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your account')) + '</span></a><h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
               '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +
               (welcome ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +

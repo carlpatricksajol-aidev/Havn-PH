@@ -1796,3 +1796,11 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .lp-ctas .btn-lg .i { transition: translate .2s var(--ease); }
 .lp-ctas .btn-lg:hover .i { translate: 4px 0; }
 .lp-fine { margin-top: 12px; font-size: 14px; color: var(--muted); }
+
+/* Admin leads board: cards can be dragged from column to column */
+.lead[draggable="true"] { cursor: grab; }
+.lead[draggable="true"]:active { cursor: grabbing; }
+.lead.dragging { opacity: .35; }
+.col { transition: box-shadow .15s, background-color .15s; }
+.col.over { box-shadow: inset 0 0 0 2px var(--evergreen); }
+.col-empty { border: 1.5px dashed var(--border-strong); border-radius: 12px; text-align: center; }

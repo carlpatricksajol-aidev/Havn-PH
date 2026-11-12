@@ -12,16 +12,33 @@
   function day(d) { return d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : ''; }
   function tab() { var x = new URLSearchParams(location.search).get('tab'); return /^(leads|listings|people|messages)$/.test(x) ? x : 'leads'; }
 
+  // The data is kept between visits to this page, so going from tab to tab (or back to Admin) shows at once; it is then
+  // read again quietly and the page repaints only if something changed.
+  var data = null;
   AV.render = function (host) {
-    host.innerHTML = '<div class="adm"><div class="host-loading"><span class="spin"></span></div></div>';
+    if (data && !(ECS.user && ECS.user.role === 'admin')) data = null;   // never show kept data to anyone who is not an admin
+    if (data) paint(host, data);
+    else host.innerHTML = '<div class="adm"><div class="host-loading"><span class="spin"></span></div></div>';
     ECS.session().then(function (s) {
-      if (!s) { App.go('/signin?next=/admin'); return; }
+      if (!s) { data = null; App.go('/signin?next=/admin'); return; }
       return ECS.profile().then(function (p) {
-        if (!p || p.role !== 'admin') { App.go('/host'); return; }
-        return ECS.adminData().then(function (d) { paint(host, d); });
+        if (!p || p.role !== 'admin') { data = null; App.go('/host'); return; }
+        return reload(host);
       });
-    }).catch(function (x) { host.innerHTML = '<div class="adm"><p class="host-error">' + esc(x.message) + '</p></div>'; });
+    }).catch(function (x) { if (!data) host.innerHTML = '<div class="adm"><p class="host-error">' + esc(x.message) + '</p></div>'; });
   };
+  var rev = 0;   // goes up with every change made here; a read that started before a change is thrown away and done again
+  function reload(host) {
+    var at = rev;
+    return ECS.adminData().then(function (d) {
+      if (at !== rev) return reload(host);
+      var same = data && JSON.stringify(d) === JSON.stringify(data);
+      data = d;
+      // Not while a note is being typed or a card is being dragged: the fresh data shows on the next paint.
+      var busy = host.querySelector('.lead.dragging') || (document.activeElement && host.contains(document.activeElement) && /^(TEXTAREA|SELECT|INPUT)$/.test(document.activeElement.tagName));
+      if (!same && !busy && host.querySelector('.adm')) paint(host, d);
+    });
+  }
 
   function paint(host, d) {
     var listById = {}, profById = {}, nList = {}, nLead = {};
@@ -49,7 +66,7 @@
       }).join('') + '</nav>' +
       '<div class="adm-body">' + (cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
     '</div>';
-    bind(host);
+    if (!host._admBound) { host._admBound = true; bind(host); }
   }
 
   /* ---- Leads board ---- */
@@ -60,7 +77,7 @@
       return '<section class="col" data-stage="' + st[0] + '"><h2>' + esc(t(st[1])) + '<i>' + items.length + '</i></h2>' +
         (items.length ? items.map(function (q) {
           var l = listById[q.listing_id], k = l && profById[l.owner_id];
-          return '<article class="lead" data-id="' + esc(q.id) + '">' +
+          return '<article class="lead" draggable="true" data-id="' + esc(q.id) + '">' +
             '<header><b>' + esc(q.renter_name) + '</b><time>' + esc(day(q.created_at)) + '</time></header>' +
             '<p class="lead-room">' + H.icon('home') + '<span>' + esc(q.listing_name || q.listing_ref) + '</span></p>' +
             '<p class="lead-meta">' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', k ? t('Keeper: {name}', { name: k.full_name || k.email }) : t('Sample listing (no Keeper)')].filter(Boolean).join(' · ')) + '</p>' +
@@ -70,7 +87,7 @@
             '<label class="lead-stage"><span>' + esc(t('Stage')) + '</span><select data-lead-stage>' + STAGES.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === q.status ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
             '<textarea data-lead-note rows="2" maxlength="1000" placeholder="' + esc(t('Add a note (only admins see this)')) + '">' + esc(q.admin_note || '') + '</textarea>' +
           '</article>';
-        }).join('') : '<p class="col-empty">' + esc(t('Nothing here')) + '</p>') +
+        }).join('') : '<p class="col-empty">' + esc(t('Drag a lead here')) + '</p>') +
       '</section>';
     }).join('') + '</div>';
   }
@@ -128,30 +145,83 @@
     }).join('') + '</ul>';
   }
 
+  // Move a lead to another stage: the card moves at once, the save follows; if the save fails the card goes back.
+  function moveLead(host, id, stage) {
+    var q = data && data.inquiries.filter(function (x) { return String(x.id) === String(id); })[0];
+    if (!q || q.status === stage) return;
+    var was = q.status;
+    q.status = stage; rev++; paint(host, data);
+    ECS.setLead(id, { status: stage }).then(function () { rev++; H.toast(t('Lead moved')); })
+      .catch(function (x) { q.status = was; if (host.querySelector('.adm')) paint(host, data); H.toast(x.message); });
+  }
+
   function bind(host) {
+    // Tabs and the number tiles: swap the body from the data already loaded, with no reload.
+    host.addEventListener('click', function (e) {
+      var a = e.target.closest('.adm-tabs a, .adm-stats a'); if (!a || !data || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault(); e.stopPropagation();
+      var to = a.getAttribute('href');
+      if (to !== location.pathname + location.search) history.pushState(null, '', to);
+      paint(host, data);
+    }, true);
+
+    /* Drag a lead card onto another column. Typing in the note, picking a stage and tapping a link stay ordinary. */
+    var dragId = null;
+    host.addEventListener('pointerdown', function (e) {
+      var c = e.target.closest('.lead'); if (c) c.draggable = !e.target.closest('textarea, select, a');
+    });
+    host.addEventListener('dragstart', function (e) {
+      var c = e.target.closest && e.target.closest('.lead'); if (!c) return;
+      dragId = c.getAttribute('data-id');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragId);
+      setTimeout(function () { c.classList.add('dragging'); }, 0);
+    });
+    var over = function (col) { Array.prototype.forEach.call(host.querySelectorAll('.col.over'), function (x) { if (x !== col) x.classList.remove('over'); }); if (col) col.classList.add('over'); };
+    host.addEventListener('dragover', function (e) {
+      if (!dragId) return;
+      var col = e.target.closest('.col'); over(col);
+      if (col) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+    });
+    host.addEventListener('drop', function (e) {
+      if (!dragId) return;
+      var col = e.target.closest('.col'), id = dragId; dragId = null; over(null);
+      if (!col) return;
+      e.preventDefault();
+      moveLead(host, id, col.getAttribute('data-stage'));
+    });
+    host.addEventListener('dragend', function () {
+      dragId = null; over(null);
+      Array.prototype.forEach.call(host.querySelectorAll('.lead.dragging'), function (x) { x.classList.remove('dragging'); });
+    });
+
     host.addEventListener('change', function (e) {
       var pl = e.target.closest('[data-plan], [data-plan-until]');
       if (pl) {
         var tr = pl.closest('tr'), sel = tr.querySelector('[data-plan]'), dt = tr.querySelector('[data-plan-until]');
         if (sel.value && !dt.value) { var d6 = new Date(); d6.setMonth(d6.getMonth() + 6); dt.value = d6.getFullYear() + '-' + ('0' + (d6.getMonth() + 1)).slice(-2) + '-' + ('0' + d6.getDate()).slice(-2); }
-        ECS.setPlan(tr.getAttribute('data-id'), sel.value, dt.value).then(function () { H.toast(sel.value ? t('Plan saved') : t('Plan removed')); AV.render(host); }).catch(function (x) { H.toast(x.message); });
+        ECS.setPlan(tr.getAttribute('data-id'), sel.value, dt.value).then(function () { H.toast(sel.value ? t('Plan saved') : t('Plan removed')); sel.blur(); dt.blur(); return reload(host); }).catch(function (x) { H.toast(x.message); });
         return;
       }
       var s = e.target.closest('[data-lead-stage]'); if (!s) return;
-      ECS.setLead(s.closest('.lead').getAttribute('data-id'), { status: s.value }).then(function () { H.toast(t('Lead moved')); AV.render(host); }).catch(function (x) { H.toast(x.message); });
+      moveLead(host, s.closest('.lead').getAttribute('data-id'), s.value);
     });
     host.addEventListener('focusout', function (e) {
       var n = e.target.closest('[data-lead-note]'); if (!n || n.value === n.defaultValue) return;
-      ECS.setLead(n.closest('.lead').getAttribute('data-id'), { admin_note: n.value.trim() || null }).then(function () { n.defaultValue = n.value; H.toast(t('Note saved')); }).catch(function (x) { H.toast(x.message); });
+      var id = n.closest('.lead').getAttribute('data-id'), note = n.value.trim() || null;
+      ECS.setLead(id, { admin_note: note }).then(function () {
+        n.defaultValue = n.value; H.toast(t('Note saved'));
+        var q = data && data.inquiries.filter(function (x) { return String(x.id) === String(id); })[0]; if (q) q.admin_note = note;
+      }).catch(function (x) { H.toast(x.message); });
     });
     host.addEventListener('click', function (e) {
       var b;
       if ((b = e.target.closest('[data-msg-done]'))) {
         var li = b.closest('.msg');
-        ECS.setContact(li.getAttribute('data-id'), { status: li.classList.contains('is-done') ? 'new' : 'done' }).then(function () { AV.render(host); }).catch(function (x) { H.toast(x.message); });
+        ECS.setContact(li.getAttribute('data-id'), { status: li.classList.contains('is-done') ? 'new' : 'done' }).then(function () { return reload(host); }).catch(function (x) { H.toast(x.message); });
       } else if ((b = e.target.closest('[data-unpublish]'))) {
         if (!window.confirm(t('Take this listing down? Renters will no longer see it.'))) return;
-        ECS.review(b.closest('tr').getAttribute('data-id'), 'removed', null).then(function () { H.toast(t('Listing taken down')); AV.render(host); }).catch(function (x) { H.toast(x.message); });
+        ECS.review(b.closest('tr').getAttribute('data-id'), 'removed', null).then(function () { H.toast(t('Listing taken down')); return reload(host); }).catch(function (x) { H.toast(x.message); });
       }
     });
   }
