@@ -178,12 +178,15 @@
       '<div class="viewer-track">' + l.photos.map(function (p) {
         return '<figure><img src="' + H.photo(p, 1200) + '" width="1200" height="900" alt="" loading="lazy" decoding="async"></figure>';
       }).join('') + '</div>' +
+      (l.photos.length > 1 ? '<div class="viewer-thumbs">' + l.photos.map(function (p, i) {
+        return '<button type="button" data-t="' + i + '" aria-label="' + H.esc(t('Photo {i} of {n}', { i: i + 1, n: l.photos.length })) + '"><img src="' + H.photo(p, 640) + '" width="64" height="48" alt="" decoding="async"></button>';
+      }).join('') + '</div>' : '') +
       '<button type="button" class="viewer-nav prev icon-btn icon-btn-dark" data-v="-1" aria-label="' + H.esc(t('Previous photo')) + '">' + H.icon('chev-left') + '</button>' +
       '<button type="button" class="viewer-nav next icon-btn icon-btn-dark" data-v="1" aria-label="' + H.esc(t('Next photo')) + '">' + H.icon('chev-right') + '</button>';
     document.body.appendChild(wrap);
     H.lockScroll(true);
     var track = $('.viewer-track', wrap), count = $('.viewer-count', wrap), n = l.photos.length;
-    var figs = Array.prototype.slice.call(track.children);
+    var figs = Array.prototype.slice.call(track.children), strip = $('.viewer-thumbs', wrap);
     // Each photo is narrower than the screen, so the one before and the one after show at the sides.
     var step = function () { return n > 1 ? figs[1].offsetLeft - figs[0].offsetLeft : Math.max(1, track.clientWidth); };
     var idx = function () { return Math.max(0, Math.min(n - 1, Math.round(track.scrollLeft / step()))); };
@@ -191,6 +194,11 @@
       var i = idx();
       count.textContent = t('Photo {i} of {n}', { i: i + 1, n: n });
       figs.forEach(function (f, k) { f.classList.toggle('on', k === i); });
+      if (strip && strip.children[i] && !strip.children[i].hasAttribute('aria-current')) {
+        Array.prototype.forEach.call(strip.children, function (b, k) { if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+        var th = strip.children[i];   // keep the current small photo in view when the row is wider than the screen
+        strip.scrollTo({ left: th.offsetLeft - (strip.clientWidth - th.offsetWidth) / 2, behavior: 'smooth' });
+      }
       $('.viewer-nav.prev', wrap).disabled = i === 0;
       $('.viewer-nav.next', wrap).disabled = i === n - 1;
     };
@@ -216,7 +224,8 @@
       // A photo at the side comes to the middle; a click on the empty space around the photos closes the viewer.
       var img = e.target.closest('.viewer-track img');
       if (img) { var k = figs.indexOf(img.parentNode); if (k !== idx()) go(k, true); return; }
-      if (!e.target.closest('.viewer-top')) close();
+      var th = e.target.closest('[data-t]'); if (th) { go(+th.getAttribute('data-t'), true); return; }
+      if (!e.target.closest('.viewer-top, .viewer-thumbs')) close();
     });
     $('[data-x]', wrap).focus();
   }

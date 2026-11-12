@@ -581,6 +581,18 @@ img.ok { opacity: 1 !important; }
 .viewer-track figure.on { opacity: 1; scale: 1; }
 .viewer-track img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: var(--radius-xl); }
 .viewer-track figure:not(.on) img { cursor: pointer; }
+/* All the photos, small, along the bottom: the current one is bright and ringed. */
+.viewer-thumbs { position: relative; flex: none; display: flex; gap: 8px; padding: 4px 16px 16px; overflow-x: auto; scrollbar-width: none; }
+.viewer-thumbs::-webkit-scrollbar { display: none; }
+.viewer-thumbs button { flex: none; width: 56px; height: 42px; padding: 0; border: 0; border-radius: var(--radius-md); overflow: hidden; background: rgba(255, 255, 255, .08); cursor: pointer; opacity: .5; transition: opacity .2s; }
+.viewer-thumbs button:first-child { margin-left: auto; }
+.viewer-thumbs button:last-child { margin-right: auto; }
+.viewer-thumbs button:hover { opacity: .8; }
+.viewer-thumbs button[aria-current] { opacity: 1; outline: 2px solid #fff; outline-offset: -2px; }
+.viewer-thumbs button:focus-visible { opacity: 1; outline: 2px solid #fff; outline-offset: 2px; }
+.viewer-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (min-width: 768px) { .viewer-thumbs { padding-bottom: 20px; } .viewer-thumbs button { width: 72px; height: 54px; } }
+.viewer:has(.viewer-thumbs) .viewer-track figure { padding-bottom: 12px; }
 .viewer-nav { position: absolute; top: 50%; translate: 0 -50%; width: 48px; height: 48px; }
 .viewer-nav:disabled { opacity: .3; cursor: default; }
 .viewer-nav.prev { left: 16px; }
