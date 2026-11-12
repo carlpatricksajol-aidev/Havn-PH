@@ -112,6 +112,9 @@
             '</dl>' +
             '<p class="pc-bills">' + H.icon('zap') + '<span><b>' + H.esc(t('Bills')) + ':</b> ' + H.esc(l.bills) + '</span></p>' +
             '<button type="button" class="btn btn-primary btn-block" data-contact>' + H.icon('message') + '<span>' + H.esc(t('Contact Keeper')) + '</span></button>' +
+            (l.plan ? '<div class="pc-reach"><button type="button" class="btn btn-ghost" data-reach="tel">' + H.icon('phone') + '<span>' + H.esc(t('Call')) + '</span></button>' +
+              '<button type="button" class="btn btn-ghost" data-reach="sms">' + H.icon('message') + '<span>' + H.esc(t('Text')) + '</span></button></div>' +
+              '<p class="pc-num" data-reach-num hidden></p>' : '') +
             '<p class="pc-note">' + H.esc(t('ECStay is free for renters. You pay the Keeper directly, only after you see the room.')) + '</p>' +
           '</div></aside>' +
         '</div>' +
@@ -119,7 +122,8 @@
           sameArea.map(function (x) { return App.cardHtml(x, false); }).join('') + '</div></section>' +
         '<div class="contact-bar">' +
           '<div><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '<span class="cb-status s-' + l.status + '">' + H.esc(H.statusLabel(l)) + '</span></div>' +
-          '<button type="button" class="btn btn-primary" data-contact>' + H.esc(t('Contact Keeper')) + '</button>' +
+          '<div class="cb-act">' + (l.plan ? '<button type="button" class="btn btn-ghost cb-call" data-reach="tel" aria-label="' + H.esc(t('Call the Keeper')) + '">' + H.icon('phone') + '</button>' : '') +
+          '<button type="button" class="btn btn-primary" data-contact>' + H.esc(t('Contact Keeper')) + '</button></div>' +
         '</div>' +
       '</article>';
 
@@ -128,7 +132,9 @@
       var ph = e.target.closest('[data-photo]');
       if (ph) { openViewer(l, +ph.getAttribute('data-photo')); return; }
       if (e.target.closest('[data-share]')) { H.share(location.href, l.name + ' · ECStay'); return; }
-      if (e.target.closest('[data-contact]')) { openContact(l); }
+      if (e.target.closest('[data-contact]')) { openContact(l); return; }
+      var rb = e.target.closest('[data-reach]');
+      if (rb) reach(host, l, rb.getAttribute('data-reach'));
     };
 
     var mapEl = $('#rmap', host);
@@ -200,6 +206,23 @@
       var v = e.target.closest('[data-v]'); if (v) go(idx() + Number(v.getAttribute('data-v')), true);
     });
     $('[data-x]', wrap).focus();
+  }
+
+  /* ---------- Call and Text: on listings with a paid plan, for signed-in renters ---------- */
+  var numbers = {};
+  function reach(host, l, kind) {
+    if (l.sample) { H.toast(t('This is a sample room. On a real listing, this calls or texts the Keeper.')); return; }
+    if (!window.ECS || !ECS.user) { App.go('/signin?next=' + encodeURIComponent(location.pathname)); return; }
+    var show = function (n) {
+      if (!n) { H.toast(t('The number is not available right now. Send a message instead.')); return; }
+      numbers[l.id] = n;
+      var p = $('[data-reach-num]', host);
+      if (p) { p.hidden = false; p.innerHTML = H.esc(t('Keeper number')) + ': <a href="tel:' + H.esc(n) + '">' + H.esc(ECS.showMobile(n)) + '</a>'; }
+      // Phones open the dialer or the text app; on a computer the number simply shows.
+      if (window.matchMedia('(pointer: coarse)').matches) location.href = kind + ':' + n;
+    };
+    if (numbers[l.id]) { show(numbers[l.id]); return; }
+    ECS.listingContact(l.dbId || l.id).then(show).catch(function (x) { H.toast(x.message); });
   }
 
   /* ---------- Contact Landlord ---------- */

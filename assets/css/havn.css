@@ -1718,3 +1718,28 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .pp-term button[aria-pressed="true"] em { color: #E7C795; }
   .pp-line { min-height: 0; }
 }
+
+/* ---------- Plan limits: Free reply count, renter number after an answer, Call and Text on paid listings ---------- */
+.pc-reach { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.pc-reach .btn { min-height: 46px; }
+.pc-reach .i { width: 17px; height: 17px; }
+.pc-num { margin-top: 10px; text-align: center; font-size: 14.5px; color: var(--ink-2); }
+.pc-num a { font-weight: 700; color: var(--evergreen); font-variant-numeric: tabular-nums; }
+.cb-act { display: flex; align-items: center; gap: 8px; }
+.cb-call { width: 48px; min-height: 48px; padding: 0; border-radius: 50%; }
+.cb-call .i { width: 19px; height: 19px; }
+.host-quota { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--surface); font-size: 14.5px; color: var(--ink-2); }
+.host-quota span { flex: 1; }
+.host-quota .i { flex: none; width: 17px; height: 17px; color: var(--evergreen); }
+.host-quota a { flex: none; font-weight: 700; color: var(--evergreen); }
+.host-quota.out { background: var(--warm); color: var(--warm-text); }
+.host-quota.out .i, .host-quota.out a { color: var(--warm-text); }
+.inq-nonum { align-self: center; font-size: 13.5px; color: var(--muted); }
+.msg-hint { margin: 0 4px 8px; font-size: 13.5px; color: var(--muted); }
+.msg-hint a { font-weight: 700; color: var(--evergreen); }
+.msg-nonum { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; font-size: 13.5px; color: var(--muted); }
+.msg-nonum .i { flex: none; width: 15px; height: 15px; margin-top: 2px; }
+.msg-lock { flex: none; margin: 0 12px 14px; padding: 18px; border: 1px solid var(--brass); border-radius: 18px; background: #fff; }
+.msg-lock h3 { font: 500 21px/1.2 var(--font-serif); letter-spacing: -0.01em; }
+.msg-lock p { margin: 8px 0 14px; max-width: 56ch; font-size: 15px; color: var(--ink-2); }
+@media (min-width: 900px) { .msg-lock { margin: 0 24px 20px; padding: 22px; } }

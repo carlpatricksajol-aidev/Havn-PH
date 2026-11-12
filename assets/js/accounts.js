@@ -57,6 +57,13 @@
   ];
   ECS.stepsDone = function (l) { return ECS.STEPS.filter(function (s) { return s.done(l); }).length; };
   ECS.ready = function (l) { return ECS.stepsDone(l) === ECS.STEPS.length; };
+  // The Free plan: a Keeper answers this many new renters a month; a paid plan has no limit.
+  ECS.FREE_REPLIES = 5;
+  ECS.LIMIT_MSG = 'You have answered 5 new renters this month. A paid plan lets you answer every renter.';
+  function manilaDay(d) { return new Date((d ? new Date(d) : new Date()).getTime() + 8 * 36e5).toISOString().slice(0, 10); }
+  ECS.planOn = function (l) { return !!(l && l.plan && l.plan_until && l.plan_until >= manilaDay()); };
+  // The day the Free count starts again, e.g. "December 1".
+  ECS.quotaResets = function () { var p = manilaDay().split('-'); return new Date(+p[0], +p[1], 1).toLocaleDateString('en-PH', { month: 'long', day: 'numeric' }); };
   ECS.priceFrom = function (l) { var p = (l.rooms || []).map(function (r) { return r.price; }).filter(Boolean); return p.length ? Math.min.apply(null, p) : 0; };
 
   // Photos: shrink before upload (max 1600 px on the long side, JPEG), so phones on data upload quickly.
@@ -100,6 +107,22 @@
       return { user: u, isNew: isNew };
     }
     function mine(d, id) { var u = me(), l = d.listings[id]; if (!u || !l || l.owner_id !== u.id) throw new Error(t('That listing was not found.')); return l; }
+    // Free plan in the demo: the same rules the database applies on the real service.
+    function ownIds(d, u) { return Object.keys(d.listings).filter(function (k) { return d.listings[k].owner_id === u.id; }); }
+    function answered(d, q) { return (d.messages || []).some(function (m) { return m.inquiry_id === q.id && m.sender_role === 'keeper'; }); }
+    function used(d, u) {
+      var ids = ownIds(d, u), month = manilaDay().slice(0, 7), first = {};
+      (d.messages || []).forEach(function (m) {
+        if (m.sender_role !== 'keeper' || m.sender_id !== u.id) return;
+        if (!first[m.inquiry_id] || m.created_at < first[m.inquiry_id]) first[m.inquiry_id] = m.created_at;
+      });
+      return d.inquiries.filter(function (q) { return ids.indexOf(q.listing_id) >= 0 && first[q.id] && manilaDay(first[q.id]).slice(0, 7) === month; }).length;
+    }
+    function asKeeper(d, u, q) {
+      if (q.example) return Object.assign({}, q, { paid: false, answered: true, locked: false });
+      var a = answered(d, q);
+      return Object.assign({}, q, { paid: false, answered: a, locked: !a && used(d, u) >= ECS.FREE_REPLIES }, a ? {} : { renter_mobile: null, renter_email: null });
+    }
     var CONTENT = ['name', 'place_type', 'gender', 'description', 'area', 'address', 'lat', 'lng', 'rooms', 'advance_months', 'deposit_months', 'bills', 'available_from', 'amenities', 'rules', 'photos', 'contact_mobile'];
     return {
       session: function () { var u = me(); return Promise.resolve(u ? { user: u } : null); },
@@ -183,8 +206,10 @@
       inquiries: function () {
         var u = me(); if (!u) return fail(t('Please sign in first.'));
         var d = db(), ids = Object.keys(d.listings).filter(function (k) { return d.listings[k].owner_id === u.id; });
-        return Promise.resolve(d.inquiries.filter(function (q) { return ids.indexOf(q.listing_id) >= 0; }));
+        return Promise.resolve(d.inquiries.filter(function (q) { return ids.indexOf(q.listing_id) >= 0; }).map(function (q) { return asKeeper(d, u, q); }));
       },
+      replyQuota: function () { var u = me(); return u ? Promise.resolve({ limit: ECS.FREE_REPLIES, used: used(db(), u) }) : fail(t('Please sign in first.')); },
+      listingContact: function () { return Promise.resolve(null); },
       sendInquiry: function (q) {
         var d = db();
         q = Object.assign({ id: uid(), created_at: now(), renter_id: me() ? me().id : null }, q);
@@ -216,11 +241,17 @@
         var mine = Object.keys(d.listings).map(function (k) { return d.listings[k]; }).filter(function (l) { return l.owner_id === u.id; });
         var ids = mine.map(function (l) { return l.id; });
         var inqs = d.inquiries.filter(function (q) { return q.renter_id === u.id || q.as_keeper === u.id || ids.indexOf(q.listing_id) >= 0; });
-        return Promise.resolve(ECS.buildThreads(inqs, mine, d.messages, u.id, function (q, own) { return q.as_keeper === u.id || (own && q.renter_id !== u.id) ? 'keeper' : 'renter'; }));
+        var roleOf = function (q, own) { return q.as_keeper === u.id || (own && q.renter_id !== u.id) ? 'keeper' : 'renter'; };
+        inqs = inqs.map(function (q) { return roleOf(q, ids.indexOf(q.listing_id) >= 0) === 'keeper' ? asKeeper(d, u, q) : q; });
+        var out = ECS.buildThreads(inqs, mine, d.messages, u.id, roleOf);
+        out.quota = { limit: ECS.FREE_REPLIES, used: used(d, u) };
+        return Promise.resolve(out);
       },
       sendReply: function (inquiryId, role, body) {
         var u = me(); if (!u) return fail(t('Please sign in first.'));
         var d = db(); d.messages = d.messages || [];
+        var q = d.inquiries.filter(function (x) { return x.id === inquiryId; })[0];
+        if (role === 'keeper' && q && !q.example && !answered(d, q) && used(d, u) >= ECS.FREE_REPLIES) return fail(t(ECS.LIMIT_MSG));
         var m = { id: uid(), inquiry_id: inquiryId, sender_id: u.id, sender_role: role, body: String(body).slice(0, 2000), created_at: now() };
         d.messages.push(m); save(d); return Promise.resolve(m);
       },
@@ -267,6 +298,7 @@
     function check(r) { if (r.error) throw new Error(friendly(r.error)); return r.data; }
     function friendly(e) {
       var m = String(e && e.message || e || '');
+      if (/reply_limit/.test(m)) return t(ECS.LIMIT_MSG);
       if (/rate limit|too many/i.test(m)) return t('Too many tries. Please wait a minute and try again.');
       if (/expired|invalid.*(otp|token)|token.*(expired|invalid)/i.test(m)) return t('That code is not right or has expired. Ask for a new one.');
       if (/network|fetch/i.test(m)) return t('No connection. Check your internet and try again.');
@@ -330,8 +362,11 @@
       },
       removePhoto: function (path) { return client().then(function (c) { return c.storage.from(BUCKET).remove([path]); }).then(check); },
       inquiries: function () {
-        return client().then(function (c) { return c.from('inquiries').select('*').order('created_at', { ascending: false }).limit(50); }).then(check);
+        return client().then(function (c) { return c.rpc('keeper_inquiries'); }).then(check).then(function (rows) { return (rows || []).slice(0, 50); });
       },
+      replyQuota: function () { return client().then(function (c) { return c.rpc('keeper_quota'); }).then(check); },
+      // Call and Text on a paid listing: the Keeper's number, for signed-in people only.
+      listingContact: function (id) { return client().then(function (c) { return c.rpc('listing_contact', { lid: id }); }).then(check); },
       sendInquiry: function (q) {
         return client().then(function (c) { return c.from('inquiries').insert(q); }).then(check).then(function () { return q; });
       },
@@ -350,7 +385,15 @@
             c.from('inquiries').select('*').order('created_at', { ascending: false }).limit(200).then(check),
             c.from('listings').select('id,name,area,photos,rooms,owner_id').limit(500).then(check),
             c.from('inquiry_messages').select('*').order('created_at', { ascending: true }).limit(3000).then(check),
-          ]).then(function (r) { return ECS.buildThreads(r[0], r[1], r[2], a[1]); });
+            // About the person's own listings: the database leaves the renter's number out until they answer.
+            c.rpc('keeper_inquiries').then(check).catch(function () { return []; }),
+            c.rpc('keeper_quota').then(check).catch(function () { return null; }),
+          ]).then(function (r) {
+            var have = {}; r[0].forEach(function (q) { have[q.id] = true; });
+            var out = ECS.buildThreads(r[0].concat((r[3] || []).filter(function (q) { return !have[q.id]; })), r[1], r[2], a[1]);
+            out.quota = r[4];
+            return out;
+          });
         });
       },
       sendReply: function (inquiryId, role, body) {

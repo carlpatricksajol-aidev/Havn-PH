@@ -225,8 +225,10 @@
 
   HV.dashboard = function (host) {
     needUser(host, function (user) {
-      Promise.all([ECS.profile().catch(function () { return {}; }), ECS.myListings(), ECS.inquiries().catch(function () { return []; }), ECS.outbox().catch(function () { return []; }), ECS.myInquiries().catch(function () { return []; })]).then(function (r) {
-        var p = r[0] || {}, ls = r[1] || [], inq = r[2] || [], out = r[3] || [], sent = r[4] || [];
+      Promise.all([ECS.profile().catch(function () { return {}; }), ECS.myListings(), ECS.inquiries().catch(function () { return []; }), ECS.outbox().catch(function () { return []; }), ECS.myInquiries().catch(function () { return []; }), ECS.replyQuota().catch(function () { return null; })]).then(function (r) {
+        var p = r[0] || {}, ls = r[1] || [], inq = r[2] || [], out = r[3] || [], sent = r[4] || [], quota = r[5];
+        // Free plan: shown to Keepers with a listing that is up without a paid plan.
+        var onFree = p.role !== 'admin' && quota && ls.some(function (l) { return (l.status === 'live' || l.status === 'paused') && !ECS.planOn(l); });
         var first = (p.full_name || user.name || '').split(' ')[0];
         var byId = {}; ls.forEach(function (l) { byId[l.id] = l; });
         // Only messages about your own listings (admins see every lead in the admin workspace instead).
@@ -239,6 +241,9 @@
             (ls.length ? '<ul class="hl-list">' + ls.map(listingRow).join('') + '</ul>' :
               '<a class="host-keeper" href="/host/new" data-link><span>' + H.icon('home') + '</span><div><b>' + esc(t('Have a place to rent out?')) + '</b><small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small></div>' + H.icon('chev-right') + '</a>') +
             (ls.length ? '<section class="host-sec"><h2>' + esc(t('Messages from renters')) + '</h2>' +
+              (onFree ? '<p class="host-quota' + (quota.used >= quota.limit ? ' out' : '') + '">' + H.icon('message') + '<span>' + esc(quota.used >= quota.limit ?
+                t('You have answered 5 new renters this month. You can answer more from {date}, or today on a paid plan.', { date: ECS.quotaResets() }) :
+                t('Free plan: {n} of {max} new renters left this month.', { n: quota.limit - quota.used, max: quota.limit })) + '</span><a href="/host/plans" data-link>' + esc(t('See plans')) + '</a></p>' : '') +
               (inq.length ? '<ul class="inq-list">' + inq.map(function (q) { return inqRow(q, byId); }).join('') + '</ul>' :
                 '<p class="host-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') +
             '</section>' : '') +
@@ -285,9 +290,10 @@
     return '<li class="inq"><div class="inq-top"><b>' + esc(q.renter_name) + '</b><span>' + esc(new Date(q.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })) + '</span></div>' +
       '<p class="inq-meta">' + esc([l ? l.name : q.listing_name, q.move_in ? t('Move-in: {m}', { m: q.move_in }) : ''].filter(Boolean).join(' · ')) + '</p>' +
       (q.message ? '<p class="inq-msg">' + esc(q.message) + '</p>' : '') +
-      '<div class="inq-act"><a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + H.icon('message') + '<span>' + esc(t('Reply')) + '</span></a>' +
-      '<a class="btn btn-ghost btn-sm" href="' + esc(sms) + '">' + esc(t('Text {m}', { m: ECS.showMobile(q.renter_mobile) })) + '</a>' +
-      '<a class="btn btn-ghost btn-sm" href="tel:' + esc(q.renter_mobile || '') + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + '</span></a></div></li>';
+      '<div class="inq-act"><a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + H.icon('message') + '<span>' + esc(t(q.locked ? 'Read' : 'Reply')) + '</span></a>' +
+      (q.renter_mobile ? '<a class="btn btn-ghost btn-sm" href="' + esc(sms) + '">' + esc(t('Text {m}', { m: ECS.showMobile(q.renter_mobile) })) + '</a>' +
+      '<a class="btn btn-ghost btn-sm" href="tel:' + esc(q.renter_mobile || '') + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + '</span></a>' :
+        '<span class="inq-nonum">' + esc(q.locked ? t('5 of 5 answered this month') : t('Their number shows after you answer')) + '</span>') + '</div></li>';
   }
 
   /* Demo only: the emails the service would have sent, openable as they would look. */

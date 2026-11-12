@@ -115,14 +115,19 @@
     if (q.move_in) facts.push([t('Move-in'), q.move_in]);
     if (room.price) facts.push([t('Rent'), t('from {p} a month', { p: H.peso(room.price) })]);
     if (room.area) facts.push([t('Area'), room.area]);
+    // Free plan: the Keeper answers 5 new renters a month, and a renter's number shows once they have answered.
+    var gated = th.role === 'keeper' && q.answered === false && !q.paid, locked = gated && q.locked;
+    var quota = state.list.quota, left = quota ? Math.max(0, quota.limit - quota.used) : null;
+    var rname = firstName(q.renter_name) || t('this renter');
     // Each side sees what helps them act: the Keeper (and the team) get the renter's number, the renter gets safety advice.
     var side = th.role === 'renter' ?
       '<div class="msg-card"><h3>' + esc(t('Stay safe')) + '</h3><ul class="msg-tips"><li>' + esc(t('See the room in person before paying anything.')) + '</li><li>' + esc(t('Ask for a receipt for every payment.')) + '</li><li>' + esc(t('Keep the conversation here so there is a record.')) + '</li></ul>' +
         '<a class="btn-link" href="/contact?topic=report" data-link>' + esc(t('Report a problem')) + '</a></div>' :
       '<div class="msg-card"><h3>' + esc(t('About the renter')) + '</h3><p class="msg-person"><span class="bub-av">' + esc(initials(q.renter_name)) + '</span><b>' + esc(q.renter_name) + '</b></p>' +
         (q.renter_mobile ? '<div class="msg-reach"><a class="btn btn-ghost btn-sm" href="sms:' + esc(q.renter_mobile) + '">' + H.icon('message') + '<span>' + esc(t('Text {m}', { m: ECS.showMobile(q.renter_mobile) })) + '</span></a>' +
-          '<a class="btn btn-ghost btn-sm" href="tel:' + esc(q.renter_mobile) + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + '</span></a></div>' : '') +
-        '<p class="fine">' + esc(t('Reply within a day if you can. Renters usually message several places.')) + '</p></div>';
+          '<a class="btn btn-ghost btn-sm" href="tel:' + esc(q.renter_mobile) + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + '</span></a></div>' :
+          gated ? '<p class="msg-nonum">' + H.icon('phone') + '<span>' + esc(locked ? t('Their mobile number shows once you can answer them.') : t('Their mobile number shows here after you answer.')) + '</span></p>' : '') +
+        (locked ? '' : '<p class="fine">' + esc(t('Reply within a day if you can. Renters usually message several places.')) + '</p>') + '</div>';
     return '<header class="msg-head">' +
         '<a class="msg-back" href="/messages" data-link aria-label="' + esc(t('All messages')) + '">' + H.icon('arrow-left') + '</a>' +
         '<span class="msg-pic">' + cover(th) + '</span>' +
@@ -132,7 +137,11 @@
       '<div class="msg-cols">' +
         '<div class="msg-conv">' +
           '<ol class="msg-flow" aria-live="polite">' + bubbles + '</ol>' +
-          '<form class="msg-box" novalidate>' +
+          (locked ? '<div class="msg-lock"><h3>' + esc(t('You have answered 5 new renters this month')) + '</h3>' +
+            '<p>' + esc(t('The Free plan covers 5 new renters a month. You can answer {name} from {date}, or today on a paid plan.', { name: rname, date: ECS.quotaResets() })) + '</p>' +
+            '<a class="btn btn-primary" href="/host/plans" data-link>' + esc(t('See plans')) + '</a></div>' : '') +
+          '<form class="msg-box" novalidate' + (locked ? ' hidden' : '') + '>' +
+            (gated && !locked && left != null ? '<p class="msg-hint">' + esc(t('Free plan: {n} of {max} new renters left this month.', { n: left, max: quota.limit })) + ' <a href="/host/plans" data-link>' + esc(t('See plans')) + '</a></p>' : '') +
             (th.role !== 'renter' && th.msgs.length < 2 ? '<div class="msg-quick">' + [t('Yes, it\'s still available. When would you like to see it?'), t('Thanks for asking! It\'s taken for now, but I can tell you when a room opens.')].map(function (s) {
               return '<button type="button" data-quick>' + esc(s) + '</button>';
             }).join('') + '</div>' : '') +
@@ -164,6 +173,8 @@
       err.hidden = true; btn.disabled = true;
       ECS.sendReply(th.q.id, th.role, body).then(function (m) {
         th.msgs.push(m); th.waiting = false; state.id = state.id || th.q.id;
+        // A first answer uses one of the month's five and shows the renter's number: read the inbox again.
+        if (th.role === 'keeper' && th.q.answered === false) ECS.threads().then(function (fresh) { state.list = fresh; paint(true); }).catch(function () {});
         state.list.sort(function (a, b) { return new Date(b.msgs[b.msgs.length - 1].created_at) - new Date(a.msgs[a.msgs.length - 1].created_at); });
         paint();
         var box = $('.msg-box textarea', state.host); if (box && window.matchMedia('(min-width: 900px)').matches) box.focus();

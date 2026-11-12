@@ -171,7 +171,7 @@ window.ECS_PAGES = {
 <h2>What we collect</h2>
 <ul>
 <li><strong>Account:</strong> your name and email address. If you sign in with Google, the name and profile photo on your Google account. We never receive your Google password.</li>
-<li><strong>Keepers:</strong> your contact mobile number (not shown on your listing; renters get it only when you reply to them) and your listing: the name of the place, its location pin, room types, prices, deposit and advance, who can stay, amenities, house rules and photos. Listing details and photos are public once live, and the exact location is shown on purpose. Please keep people's faces, names and IDs out of your photos.</li>
+<li><strong>Keepers:</strong> your contact mobile number (not shown on a free listing, where renters get it only when you reply to them; on a paid plan, signed-in renters can see it through the Call and Text buttons on your listing) and your listing: the name of the place, its location pin, room types, prices, deposit and advance, who can stay, amenities, house rules and photos. Listing details and photos are public once live, and the exact location is shown on purpose. Please keep people's faces, names and IDs out of your photos.</li>
 <li><strong>Renters who ask about a room:</strong> your name, mobile number, email if you give it, move-in month and message.</li>
 <li><strong>Messages to us:</strong> what you send through the contact form.</li>
 <li><strong>Technical data:</strong> our host keeps basic server logs, such as IP address, browser type, the page requested and the time. When your browser loads the map, fonts or code libraries, the services that provide them also see your IP address.</li>
@@ -191,7 +191,7 @@ window.ECS_PAGES = {
 
 <h2>Who we share it with</h2>
 <ul>
-<li><strong>Keepers.</strong> When you ask about a room, the Keeper receives your name, mobile number, email if given, move-in month and message, by email and in their dashboard. From then on, the Keeper is also responsible for how they use it. Messages about sample listings come to the ECStay team instead.</li>
+<li><strong>Keepers.</strong> When you ask about a room, the Keeper receives your name, move-in month and message in their dashboard, and your mobile number and email (if given) when they answer you or when their listing is on a paid plan. From then on, the Keeper is also responsible for how they use it. Messages about sample listings come to the ECStay team instead.</li>
 <li><strong>Service providers</strong> that handle data for us, only to provide their service: Supabase (database, sign-in and photo storage), Resend (sending emails), Google (Sign in with Google) and Vercel (website hosting).</li>
 <li><strong>Services your browser loads directly:</strong> OpenFreeMap for map tiles built from OpenStreetMap data, Google Fonts for the fonts, and jsDelivr and unpkg for the code behind the map and the 3D Kapi.</li><li><strong>While accounts are being switched on:</strong> the &quot;List your place&quot; form may send your details to us by email through Web3Forms, and &quot;Contact Keeper&quot; may open Facebook Messenger, which Meta runs under its own privacy policy. These stop once ECStay accounts are on.</li>
 <li><strong>Authorities</strong>, only when the law requires it.</li>
