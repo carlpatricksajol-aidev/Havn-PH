@@ -1709,3 +1709,12 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .pp-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 40px; }
   .pp-premium { margin-block: -10px; padding-block: 36px 34px; }
 }
+/* pp-term on a phone: three equal buttons, the saving under the label */
+.pp-term button { white-space: nowrap; }
+@media (max-width: 639px) {
+  .pp-term { display: flex; width: 100%; max-width: 420px; }
+  .pp-term button { flex: 1; flex-direction: column; justify-content: center; gap: 1px; min-height: 54px; padding: 6px 8px; font-size: 14px; }
+  .pp-term em, .pp-term button[aria-pressed="true"] em { padding: 0; background: none; color: var(--brass-text); }
+  .pp-term button[aria-pressed="true"] em { color: #E7C795; }
+  .pp-line { min-height: 0; }
+}
