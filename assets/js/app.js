@@ -187,7 +187,7 @@
       return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
     }
     return saved + '<a class="hdr-link list-link msg-link' + (/^\/messages/.test(location.pathname) ? ' on' : '') + '" href="/messages" data-link>' + H.icon('message') + '<span>' + H.esc(t('Messages')) + '</span></a>' +
-      (ECS.user.role === 'admin' ? '<a class="hdr-link list-link' + (/^\/admin/.test(location.pathname) ? ' on' : '') + '" href="/admin" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+      (ECS.user.role === 'admin' && A.desk() ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
       '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
   }
   function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
@@ -398,7 +398,7 @@
     var nav = $('#bottom-nav');
     var savedN = H.saved.count();
     var tab = view === 'home' ? 'home' : view === 'browse' ? (S.saved ? 'saved' : mode) : '';
-    nav.hidden = view === 'room' || (view === 'page' && /^\/(host|signin|admin|messages)/.test(location.pathname));
+    nav.hidden = view === 'room' || (view === 'page' && (/^\/(host|signin|messages)/.test(location.pathname) || location.pathname === A.desk()));
     nav.innerHTML =
       '<button type="button" data-tab="home" aria-pressed="' + (tab === 'home') + '">' + H.icon('home') + '<span>' + H.esc(t('Home')) + '</span></button>' +
       '<button type="button" data-tab="list" aria-pressed="' + (tab === 'list') + '">' + H.icon('list') + '<span>' + H.esc(t('Rooms')) + '</span></button>' +
@@ -943,7 +943,6 @@
     else if (/^\/host\/profile\/?$/.test(location.pathname)) showPage('profile');
     else if (/^\/host\/review\/?$/.test(location.pathname)) showPage('review');
     else if (/^\/host\/plans\/?$/.test(location.pathname)) showPage('plans');
-    else if (/^\/admin\/?$/.test(location.pathname)) showPage('admin');
     else if ((m = location.pathname.match(/^\/messages(?:\/([\w-]+))?\/?$/))) showPage('messages', m[1] || null);
     else if (PAGE_PATHS.test(location.pathname)) showPage('doc', location.pathname.replace(/^\/|\/$/g, ''));
     else if (/^\/rooms\/?$/.test(location.pathname)) {
@@ -955,7 +954,29 @@
     } else if (location.pathname === '/' || location.pathname === '/index.html') {
       if (location.pathname !== '/') history.replaceState(null, '', '/');
       showHome();
-    } else showPage('missing');
+    } else if (location.pathname === A.desk()) showPage('admin');
+    else deskOrMissing();
+  }
+
+  /* The admin workspace has a private address. It is not written anywhere in this code: only its fingerprint is, so
+     reading the site's files does not reveal it. (The page is also useless without an admin account: the database
+     returns nothing to anyone else.) Once an admin has opened it on a device, that device remembers the address so the
+     header can link to it. */
+  var DESK = '22496a17a5db4a3bf8604aea105ada4ae3535233c2a8aac71f7b53c58db4cc51', deskPath = null;
+  A.desk = function () {
+    if (deskPath === null) { try { deskPath = localStorage.getItem('ecs-desk') || ''; } catch (e) { deskPath = ''; } }
+    return deskPath;
+  };
+  function deskOrMissing() {
+    var path = location.pathname;
+    if (!(window.crypto && crypto.subtle && window.TextEncoder) || !/^\/[a-z0-9]{8,40}$/.test(path)) { showPage('missing'); return; }
+    crypto.subtle.digest('SHA-256', new TextEncoder().encode(path)).then(function (buf) {
+      if (location.pathname !== path) return;
+      var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      if (hex !== DESK) { showPage('missing'); return; }
+      deskPath = path; try { localStorage.setItem('ecs-desk', path); } catch (e) {}
+      showPage('admin');
+    }, function () { showPage('missing'); });
   }
 
   A.go = function (href) {

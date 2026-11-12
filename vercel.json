@@ -50,10 +50,6 @@
       "destination": "/"
     },
     {
-      "source": "/admin",
-      "destination": "/"
-    },
-    {
       "source": "/messages",
       "destination": "/"
     },

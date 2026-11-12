@@ -1,4 +1,4 @@
-/* ECStay — admin workspace (/admin, admins only, real accounts):
+/* ECStay — admin workspace (private address, admins only, real accounts):
  *   Leads     every renter message as a card on a board: New → Contacted → Viewing set → Moved in → Closed
  *   Listings  every listing with its Keeper and status; approve or send back from here
  *   People    everyone who signed up: Keepers (with listing counts) and renters (with messages sent)
@@ -20,7 +20,7 @@
     if (data) paint(host, data);
     else host.innerHTML = '<div class="adm"><div class="host-loading"><span class="spin"></span></div></div>';
     ECS.session().then(function (s) {
-      if (!s) { data = null; App.go('/signin?next=/admin'); return; }
+      if (!s) { data = null; App.go('/signin?next=' + encodeURIComponent(location.pathname + location.search)); return; }
       return ECS.profile().then(function (p) {
         if (!p || p.role !== 'admin') { data = null; App.go('/host'); return; }
         return reload(host);
@@ -60,9 +60,9 @@
     host.innerHTML = '<div class="adm">' +
       '<div class="adm-head"><div><p class="host-hi">ECStay</p><h1>' + esc(t('Admin')) + '</h1></div>' +
         '<a class="btn btn-ghost btn-sm" href="/host" data-link>' + H.icon('user') + '<span>' + esc(t('My account')) + '</span></a></div>' +
-      '<ul class="adm-stats">' + stats.map(function (s) { return '<li><a href="/admin?tab=' + s[2] + '" data-link><b>' + s[0] + '</b><span>' + esc(t(s[1])) + '</span></a></li>'; }).join('') + '</ul>' +
+      '<ul class="adm-stats">' + stats.map(function (s) { return '<li><a href="' + esc(location.pathname) + '?tab=' + s[2] + '" data-link><b>' + s[0] + '</b><span>' + esc(t(s[1])) + '</span></a></li>'; }).join('') + '</ul>' +
       '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + tabs.map(function (x) {
-        return '<a href="/admin?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + esc(t(x[1])) + '<i>' + x[2] + '</i></a>';
+        return '<a href="' + esc(location.pathname) + '?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + esc(t(x[1])) + '<i>' + x[2] + '</i></a>';
       }).join('') + '</nav>' +
       '<div class="adm-body">' + (cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
     '</div>';

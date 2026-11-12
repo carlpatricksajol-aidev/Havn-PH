@@ -399,7 +399,7 @@
       sendReply: function (inquiryId, role, body) {
         return client().then(function (c) { return c.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_role: role, body: String(body).slice(0, 2000) }).select().single(); }).then(check);
       },
-      // Admins: everything, for the workspace at /admin (row-level security returns nothing to anyone else).
+      // Admins: everything, for the admin workspace (row-level security returns nothing to anyone else).
       adminData: function () {
         return client().then(function (c) {
           return Promise.all([
