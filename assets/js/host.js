@@ -78,8 +78,8 @@
   /* ================= /list: for landlords ================= */
   HV.landing = function (host) {
     var start = ECS.enabled()
-      ? '<a class="btn btn-primary btn-lg" href="/signin?next=/host/new" data-link data-start>' + esc(t('Get started')) + H.icon('arrow-right') + '</a>'
-      : '<button type="button" class="btn btn-primary btn-lg" data-ll-open>' + esc(t('Get started')) + H.icon('arrow-right') + '</button>';
+      ? '<a class="btn btn-primary btn-lg" href="/signin?next=/host/new" data-link data-start>' + '<span>' + esc(t('List my place for free')) + '</span>' + H.icon('arrow-right') + '</a>'
+      : '<button type="button" class="btn btn-primary btn-lg" data-ll-open>' + '<span>' + esc(t('List my place for free')) + '</span>' + H.icon('arrow-right') + '</button>';
     var step = function (n, title, text) { return '<li><span class="lp-n">' + n + '</span><div><h3>' + esc(t(title)) + '</h3><p>' + esc(t(text)) + '</p></div></li>'; };
     host.innerHTML = HV.demoBar() +
       '<div class="lp">' +
@@ -88,8 +88,8 @@
             '<p class="lp-kicker">' + esc(t('Become a Keeper')) + '</p>' +
             '<h1>' + esc(t('List your boarding house on ECStay')) + '</h1>' +
             '<p class="lp-lead">' + esc(t('Open your door to students and young workers looking for a room near their school or work. We review every listing before it goes live.')) + '</p>' +
-            '<div class="lp-ctas">' + start +
-              (ECS.enabled() ? '<a class="btn btn-ghost btn-lg" href="/signin?next=/host" data-link>' + esc(t('Sign in')) + '</a>' : '') + '</div>' +
+            '<div class="lp-ctas">' + start + '</div>' +
+            '<p class="lp-fine">' + esc(t('Free to list. No card needed. About 10 minutes.')) + '</p>' +
           '</div>' +
           photoPanel('lp-photo', LIST_PHOTO, listingPreview()) +
         '</section>' +
@@ -744,14 +744,12 @@
   /* ================= /host/plans: what the paid plans cost. For Keepers (and people starting a listing); renters are never sent here. ================= */
   var PLAN_PRICES = { basic: { 3: 1350, 6: 2400, 12: 4200 }, verified: { 3: 2160, 6: 3840, 12: 6720 }, premium: { 3: 3240, 6: 5760, 12: 10080 } };
   var PLAN_CARDS = [
-    { id: 'free', name: 'Free', line: 'Get listed and start hearing from renters.',
-      points: ['Listed and searchable in Davao City', 'Up to 10 of your own photos','Reply to 5 new renters a month', 'See how long each renter plans to stay'] },
-    { id: 'basic', name: 'Basic', line: 'Answer every renter who asks.', above: 'Everything in Free, plus',
+    { id: 'basic', name: 'Basic', line: 'Never leave a renter unanswered.', cta: 'Answer every renter', above: 'Everything in Free, plus',
       points: ['Unlimited replies to renters', 'Call and Text buttons on your listing', 'Shown above free listings'] },
-    { id: 'verified', name: 'Verified', line: 'Show renters you are the real thing.', above: 'Everything in Basic, plus',
-      points: ['The Verified Keeper mark, after an ID and permit check', 'Shown above Basic listings', '1 video of your place','Views and saves for each room'] },
-    { id: 'premium', name: 'Premium', line: 'Be the first place renters see.', above: 'Everything in Verified, plus', flag: 'Top placement',
-      points: ['Featured rooms: on top of every search', 'A brass pin on the map', 'Featured in ECStay ads and Facebook posts', 'An ECStay visit every 3 months', 'Unlimited videos'] },
+    { id: 'verified', name: 'Verified', line: 'Show renters your place is the real thing.', cta: 'Get the Verified mark', above: 'Everything in Basic, plus', flag: 'Recommended',
+      points: ['The Verified Keeper mark on your listing', 'Shown above Basic listings', '1 video of your place', 'Views and saves for each room'] },
+    { id: 'premium', name: 'Premium', line: 'Be the first place renters see.', cta: 'Put my place on top', above: 'Everything in Verified, plus',
+      points: ['Featured rooms: on top of every search', 'A brass pin on the map', 'Featured in ECStay ads and Facebook posts', 'An ECStay visit every 3 months'] },
   ];
   HV.plans = function (host) {
     var start = /[?&]start=1/.test(location.search);
@@ -765,44 +763,52 @@
         var group = function (label) { return '<tr class="pl-group"><th colspan="5">' + esc(t(label)) + '</th></tr>'; };
         var head = function (cols) { return '<thead><tr>' + cols.map(function (c) { return '<th>' + esc(t(c)) + '</th>'; }).join('') + '</tr></thead>'; };
         var card = function (c) {
-          var paid = c.id !== 'free';
-          return '<article class="pp-card pp-' + c.id + '">' +
+          return '<article class="pp-card pp-' + c.id + (c.flag ? ' pp-pick' : '') + '">' +
             (c.flag ? '<span class="pp-flag">' + esc(t(c.flag)) + '</span>' : '') +
             '<h2>' + esc(t(c.name)) + '</h2><p class="pp-line">' + esc(t(c.line)) + '</p>' +
-            '<p class="pp-price"><b data-price="' + c.id + '">' + (paid ? '' : H.peso(0)) + '</b><span>' + esc(paid ? t('a month') : t('always')) + '</span></p>' +
-            '<p class="pp-total" data-total="' + c.id + '">' + (paid ? '' : esc(t('No payment, no time limit'))) + '</p>' +
-            '<button type="button" class="btn ' + (c.id === 'premium' ? 'btn-brass' : paid ? 'btn-primary' : 'btn-ghost') + ' btn-block" data-choose="' + c.id + '">' +
-              esc(paid ? t('Choose {plan}', { plan: t(c.name) }) : start ? t('Start free') : t('Stay on Free')) + '</button>' +
-            (c.above ? '<p class="pp-above">' + esc(t(c.above)) + '</p>' : '') +
+            '<p class="pp-price"><b data-price="' + c.id + '"></b><span>' + esc(t('a month')) + '</span></p>' +
+            '<p class="pp-total" data-total="' + c.id + '"></p>' +
+            '<button type="button" class="btn ' + (c.flag ? 'btn-brass' : 'btn-primary') + ' btn-block" data-choose="' + c.id + '"><span>' + esc(t(c.cta)) + '</span>' + H.icon('arrow-right') + '</button>' +
+            '<p class="pp-above">' + esc(t(c.above)) + '</p>' +
             '<ul class="pp-points">' + c.points.map(function (x) { return '<li>' + CHECK + '<span>' + esc(t(x)) + '</span></li>'; }).join('') + '</ul>' +
           '</article>';
         };
         var faq = function (q, a) { return '<details class="pp-q"><summary>' + esc(t(q)) + H.icon('chev-right') + '</summary><p>' + esc(t(a)) + '</p></details>'; };
-        var sample = (window.HAVN_LISTINGS || []).filter(function (l) { return l.sample && l.status !== 'full'; }).slice(0, 3);
-        var preview = sample.length && window.App && App.cardHtml ? '<section class="pp-sec"><h2>' + esc(t('What Premium looks like to a renter')) + '</h2>' +
-          '<p class="pp-sub">' + esc(t('Featured rooms sit above every search and stay on screen while renters scroll. These three are examples.')) + '</p>' +
-          '<div class="pp-preview" inert><section class="featured"><div class="featured-head">' + STAR + '<h2>' + esc(t('Featured rooms')) + '</h2></div>' +
-          '<div class="featured-track">' + sample.map(function (l) { return App.cardHtml(Object.assign({}, l, { plan: 'premium' }), false, { featured: true, single: true }); }).join('') + '</div></section></div></section>' : '';
+        var rank = function (n, cls, title, text, plan) {
+          return '<li class="pp-rank-' + cls + '"><i>' + n + '</i><div><b>' + esc(t(title)) + '</b><small>' + esc(t(text)) + '</small></div><em>' + esc(t(plan)) + '</em></li>';
+        };
 
         host.innerHTML = HV.demoBar() +
           '<div class="pp">' +
             '<header class="pp-top">' +
               (start ? '<ol class="pp-steps"><li class="done">' + CHECK + '<span>' + esc(t('Your details')) + '</span></li><li class="on"><i>2</i><span>' + esc(t('Choose a plan')) + '</span></li><li><i>3</i><span>' + esc(t('Add your place')) + '</span></li></ol>'
                      : '<a class="back-link" href="/host" data-link>' + H.icon('chev-left') + '<span>' + esc(t('Your listings')) + '</span></a>') +
-              '<p class="pp-eyebrow">' + esc(t('Plans for Keepers')) + '</p>' +
               '<h1>' + esc(t('Listing is free. Pay only to be seen first.')) + '</h1>' +
-              '<p class="pp-lede">' + esc(t('Every plan lists your place on ECStay. A paid plan lets you answer every renter and puts your rooms higher in search.')) + '</p>' +
+              '<p class="pp-lede">' + esc(t('Start free today. Move up any time to answer every renter and show higher in search.')) + '</p>' +
+            '</header>' +
+
+            '<div class="pp-pick-term"><span>' + esc(t('Pay for')) + '</span>' +
               '<div class="pp-term" role="group" aria-label="' + esc(t('How long')) + '">' +
                 [[3, '3 months', ''], [6, '6 months', 'Save 11%'], [12, '12 months', 'Save 22%']].map(function (o) {
                   return '<button type="button" data-term="' + o[0] + '" aria-pressed="' + (o[0] === term) + '">' + esc(t(o[1])) + (o[2] ? '<em>' + esc(t(o[2])) + '</em>' : '') + '</button>';
-                }).join('') + '</div>' +
-              '<p class="pp-termnote">' + esc(t('Paid once at the start by GCash or Maya. Prices are per location, for up to 3 rooms.')) + '</p>' +
-            '</header>' +
+                }).join('') + '</div></div>' +
 
             '<div class="pp-cards">' + PLAN_CARDS.map(card).join('') + '</div>' +
-            '<p class="pp-soon">' + H.icon('info') + '<span>' + esc(t('Paid plans open soon. Choosing one now costs nothing: we will message you before any payment.')) + '</span></p>' +
 
-            preview +
+            '<div class="pp-free"><div><h2>' + esc(t('Free')) + ' <span>' + H.peso(0) + ' ' + esc(t('always')) + '</span></h2>' +
+              '<p>' + esc(t('Your place listed and searchable, up to 10 photos, and replies to 5 new renters a month. No payment, no time limit.')) + '</p></div>' +
+              '<button type="button" class="btn btn-ghost" data-choose="free"><span>' + esc(start ? t('Start free') : t('Stay on Free')) + '</span>' + H.icon('arrow-right') + '</button></div>' +
+
+            '<p class="pp-soon">' + H.icon('info') + '<span>' + esc(t('Paid plans open soon. Choosing one now costs nothing: we will message you before any payment. Prices are per location, for up to 3 rooms, paid once by GCash or Maya.')) + '</span></p>' +
+
+            '<section class="pp-sec"><h2>' + esc(t('Where renters see you')) + '</h2>' +
+            '<p class="pp-sub">' + esc(t('Search results show rooms in this order, top to bottom.')) + '</p>' +
+            '<ol class="pp-rank">' +
+              rank(1, 'premium', 'Featured rooms', 'On top of every search, with a brass pin on the map', 'Premium') +
+              rank(2, 'verified', 'Verified Keepers', 'Next in line, with the Verified Keeper mark', 'Verified') +
+              rank(3, 'basic', 'Basic listings', 'Above every free listing', 'Basic') +
+              rank(4, 'free', 'Free listings', 'Listed and searchable, after the paid plans', 'Free') +
+            '</ol></section>' +
 
             '<section class="pp-sec"><h2>' + esc(t('Extras')) + '</h2>' +
             '<p class="pp-sub">' + esc(t('One-time add-ons, on any plan.')) + '</p>' +
@@ -810,7 +816,7 @@
               [['Photo shoot', 500, 'one time', 'We photograph up to 5 rooms and the shared areas. ₱100 for each extra room. Davao City only.'],
                ['Photo and video shoot', 1000, 'one time', 'The photos, plus a short walk-through video. ₱150 for each extra room. The video shows on Verified and Premium.'],
                ['Full-house renewal', 450, 'for 3 months', 'For when all your rooms are taken at the end of a term. Your listing stays up marked "Full" and keeps its place in search.']].map(function (x) {
-                return '<article class="pp-extra"><h3>' + esc(t(x[0])) + '</h3><p class="pp-xprice"><b>' + H.peso(x[1]) + '</b> ' + esc(t(x[2])) + '</p><p>' + esc(t(x[3])) + '</p></article>';
+                return '<article class="pp-extra"><div><h3>' + esc(t(x[0])) + '</h3><p>' + esc(t(x[3])) + '</p></div><p class="pp-xprice"><b>' + H.peso(x[1]) + '</b><span>' + esc(t(x[2])) + '</span></p></article>';
               }).join('') + '</div></section>' +
 
             '<section class="pp-sec"><details class="pp-compare"><summary><span>' + esc(t('Compare every feature')) + '</span>' + H.icon('chev-right') + '</summary>' +
