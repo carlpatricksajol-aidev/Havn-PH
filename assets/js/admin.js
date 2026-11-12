@@ -75,19 +75,31 @@
     }).join('') + '</div>';
   }
 
+  /* ---- A listing's paid plan: set here when the Keeper's payment arrives ---- */
+  function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function planCell(l) {
+    if (l.status !== 'live' && l.status !== 'paused') return '';
+    var ended = l.plan && (!l.plan_until || l.plan_until < today());
+    return '<select data-plan aria-label="' + esc(t('Plan')) + '">' + [['', 'Free'], ['basic', 'Basic'], ['verified', 'Verified'], ['premium', 'Premium']].map(function (o) {
+        return '<option value="' + o[0] + '"' + ((l.plan || '') === o[0] ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>';
+      }).join('') + '</select>' +
+      '<input type="date" data-plan-until aria-label="' + esc(t('Plan ends on')) + '" value="' + esc(l.plan_until || '') + '"' + (l.plan ? '' : ' hidden') + '>' +
+      (ended ? '<small class="plan-ended">' + esc(t('Term ended')) + '</small>' : '');
+  }
+
   /* ---- Listings table ---- */
   function listings(d, profById) {
     if (!d.listings.length) return '<p class="host-empty-line">' + esc(t('No listings yet. When a Keeper starts one, it appears here.')) + '</p>';
     var order = { review: 0, changes: 1, live: 2, paused: 3, draft: 4, removed: 5 };
     var rows = d.listings.slice().sort(function (a, b) { return order[a.status] - order[b.status] || (a.updated_at < b.updated_at ? 1 : -1); });
-    return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + [t('Listing'), t('Keeper'), t('Area'), t('From'), t('Status'), t('Updated'), ''].map(esc).join('</th><th>') + '</th></tr></thead><tbody>' +
+    return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + [t('Listing'), t('Keeper'), t('Area'), t('From'), t('Status'), t('Plan'), t('Updated'), ''].map(esc).join('</th><th>') + '</th></tr></thead><tbody>' +
       rows.map(function (l) {
         var k = profById[l.owner_id] || {}, cover = l.photos && l.photos[0], price = ECS.priceFrom(l);
         return '<tr data-id="' + esc(l.id) + '"><td class="tbl-main">' + (cover ? '<img src="' + esc(cover.url || cover) + '" alt="" loading="lazy">' : '<span class="tbl-noimg">' + H.icon('home') + '</span>') +
           '<span><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc([l.place_type, (l.photos || []).length + ' ' + t('photos')].filter(Boolean).join(' · ')) + '</small></span></td>' +
           '<td><b>' + esc(k.full_name || '') + '</b><small>' + esc([k.email, ECS.showMobile(l.contact_mobile || k.mobile || '')].filter(Boolean).join(' · ')) + '</small></td>' +
           '<td>' + esc(l.area || '') + '</td><td>' + (price ? H.peso(price) : '') + '</td>' +
-          '<td><span class="pill st-' + l.status + '">' + esc(t(LSTATUS[l.status])) + '</span></td><td>' + esc(day(l.updated_at)) + '</td>' +
+          '<td><span class="pill st-' + l.status + '">' + esc(t(LSTATUS[l.status])) + '</span></td><td class="tbl-plan">' + planCell(l) + '</td><td>' + esc(day(l.updated_at)) + '</td>' +
           '<td class="tbl-act">' + (l.status === 'review' ? '<a class="btn btn-primary btn-sm" href="/host/review" data-link>' + esc(t('Review')) + '</a>' :
             l.status === 'live' ? '<a class="btn btn-ghost btn-sm" href="/room/' + l.id + '" data-link>' + esc(t('View')) + '</a><button type="button" class="btn-link" data-unpublish>' + esc(t('Take down')) + '</button>' : '') + '</td></tr>';
       }).join('') + '</tbody></table></div>';
@@ -118,6 +130,13 @@
 
   function bind(host) {
     host.addEventListener('change', function (e) {
+      var pl = e.target.closest('[data-plan], [data-plan-until]');
+      if (pl) {
+        var tr = pl.closest('tr'), sel = tr.querySelector('[data-plan]'), dt = tr.querySelector('[data-plan-until]');
+        if (sel.value && !dt.value) { var d6 = new Date(); d6.setMonth(d6.getMonth() + 6); dt.value = d6.getFullYear() + '-' + ('0' + (d6.getMonth() + 1)).slice(-2) + '-' + ('0' + d6.getDate()).slice(-2); }
+        ECS.setPlan(tr.getAttribute('data-id'), sel.value, dt.value).then(function () { H.toast(sel.value ? t('Plan saved') : t('Plan removed')); AV.render(host); }).catch(function (x) { H.toast(x.message); });
+        return;
+      }
       var s = e.target.closest('[data-lead-stage]'); if (!s) return;
       ECS.setLead(s.closest('.lead').getAttribute('data-id'), { status: s.value }).then(function () { H.toast(t('Lead moved')); AV.render(host); }).catch(function (x) { H.toast(x.message); });
     });

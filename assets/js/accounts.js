@@ -234,6 +234,7 @@
         return Promise.resolve(Object.keys(d.listings).map(function (k) { return d.listings[k]; }).filter(function (l) { return l.status === 'review'; })
           .map(function (l) { var p = d.profiles[l.owner_id] || {}; l.owner = { full_name: p.full_name, email: p.email, mobile: p.mobile }; return l; }));
       },
+      setPlan: function () { return fail(t('The admin workspace works with real accounts only.')); },
       review: function (id, status, note) {
         var d = db(), l = d.listings[id];
         if (!l) return fail(t('That listing was not found.'));
@@ -385,6 +386,10 @@
           });
         });
       },
+      // A Keeper's paid plan and the day its term ends. The database lets only an admin change these.
+      setPlan: function (id, plan, until) {
+        return client().then(function (c) { return c.from('listings').update({ plan: plan || null, plan_until: plan ? until : null }).eq('id', id).select().single(); }).then(check);
+      },
       review: function (id, status, note) {
         return client().then(function (c) { return c.from('listings').update({ status: status, review_note: note || null }).eq('id', id).select().single(); }).then(check);
       },
@@ -427,7 +432,7 @@
     var first = rooms[0] || {}, rules = r.rules || {}, bills = r.bills || {};
     var curfew = rules.curfew ? (rules.curfew === '00:00' ? '12:00 AM' : (parseInt(rules.curfew, 10) - 12) + ':00 PM') : '';
     return {
-      id: r.id, dbId: r.id, live: true, name: r.name, type: first.type || 'Private room', rooms: rooms, gender: r.gender || 'mixed',
+      id: r.id, dbId: r.id, live: true, plan: r.plan || null, name: r.name, type: first.type || 'Private room', rooms: rooms, gender: r.gender || 'mixed',
       area: r.area || '', street: '', lat: r.lat, lng: r.lng, price: first.price || 0,
       status: 'available', slots: rooms.reduce(function (n, x) { return n + (x.count || 0); }, 0), size: null,
       bath: (r.amenities || []).indexOf('own-cr') >= 0 ? 'own' : 'shared',

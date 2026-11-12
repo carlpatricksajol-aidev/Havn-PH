@@ -107,6 +107,8 @@
       'Rooms and bedspaces in Davao, near malls, offices and schools.': 'Mga kwarto at bedspace sa Davao, malapit sa mall, opisina at school.',
       'Rooms and bedspaces in Davao': 'Mga kwarto at bedspace sa Davao',
       'your ECStay concierge': 'ang iyong concierge sa ECStay',
+      'Featured rooms': 'Mga tampok na kuwarto', 'Featured': 'Tampok', 'Verified Keeper': 'Beripikadong Keeper',
+      '{amt} over your budget': '{amt} lampas sa budget mo', 'Plans for Keepers': 'Mga plano para sa Keeper',
       'Messages': 'Mga mensahe',
       'No messages yet': 'Wala pang mensahe',
       'Write a message': 'Sumulat ng mensahe',

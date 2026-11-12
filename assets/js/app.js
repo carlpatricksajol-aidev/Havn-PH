@@ -88,6 +88,29 @@
     return true;
   }
 
+  /* Paid plans. A listing carries plan: 'basic' | 'verified' | 'premium'. ?plans=demo puts plans on a few sample rooms to preview the look. */
+  var PLAN_DEMO = { 'roxas-avenue-house': 'premium', 'recto-annex': 'premium', 'maa-road-rooms': 'premium', 'casa-bajada': 'premium',
+    'obrero-house-14': 'verified', 'santa-ana-ladies-dorm': 'verified', 'mintal-garden-boarding': 'verified', 'matina-stayhouse': 'basic' };
+  try {
+    if (/[?&]plans=demo/.test(location.search)) sessionStorage.setItem('ecs-plans', 'demo');
+    if (/[?&]plans=off/.test(location.search)) sessionStorage.removeItem('ecs-plans');
+    if (sessionStorage.getItem('ecs-plans') === 'demo') HAVN_LISTINGS.forEach(function (l) { if (PLAN_DEMO[l.id]) l.plan = PLAN_DEMO[l.id]; });
+  } catch (e) {}
+
+  /* Up to 3 Premium rooms for the Featured strip: never full, never the wrong gender; nearest first, then closest to the budget. They take turns by the hour. */
+  function featuredFor(s) {
+    if (s.saved) return [];
+    var sc = placeSchool(s);
+    var pool = HAVN_LISTINGS.filter(function (l) { return l.plan === 'premium' && l.status !== 'full' && (!s.gender || l.gender === s.gender); });
+    if (!pool.length) return [];
+    var turn = Math.floor(Date.now() / 36e5) % pool.length;
+    pool = pool.slice(turn).concat(pool.slice(0, turn));
+    var over = function (l) { return s.max && l.price > s.max ? l.price - s.max : 0; };
+    return pool.map(function (l, i) { return { l: l, i: i }; }).sort(function (a, b) {
+      return (over(a.l) - over(b.l)) || (sc ? H.km(a.l, sc) - H.km(b.l, sc) : 0) || (a.i - b.i);
+    }).slice(0, 3).map(function (x) { return x.l; });
+  }
+
   function results(s, anyArea) {
     var sc = placeSchool(s);
     var list = HAVN_LISTINGS.filter(function (l) { return matches(l, s, anyArea); });
@@ -428,7 +451,7 @@
     var school = opts.school || (placeSchool(S) && placeSchool(S).id);
     if (opts.single) {
       var img = '<img src="' + H.photo(l.photos[0], 640) + '" width="640" height="480" alt="" loading="lazy" decoding="async">';
-      return cardShell(l, saved, href, school, '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + img + '</a>', '');
+      return cardShell(l, saved, href, school, '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + img + '</a>', '', opts.featured);
     }
     var imgs = l.photos.map(function (p, k) {
       return '<img src="' + H.photo(p, 640) + '" srcset="' + H.photo(p, 640) + ' 640w, ' + H.photo(p, 1200) + ' 1200w" sizes="(min-width: 1440px) 300px, (min-width: 1024px) 26vw, (min-width: 640px) 46vw, 94vw" width="640" height="480" alt="" ' +
@@ -438,21 +461,27 @@
       '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + imgs + '</a>' +
       '<button type="button" class="slide-btn prev" data-step="-1" tabindex="-1" aria-label="' + H.esc(t('Previous photo')) + '">' + H.icon('chev-left') + '</button>' +
       '<button type="button" class="slide-btn next" data-step="1" tabindex="-1" aria-label="' + H.esc(t('Next photo')) + '">' + H.icon('chev-right') + '</button>' +
-      '<div class="dots" aria-hidden="true">' + l.photos.map(function () { return '<i></i>'; }).join('') + '</div>', ' data-slides');
+      '<div class="dots" aria-hidden="true">' + l.photos.map(function () { return '<i></i>'; }).join('') + '</div>', ' data-slides', opts.featured);
   };
 
-  function cardShell(l, saved, href, school, media, slidesAttr) {
+  var STAR_ICON = '<svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2 6.2 20.4l1.3-6.5L2.6 9.4l6.6-.8z"/></svg>';
+  var VER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="m9 12 2.2 2.2L15 10"/></svg>';
+  function cardShell(l, saved, href, school, media, slidesAttr, featured) {
     var bath = l.bath === 'own' ? t('Own CR') : t('Shared CR');
+    var verified = l.plan === 'verified' || l.plan === 'premium';
+    var overBy = featured && S.max && l.price > S.max ? l.price - S.max : 0;
     return '<article class="card' + (l.status === 'full' ? ' is-full' : '') + '" data-id="' + l.id + '">' +
       '<div class="card-media"' + slidesAttr + '>' + media +
         '<span class="status s-' + l.status + '"><i aria-hidden="true"></i>' + H.esc(H.statusLabel(l)) + '</span>' +
         '<button type="button" class="heart" data-save="' + l.id + '" aria-pressed="' + saved + '" aria-label="' + H.esc(saved ? t('Remove from saved') : t('Save this room')) + '">' + H.icon('heart') + '</button>' +
       '</div>' +
       '<a class="card-body" href="' + href + '" data-link>' +
-        '<h2 class="card-title"><span>' + H.esc(l.name) + '</span>' + (l.sample ? '<span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h2>' +
+        '<h2 class="card-title"><span>' + H.esc(l.name) + '</span>' + (featured ? '<span class="tag tag-feat">' + H.esc(t('Featured')) + '</span>' : l.sample ? '<span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h2>' +
+        (verified ? '<p class="card-ver">' + VER_ICON + '<span>' + H.esc(t('Verified Keeper')) + '</span></p>' : '') +
         '<p class="card-near">' + H.icon('walk') + '<span>' + H.esc(H.nearText(l, school)) + '</span></p>' +
         '<p class="card-meta">' + H.esc(t(l.type) + ' · ' + H.genderLabel(l.gender) + ' · ' + bath) + '</p>' +
         '<p class="card-price"><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
+        (overBy ? '<p class="card-over">' + H.esc(t('{amt} over your budget', { amt: H.peso(overBy) })) + '</p>' : '') +
       '</a>' +
     '</article>';
   }
@@ -504,6 +533,23 @@
   function renderResults(refit) {
     var list = results(S);
     var box = $('#results-body');
+    var feat = featuredFor(S), fbox = $('#featured'), fids = feat.map(function (l) { return l.id; });
+    if (fbox) {
+      fbox.innerHTML = !feat.length ? '' : '<section class="featured" aria-labelledby="featured-title">' +
+        '<div class="featured-head">' + STAR_ICON + '<h2 id="featured-title">' + H.esc(t('Featured rooms')) + '</h2></div>' +
+        '<div class="featured-track">' + feat.map(function (l) { return A.cardHtml(l, true, { featured: true }); }).join('') + '</div></section>';
+      H.bindSlides(fbox);
+    }
+    /* The small bar that stays under the header once the Featured rooms have scrolled away. */
+    var fpin = $('#featured-pin');
+    if (fpin) {
+      fpin.innerHTML = !feat.length ? '' : '<div class="featured-bar" aria-label="' + H.esc(t('Featured rooms')) + '"><span class="fbar-label">' + STAR_ICON + H.esc(t('Featured')) + '</span>' +
+        '<div class="fbar-items">' + feat.map(function (l) {
+          return '<a class="fbar-item" href="/room/' + l.id + '" data-link><img class="ok" src="' + H.photo(l.photos[0], 640) + '" width="44" height="44" alt="">' +
+            '<span><b>' + H.esc(l.name) + '</b><small>' + H.peso(l.price) + ' ' + H.esc(t('/ month')) + '</small></span></a>';
+        }).join('') + '</div></div>';
+    }
+    var rest = list.filter(function (l) { return fids.indexOf(l.id) === -1; });
     $('#results-title').textContent = title(list);
     document.title = (S.saved ? t('Saved') : title(list)) + ' · ECStay';
     var sortSel = $('#sort');
@@ -529,7 +575,7 @@
           '<div class="grid">' + alt.map(function (l) { return A.cardHtml(l, false); }).join('') + '</div>';
       }
     } else {
-      updateGrid(box, list);
+      updateGrid(box, rest);
     }
     H.bindSlides(box);
     var mc = $('.map-count span');
@@ -638,7 +684,7 @@
     var inner = document.createElement('div'); inner.className = 'page-in';
     host.innerHTML = ''; host.appendChild(inner);
     // Account screens are tools, not pages: no footer there.
-    if (!/^(signin|dashboard|editor|profile|review|admin|messages)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
+    if (!/^(signin|dashboard|editor|profile|review|plans|admin|messages)$/.test(kind)) { var foot = document.createElement('div'); foot.innerHTML = footHtml(); host.appendChild(foot.firstChild); }
     if (kind === 'doc') {
       var P = (window.ECS_PAGES || {})[arg];
       if (!P) { kind = 'missing'; }
@@ -660,7 +706,7 @@
       return;
     }
     window.scrollTo(0, 0);
-    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings'), admin: t('Admin'), messages: t('Messages') }[kind] || 'ECStay',
+    meta({ landing: t('List your boarding house'), signin: t('Sign in'), dashboard: t('Your listings'), editor: t('Your listing'), profile: t('Your details'), review: t('Review listings'), admin: t('Admin'), plans: t('Plans for Keepers'), messages: t('Messages') }[kind] || 'ECStay',
       kind === 'landing' ? t('List your boarding house, bedspace or rooms in Davao City on ECStay. Add photos, prices and the exact spot on the map. We review every listing.') : '', kind !== 'landing');
     if (kind === 'landing') HostView.landing(inner);
     else if (kind === 'signin') HostView.signin(inner);
@@ -668,6 +714,7 @@
     else if (kind === 'editor') HostView.editor(inner, arg);
     else if (kind === 'profile') HostView.profile(inner);
     else if (kind === 'review') HostView.review(inner);
+    else if (kind === 'plans') HostView.plans(inner);
     else if (kind === 'admin') AdminView.render(inner);
     else if (kind === 'messages') MsgView.render(inner, arg);
   }
@@ -690,12 +737,26 @@
     window.scrollTo(0, fromRoom ? homeScroll : 0);
   }
 
+  var featWatch = null;
+  function watchFeatured() {
+    if (featWatch) featWatch.disconnect();
+    var box = $('#featured'), pin = $('#featured-pin');
+    if (!box || !pin || !window.IntersectionObserver) return;
+    var hdr = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hdr-h'), 10) || 0;
+    featWatch = new IntersectionObserver(function (en) {
+      var e = en[en.length - 1];
+      pin.classList.toggle('on', !e.isIntersecting && e.boundingClientRect.bottom < hdr + 40);
+    }, { rootMargin: '-' + (hdr + 8) + 'px 0px 0px 0px' });
+    featWatch.observe(box);
+  }
+
   function renderBrowse() {
     var host = $('#view-browse');
     host.innerHTML =
       '<div class="browse ' + (mode === 'map' ? 'mode-map' : 'mode-list') + '">' +
         '<section class="results" aria-labelledby="results-title">' +
           sampleNote() +
+          '<div id="featured"></div><div id="featured-pin" class="featured-pin"></div>' +
           '<div class="results-head"><h1 id="results-title"></h1>' +
             '<div class="sort"><label for="sort">' + H.esc(t('Sort')) + '</label><select id="sort">' +
               [['rec', 'Recommended'], ['low', 'Lowest price'], ['high', 'Highest price'], ['near', 'Nearest']].map(function (o) {
@@ -717,6 +778,7 @@
     });
     if (bmap) { bmap.destroy(); bmap = null; bmapP = null; }
     renderResults();
+    watchFeatured();
     if (desktop.matches || mode === 'map') ensureMap();
   }
 
@@ -880,6 +942,7 @@
     else if ((m = location.pathname.match(/^\/host\/edit\/([\w-]+)\/?$/))) showPage('editor', m[1]);
     else if (/^\/host\/profile\/?$/.test(location.pathname)) showPage('profile');
     else if (/^\/host\/review\/?$/.test(location.pathname)) showPage('review');
+    else if (/^\/host\/plans\/?$/.test(location.pathname)) showPage('plans');
     else if (/^\/admin\/?$/.test(location.pathname)) showPage('admin');
     else if ((m = location.pathname.match(/^\/messages(?:\/([\w-]+))?\/?$/))) showPage('messages', m[1] || null);
     else if (PAGE_PATHS.test(location.pathname)) showPage('doc', location.pathname.replace(/^\/|\/$/g, ''));

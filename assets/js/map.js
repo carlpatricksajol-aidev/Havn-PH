@@ -116,7 +116,7 @@
         return {
           type: 'FeatureCollection',
           features: items.map(function (l) {
-            return { type: 'Feature', id: l.id, properties: { id: l.id, price: l.price, full: l.status === 'full' ? 1 : 0 }, geometry: { type: 'Point', coordinates: [l.lng, l.lat] } };
+            return { type: 'Feature', id: l.id, properties: { id: l.id, price: l.price, full: l.status === 'full' ? 1 : 0, feat: l.plan === 'premium' ? 1 : 0 }, geometry: { type: 'Point', coordinates: [l.lng, l.lat] } };
           }),
         };
       }
@@ -136,7 +136,7 @@
           });
         } else {
           var l = H.byId(p.id);
-          el.className = 'pin' + (p.full ? ' full' : '');
+          el.className = 'pin' + (p.full ? ' full' : p.feat ? ' feat' : '');
           el.setAttribute('data-id', p.id);
           el.innerHTML = '<span>' + H.peso(p.price) + '</span>';
           el.setAttribute('aria-label', l.name + ', ' + H.peso(l.price) + ' ' + t('/ month'));
