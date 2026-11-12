@@ -62,7 +62,8 @@
   }
 
   /* A real room photo with an optional overlay (the painted house belongs to the home page only). */
-  var LIST_PHOTO = '/assets/photos/u-bab0e564-2000.webp';
+  var MAX_PHOTOS = 10;   // per listing; the database holds the same limit
+  var LIST_PHOTO ='/assets/photos/u-bab0e564-2000.webp';
   function photoPanel(cls, src, overlay) {
     return '<div class="ph-panel ' + cls + '"><img src="' + src + '" alt="" width="2000" height="1500" decoding="async">' + (overlay || '') + '</div>';
   }
@@ -535,7 +536,7 @@
           '<p class="field-err" role="alert" hidden></p>';
       },
       photos: function () {
-        return '<h1>' + esc(t('Photos')) + '</h1><p class="ed-help">' + esc(t('Add at least 5 recent photos in daylight: each room type, the bed, the CR, the study area and the outside of the house. The first photo is the cover.')) + '</p>' +
+        return '<h1>' + esc(t('Photos')) + '</h1><p class="ed-help">' + esc(t('Add 5 to 10 recent photos in daylight: each room type, the bed, the CR, the study area and the outside of the house. The first photo is the cover.')) + '</p>' +
           '<label class="ed-drop"><input type="file" accept="image/*" multiple hidden>' + H.icon('plus') + '<span>' + esc(t('Add photos')) + '</span><small>' + esc(t('JPG or PNG, we resize them for you')) + '</small></label>' +
           '<ul class="ed-photos"></ul><p class="ed-photo-n"></p><p class="field-err" role="alert" hidden></p>';
       },
@@ -623,13 +624,14 @@
               '<div class="ed-ph-act">' + (i > 0 ? '<button type="button" data-cover="' + i + '">' + esc(t('Make cover')) + '</button>' : '') +
               '<button type="button" data-remove="' + i + '" aria-label="' + esc(t('Remove photo')) + '">' + H.icon('x') + '</button></div></li>';
           }).join('');
-          n.textContent = ph.length >= 5 ? t('{n} photos', { n: ph.length }) : t('{n} of at least 5 photos', { n: ph.length });
+          n.textContent = ph.length >= 5 ? t('{n} of {max} photos', { n: ph.length, max: MAX_PHOTOS }) : t('{n} of at least 5 photos', { n: ph.length });
+          $('.ed-drop', f).hidden = ph.length >= MAX_PHOTOS;
         }
         paint();
         input.addEventListener('change', function () {
-          var files = Array.prototype.slice.call(input.files || []).slice(0, 20 - (l.photos || []).length);
+          var picked = Array.prototype.slice.call(input.files || []), files = picked.slice(0, Math.max(0, MAX_PHOTOS - (l.photos || []).length));
           if (!files.length) return;
-          err(e, '');
+          err(e, picked.length > files.length ? t('A listing holds up to {max} photos, so only the first {n} were added.', { max: MAX_PHOTOS, n: files.length }) : '');
           var holder = files.map(function () { var li = document.createElement('li'); li.className = 'is-up'; li.innerHTML = '<span class="spin"></span>'; list.appendChild(li); return li; });
           files.reduce(function (pr, file, i) {
             return pr.then(function () {
@@ -743,13 +745,13 @@
   var PLAN_PRICES = { basic: { 3: 1350, 6: 2400, 12: 4200 }, verified: { 3: 2160, 6: 3840, 12: 6720 }, premium: { 3: 3240, 6: 5760, 12: 10080 } };
   var PLAN_CARDS = [
     { id: 'free', name: 'Free', line: 'Get listed and start hearing from renters.',
-      points: ['Listed and searchable in Davao City', 'Your own photos, 5 per room', 'Reply to 5 new renters a month', 'See how long each renter plans to stay'] },
+      points: ['Listed and searchable in Davao City', 'Up to 10 of your own photos','Reply to 5 new renters a month', 'See how long each renter plans to stay'] },
     { id: 'basic', name: 'Basic', line: 'Answer every renter who asks.', above: 'Everything in Free, plus',
-      points: ['Unlimited replies to renters', 'Call and Text buttons on your listing', 'Shown above free listings', '15 photos per room'] },
+      points: ['Unlimited replies to renters', 'Call and Text buttons on your listing', 'Shown above free listings'] },
     { id: 'verified', name: 'Verified', line: 'Show renters you are the real thing.', above: 'Everything in Basic, plus',
-      points: ['The Verified Keeper mark, after an ID and permit check', 'Shown above Basic listings', '25 photos per room and 1 video', 'Views and saves for each room'] },
+      points: ['The Verified Keeper mark, after an ID and permit check', 'Shown above Basic listings', '1 video of your place','Views and saves for each room'] },
     { id: 'premium', name: 'Premium', line: 'Be the first place renters see.', above: 'Everything in Verified, plus', flag: 'Top placement',
-      points: ['Featured rooms: on top of every search', 'A brass pin on the map', 'Featured in ECStay ads and Facebook posts', 'An ECStay visit every 3 months', 'Unlimited photos and videos'] },
+      points: ['Featured rooms: on top of every search', 'A brass pin on the map', 'Featured in ECStay ads and Facebook posts', 'An ECStay visit every 3 months', 'Unlimited videos'] },
   ];
   HV.plans = function (host) {
     var start = /[?&]start=1/.test(location.search);
@@ -823,7 +825,7 @@
               row('Featured in ECStay ads and Facebook posts', [false, false, false, true]) +
               row('ECStay visit every 3 months', [false, false, false, 'With an "Availability checked" date on your listing']) +
               group('What your listing can hold') +
-              row('Photos per room', ['5', '15', '25', 'Unlimited']) +
+              row('Photos', ['Up to 10', 'Up to 10', 'Up to 10', 'Up to 10']) +
               row('Videos', ['None', 'None', '1 per location', 'Unlimited']) +
               group('What you see') +
               row('How long each renter plans to stay', [true, true, true, true]) +

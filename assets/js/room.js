@@ -183,9 +183,18 @@
     document.body.appendChild(wrap);
     H.lockScroll(true);
     var track = $('.viewer-track', wrap), count = $('.viewer-count', wrap), n = l.photos.length;
-    var idx = function () { return Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); };
-    var paint = function () { count.textContent = t('Photo {i} of {n}', { i: idx() + 1, n: n }); };
-    var go = function (i, smooth) { track.scrollTo({ left: Math.max(0, Math.min(n - 1, i)) * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' }); };
+    var figs = Array.prototype.slice.call(track.children);
+    // Each photo is narrower than the screen, so the one before and the one after show at the sides.
+    var step = function () { return n > 1 ? figs[1].offsetLeft - figs[0].offsetLeft : Math.max(1, track.clientWidth); };
+    var idx = function () { return Math.max(0, Math.min(n - 1, Math.round(track.scrollLeft / step()))); };
+    var paint = function () {
+      var i = idx();
+      count.textContent = t('Photo {i} of {n}', { i: i + 1, n: n });
+      figs.forEach(function (f, k) { f.classList.toggle('on', k === i); });
+      $('.viewer-nav.prev', wrap).disabled = i === 0;
+      $('.viewer-nav.next', wrap).disabled = i === n - 1;
+    };
+    var go = function (i, smooth) { track.scrollTo({ left: Math.max(0, Math.min(n - 1, i)) * step(), behavior: smooth ? 'smooth' : 'auto' }); };
     requestAnimationFrame(function () { go(start, false); paint(); wrap.classList.add('open'); });
     track.addEventListener('scroll', function () { requestAnimationFrame(paint); }, { passive: true });
     function close() {
@@ -202,8 +211,12 @@
     }
     document.addEventListener('keydown', key);
     wrap.addEventListener('click', function (e) {
-      if (e.target.closest('[data-x]')) close();
-      var v = e.target.closest('[data-v]'); if (v) go(idx() + Number(v.getAttribute('data-v')), true);
+      if (e.target.closest('[data-x]')) { close(); return; }
+      var v = e.target.closest('[data-v]'); if (v) { go(idx() + Number(v.getAttribute('data-v')), true); return; }
+      // A photo at the side comes to the middle; a click on the empty space around the photos closes the viewer.
+      var img = e.target.closest('.viewer-track img');
+      if (img) { var k = figs.indexOf(img.parentNode); if (k !== idx()) go(k, true); return; }
+      if (!e.target.closest('.viewer-top')) close();
     });
     $('[data-x]', wrap).focus();
   }

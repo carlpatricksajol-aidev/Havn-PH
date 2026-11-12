@@ -47,6 +47,8 @@
       'Hi ECStay! I\'d like to list my boarding house.': 'Hi ECStay! Gusto ko pong i-lista ang boarding house ko.',
       'Language': 'Wika', 'View room': 'Tingnan ang kwarto', 'Sample': 'Sample',
       'Stock photos are used in sample listings.': 'Stock photos ang gamit sa mga sample listing.',
+      '{n} of {max} photos': '{n} sa {max} litrato', 'A listing holds up to {max} photos, so only the first {n} were added.': 'Hanggang {max} litrato lang ang bawat listing, kaya ang unang {n} lang ang naidagdag.',
+      'Add 5 to 10 recent photos in daylight: each room type, the bed, the CR, the study area and the outside of the house. The first photo is the cover.': 'Maglagay ng 5 hanggang 10 bagong litrato na kuha sa araw: bawat uri ng kwarto, ang kama, ang CR, ang study area at ang labas ng bahay. Ang unang litrato ang cover.',
       'Previous photo': 'Naunang litrato', 'Next photo': 'Susunod na litrato', 'Zoom in to see each room': 'Mag-zoom in para makita ang bawat kwarto',
       'Map area': 'Lugar sa mapa', '{n} rooms in this map area': '{n} kwarto sa bahaging ito ng mapa', '1 room in this map area': '1 kwarto sa bahaging ito ng mapa',
       'No rooms in this part of the map': 'Walang kwarto sa bahaging ito ng mapa', 'Zoom out or move the map to see more rooms.': 'Mag-zoom out o igalaw ang mapa para makakita ng mas maraming kwarto.',
