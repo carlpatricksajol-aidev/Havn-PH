@@ -47,11 +47,14 @@
   }
   function cover(th) { return th.room.photo ? '<img src="' + esc(H.photo(th.room.photo, 640)) + '" alt="" loading="lazy">' : H.icon('home'); }
 
-  MV.render = function (host, id) {
-    clearInterval(timer);
+  /* `embed`: the inbox sits inside the Keeper home. It then stays on that page (the address does not change) and
+   * leaves out its own way back. */
+  var embed = false;
+  MV.render = function (host, id, inside) {
+    clearInterval(timer); embed = !!inside;
     if (!ECS.enabled()) { App.go('/list'); return; }
     var known = state && state.list && ECS.user && state.uid === ECS.user.id;
-    host.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<div class="inbox">' + (known ? '' : '<div class="host-loading"><span class="spin"></span></div>') + '</div>';
+    host.innerHTML = (window.HostView && !embed ? HostView.demoBar() : '') + '<div class="inbox">' + (known ? '' : '<div class="host-loading"><span class="spin"></span></div>') + '</div>';
     if (known) { state.host = host; state.id = id || null; paint(); }
     ECS.session().then(function (s) {
       if (!s) { App.go('/signin?next=' + encodeURIComponent(location.pathname)); return; }
@@ -87,7 +90,7 @@
     $('.inbox', host).outerHTML =
       '<div class="inbox' + (open && state.id ? ' is-open' : '') + '">' +
         '<aside class="msg-side">' +
-          '<div class="msg-side-top"><a class="kh-back" href="' + (keeper ? '/host?tab=messages' : '/host') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a><h1>' + esc(t('Messages')) + '</h1>' +
+          '<div class="msg-side-top">' + (embed ? '' : '<a class="kh-back" href="' + (keeper ? '/host?tab=messages' : '/host') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a>') + '<h1>' + esc(t('Messages')) + '</h1>' +
             (hasBoth ? '<div class="msg-tabs" role="tablist">' + [['all', 'All'], ['renter', 'Rooms I asked about'], ['keeper', 'My listings']].map(function (o) {
               return '<button type="button" role="tab" aria-selected="' + (state.filter === o[0]) + '" class="' + (state.filter === o[0] ? 'on' : '') + '" data-msg-filter="' + o[0] + '">' + esc(t(o[1])) + '</button>';
             }).join('') + '</div>' : '') +
@@ -118,12 +121,15 @@
       if (r && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
         e.preventDefault(); e.stopPropagation();
         var nid = r.getAttribute('href').split('/').pop();
-        if (nid !== state.id) history.pushState(history.state, '', r.getAttribute('href'));
+        if (nid !== state.id && !embed) history.pushState(history.state, '', r.getAttribute('href'));
         state.id = nid; paint();
         return;
       }
       var f = e.target.closest('[data-msg-filter]');
-      if (f) { state.filter = f.getAttribute('data-msg-filter'); state.id = null; history.replaceState(history.state, '', '/messages'); paint(); }
+      if (f) { state.filter = f.getAttribute('data-msg-filter'); state.id = null; if (!embed) history.replaceState(history.state, '', '/messages'); paint(); return; }
+      // Inside the Keeper home, the arrow on a phone goes back to the list without leaving the page.
+      var bk = embed && e.target.closest('.msg-back');
+      if (bk) { e.preventDefault(); e.stopPropagation(); state.id = null; paint(); }
     });
     if (open) bindThread(root, open, draft);
   }

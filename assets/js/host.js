@@ -311,12 +311,13 @@
         (d.keeper ? '<aside class="kh-nav"><p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
           '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + item('overview', 'home', 'Home') + item('listings', 'building', 'Listings', d.ls.length) + item('messages', 'message', 'Messages', d.waiting.length, d.waiting.length > 0) + item('account', 'user', 'Plan and account') + '</div>' +
           add + '<p class="kh-nav-foot"><a href="/help?from=keeper" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
-        '<div class="kh-page" role="tabpanel">' +
+        '<div class="kh-page' + (d.keeper && d.tab === 'messages' ? ' kh-full' : '') + '" role="tabpanel">' +
           '<header class="kh-head"><div><h1>' + esc(title) + '</h1>' + (sum ? '<p class="kh-sum">' + esc(sum) + '</p>' : '') + '</div>' + (d.keeper ? add : '') + '</header>' +
           body +
         '</div>' +
       '</div>';
     bindDash($('.kh', d.host));
+    if (d.keeper && d.tab === 'messages' && window.MsgView) { MsgView.render($('.kh-inbox', d.host), d.open || null, true); d.open = null; }
   }
 
   /* ---- Home: three questions, each in its own card. Who is waiting for me? Where are my listings at?
@@ -347,7 +348,7 @@
             var last = th.msgs[th.msgs.length - 1], name = th.q.renter_name || t('Renter');
             return '<li class="kw"><span class="km-av">' + esc(initials(name)) + '</span><div class="kw-b"><p class="kw-top"><b>' + esc(name) + '</b><time>' + esc(ago(last.created_at)) + '</time></p>' +
               '<p class="kw-room">' + esc(th.room.name) + '</p><p class="kw-msg">' + esc(last.body || '') + '</p></div>' +
-              '<a class="btn btn-primary btn-sm" href="/messages/' + esc(th.q.id) + '" data-link>' + esc(t(th.q.locked ? 'Read' : 'Reply')) + '</a></li>';
+              '<button type="button" class="btn btn-primary btn-sm" data-thread="' + esc(th.q.id) + '">' + esc(t(th.q.locked ? 'Read' : 'Reply')) + '</button></li>';
           }).join('') + '</ul>' :
           '<div class="kcard-empty">' + H.icon('check') + '<p><b>' + esc(t('No one is waiting.')) + '</b> ' + esc(t(d.kt.length ? 'Every renter has your answer.' : 'When a renter asks about your live listing, the message shows here and we email you.')) + '</p></div>') +
         '</section>' +
@@ -385,29 +386,34 @@
     return '<a class="host-keeper" href="/host/new" data-link><span>' + H.icon('home') + '</span><div><b>' + esc(t('Have a place to rent out?')) + '</b><small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small></div>' + H.icon('chev-right') + '</a>';
   }
 
-  /* ---- Listings: one row each, the same columns every time ---- */
-  function table(list) {
-    return '<div class="kt"><div class="kt-h" aria-hidden="true"><span class="kt-hl">' + esc(t('Listing')) + '</span><span>' + esc(t('Status')) + '</span><span class="kt-nums"><span class="r">' + esc(t('Views')) + '</span><span class="r">' + esc(t('Saves')) + '</span><span class="r">' + esc(t('Renters')) + '</span></span><span></span></div>' +
-      '<ul>' + list.map(row).join('') + '</ul></div>';
+  /* ---- Listings: a gallery. Each place is a large photo card that says, in one sentence, where it stands and
+   * what to do next. ---- */
+  function nextStep(l) { var s = ECS.STEPS.filter(function (x) { return !x.done(l); })[0]; return s ? s.label : ''; }
+  function say(l) {
+    if (l.status === 'draft') return ECS.ready(l) ? t('All 6 steps are done. Send it for review.') : t('Next step: {step}', { step: t(nextStep(l)) });
+    if (l.status === 'review') return t('We are checking it now. You will get an email within 1 day.');
+    return statusNote(l);
   }
-  function row(l) {
-    var st = STATUS[l.status] || STATUS.draft, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), x = dash.per[l.id] || {}, up = l.status === 'live' || l.status === 'paused';
-    var name = l.name || t('Untitled listing'), n = ECS.stepsDone(l);
-    var ic = function (attr, icon, label) { return '<button type="button" class="kt-ic" ' + attr + ' aria-label="' + esc(label + ': ' + name) + '" title="' + esc(label) + '">' + H.icon(icon) + '</button>'; };
-    var cell = function (v, label, hot) { return '<span class="kt-n r">' + (up ? '<b>' + numf(v) + '</b>' + (hot ? '<i class="kt-dot" title="' + esc(t('Waiting for your reply')) + '"></i>' : '') + '<em> ' + esc(t(label)) + '</em>' : '<b class="none">–</b>') + '</span>'; };
-    var main = l.status === 'draft' ? ['Continue', 'btn-primary'] : l.status === 'changes' ? ['Update listing', 'btn-primary'] : ['Edit', 'btn-ghost'];
-    return '<li class="kt-r">' +
-      '<a class="kt-img" href="/host/edit/' + l.id + '" data-link tabindex="-1" aria-hidden="true">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="" loading="lazy">' : H.icon('home')) + '</a>' +
-      '<div class="kt-name"><a href="/host/edit/' + l.id + '" data-link>' + esc(name) + '</a><small>' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : ''].filter(Boolean).join(' · ') || t('No details yet')) + '</small></div>' +
-      '<div class="kt-st ' + st.cls + '"><span><i></i>' + esc(t(st.label)) + '</span>' +
-        (l.status === 'draft' ? '<small>' + esc(t('{n} of 6 steps done', { n: n })) + '</small>' : ECS.planOn(l) ? '<small>' + esc(t('{plan} plan', { plan: l.plan.charAt(0).toUpperCase() + l.plan.slice(1) })) + '</small>' : '') + '</div>' +
-      '<div class="kt-nums">' + cell(x.views, 'views') + cell(x.saves, 'saves') + cell(x.msgs, 'renters', x.waiting > 0) + '</div>' +
-      '<div class="kt-act">' +
-        (l.status === 'live' ? ic('data-go="/room/' + l.id + '"', 'eye', t('See it as a renter')) + ic('data-copy="/room/' + l.id + '"', 'copy', t('Copy link')) + ic('data-pause="' + l.id + '"', 'pause', t('Pause')) : '') +
-        (l.status === 'paused' ? ic('data-unpause="' + l.id + '"', 'play', t('Show again')) : '') +
-        (l.status === 'draft' ? ic('data-del="' + l.id + '"', 'trash', t('Delete draft')) : '') +
-        '<a class="btn ' + main[1] + ' btn-sm" href="/host/edit/' + l.id + '" data-link>' + esc(t(main[0])) + '</a></div>' +
-    '</li>';
+  function galleryCard(l) {
+    var st = STATUS[l.status] || STATUS.draft, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), x = dash.per[l.id] || {}, name = l.name || t('Untitled listing'), n = ECS.stepsDone(l);
+    var main = l.status === 'draft' ? [ECS.ready(l) ? 'Send for review' : 'Continue', 'btn-primary'] : l.status === 'changes' ? ['Update listing', 'btn-primary'] : l.status === 'paused' ? ['Edit', 'btn-ghost'] : ['Edit', 'btn-ghost'];
+    var ic = function (attr, icon, label) { return '<button type="button" class="lc-ic" ' + attr + ' aria-label="' + esc(label + ': ' + name) + '" title="' + esc(label) + '">' + H.icon(icon) + '</button>'; };
+    return '<li class="lc ' + st.cls + '">' +
+      '<a class="lc-img' + (cover ? '' : ' none') + '" href="/host/edit/' + l.id + '" data-link tabindex="-1" aria-hidden="true">' +
+        (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="" loading="lazy">' : '<span class="lc-ph">' + H.icon('image') + '<small>' + esc(t('No photos yet')) + '</small></span>') +
+        '<span class="lc-pill ' + st.cls + '"><i></i>' + esc(t(st.label)) + '</span>' +
+        (l.status === 'draft' ? '<span class="lc-ring" style="--p:' + Math.round(n / 6 * 100) + '"><b>' + n + '</b><small>/6</small></span>' : '') +
+      '</a>' +
+      (l.status === 'draft' ? ic('data-del="' + l.id + '"', 'trash', t('Delete draft')).replace('class="lc-ic"', 'class="lc-ic lc-del"') : '') +
+      '<div class="lc-b"><h3>' + esc(name) + '</h3>' +
+        '<p class="lc-meta">' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : ''].filter(Boolean).join(' · ') || t('No details yet')) + '</p>' +
+        (l.status === 'paused' || l.status === 'removed' ? '' : steps(l)) +
+        (l.status === 'live' ? '<p class="lc-nums"><span><b>' + numf(x.views) + '</b>' + esc(t('views')) + '</span><span><b>' + numf(x.saves) + '</b>' + esc(t('saves')) + '</span><span><b>' + numf(x.msgs) + '</b>' + esc(t('renters')) + '</span></p>' : '') +
+        (say(l) ? '<p class="lc-say">' + esc(say(l)) + '</p>' : '') +
+        '<div class="lc-act"><a class="btn ' + main[1] + '" href="/host/edit/' + l.id + (l.status === 'draft' && ECS.ready(l) ? '?step=contact' : '') + '" data-link>' + esc(t(main[0])) + '</a>' +
+          (l.status === 'live' ? ic('data-go="/room/' + l.id + '"', 'eye', t('See it as a renter')) + ic('data-copy="/room/' + l.id + '"', 'copy', t('Copy link')) + ic('data-pause="' + l.id + '"', 'pause', t('Pause')) : '') +
+          (l.status === 'paused' ? '<button type="button" class="btn btn-primary" data-unpause="' + l.id + '">' + esc(t('Show again')) + '</button>' : '') +
+        '</div></div></li>';
   }
   function tabListings() {
     var d = dash, F = [['all', 'All'], ['live', 'Live'], ['review', 'In review'], ['changes', 'Needs changes'], ['paused', 'Paused'], ['draft', 'Drafts']];
@@ -418,11 +424,14 @@
     var list = d.main.concat(d.drafts).filter(function (l) { return d.filter === 'all' || l.status === d.filter; });
     return '<section class="kh-sec">' +
       (chips.length > 2 ? '<div class="kh-chips" role="group" aria-label="' + esc(t('Show')) + '">' + chips.map(function (f) { return '<button type="button" aria-pressed="' + (d.filter === f[0]) + '" data-filter="' + f[0] + '">' + esc(t(f[1])) + ' <span>' + n(f[0]) + '</span></button>'; }).join('') + '</div>' : '') +
-      table(list) +
-      '<p class="kh-muted small">' + esc(t('Views, saves and renters are for the last 30 days. Only you can see a draft.')) + '</p></section>';
+      '<ul class="lc-grid">' + list.map(galleryCard).join('') +
+        '<li class="lc lc-new"><a href="/host/new" data-link><span>' + H.icon('plus') + '</span><b>' + esc(t('Add a listing')) + '</b><small>' + esc(t('About 10 minutes. Only you see it until you send it.')) + '</small></a></li></ul>' +
+      (d.live.length ? '<p class="kh-muted small">' + esc(t('Views, saves and renters are for the last 30 days.')) + '</p>' : '') + '</section>';
   }
 
-  /* ---- Messages ---- */
+  /* ---- Messages: the whole inbox, right here (list, conversation, reply) ---- */
+  function tabMessages() { return '<div class="kh-inbox"></div>'; }
+
   function msgRow(th) {
     var last = th.msgs[th.msgs.length - 1], mine = last.sender_role === th.role, keeper = th.role === 'keeper';
     var name = keeper ? (th.q.renter_name || t('Renter')) : th.room.name;
@@ -432,22 +441,6 @@
       '<span class="km-av">' + (keeper ? esc(initials(name)) : H.icon('home')) + '</span>' +
       '<span class="km-b"><span class="km-top"><b>' + esc(name) + '</b><span class="km-room">' + esc(sub) + '</span></span>' +
         '<span class="km-snip">' + esc((mine ? t('You') + ': ' : '') + (last.body || '')) + '</span></span>' + tag + '<time>' + esc(ago(last.created_at)) + '</time></a></li>';
-  }
-  function quotaLine() {
-    var d = dash; if (!d.onFree) return '';
-    var out = d.quota.used >= d.quota.limit;
-    return '<p class="host-quota' + (out ? ' out' : '') + '">' + H.icon('message') + '<span>' + esc(out ?
-      t('You have answered 5 new renters this month. You can answer more from {date}, or today on a paid plan.', { date: ECS.quotaResets() }) :
-      t('Free plan: {n} of {max} new renters left this month.', { n: d.quota.limit - d.quota.used, max: d.quota.limit })) + '</span><a href="/host/plans" data-link>' + esc(t('See plans')) + '</a></p>';
-  }
-  function tabMessages() {
-    var d = dash, rest = d.kt.filter(function (th) { return !th.waiting; });
-    return '<section class="kh-sec">' + quotaLine() +
-      (d.kt.length ? '' : '<p class="kh-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') +
-      (d.waiting.length ? '<h2 class="kh-group">' + esc(t('Waiting for your reply')) + ' <span>' + d.waiting.length + '</span></h2><ul class="km-list">' + d.waiting.map(msgRow).join('') + '</ul>' : '') +
-      (rest.length ? '<h2 class="kh-group">' + esc(t('Answered')) + ' <span>' + rest.length + '</span></h2><ul class="km-list">' + rest.map(msgRow).join('') + '</ul>' : '') +
-      (d.rt.length ? '<h2 class="kh-group">' + esc(t('Rooms you asked about')) + ' <span>' + d.rt.length + '</span></h2><ul class="km-list">' + d.rt.map(msgRow).join('') + '</ul>' : '') +
-      (d.kt.length || d.rt.length ? '<p class="kh-muted small"><a href="/messages" data-link>' + esc(t('Open the inbox')) + '</a></p>' : '') + '</section>';
   }
 
   /* ---- Plan and account ---- */
@@ -514,7 +507,11 @@
     var hdr = document.querySelector('.site-header'); if (hdr) wrap.style.setProperty('--kh-top', hdr.offsetHeight + 'px');
     wrap.addEventListener('click', function (e) {
       var b;
-      if ((b = e.target.closest('[data-tab]'))) {
+      if ((b = e.target.closest('[data-thread]'))) {
+        d.tab = 'messages'; d.open = b.getAttribute('data-thread');
+        history.replaceState(history.state, '', '/host?tab=messages'); paintDash(); window.scrollTo(0, 0);
+      }
+      else if ((b = e.target.closest('[data-tab]'))) {
         d.tab = b.getAttribute('data-tab');
         history.replaceState(history.state, '', '/host' + (d.tab === 'overview' ? '' : '?tab=' + d.tab));
         paintDash();

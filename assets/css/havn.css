@@ -2222,3 +2222,70 @@ button.kn:hover { border-color: var(--evergreen); box-shadow: var(--shadow-hover
 }
 @media (min-width: 1024px) { .kh-page > * { max-width: 1120px; } .kh-page > .kh-narrow { max-width: 760px; } }
 @media (prefers-reduced-motion: reduce) { button.kn { transition: none; } }
+
+/* Keeper home, fourth pass. Listings: a gallery of large photo cards. Messages: the inbox itself, inside the page. */
+.lc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 4px; }
+.lc { position: relative; display: flex; flex-direction: column; min-width: 0; background: #fff; border: 1px solid var(--border); border-radius: 22px; overflow: hidden; box-shadow: var(--shadow-card); transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+.lc:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(23, 34, 29, .12); }
+.lc-img { position: relative; display: block; aspect-ratio: 4 / 3; background: var(--linen); overflow: hidden; }
+.lc-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--ease); }
+.lc:hover .lc-img img { transform: scale(1.04); }
+.lc-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(19, 44, 37, .34) 0%, rgba(19, 44, 37, 0) 34%); pointer-events: none; }
+.lc-img.none { background: radial-gradient(90% 90% at 80% 0%, rgba(217, 177, 102, .35), rgba(217, 177, 102, 0) 60%), linear-gradient(160deg, #1D3F35, #132C25); }
+.lc-img.none::after { display: none; }
+.lc-ph { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; color: rgba(246, 240, 229, .55); }
+.lc-ph .i { width: 34px; height: 34px; }
+.lc-ph small { font-size: 13px; }
+.lc-pill { position: absolute; z-index: 1; top: 14px; left: 14px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, .96); font: 650 13px var(--font-body); box-shadow: 0 2px 8px rgba(0, 0, 0, .16); }
+.lc-pill i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.lc-ring { position: absolute; z-index: 1; right: 14px; bottom: 14px; display: flex; align-items: baseline; justify-content: center; width: 58px; height: 58px; padding-top: 17px; border-radius: 50%; background: conic-gradient(#E7C784 calc(var(--p) * 1%), rgba(255, 255, 255, .28) 0); color: #FBF7EF; }
+.lc-ring::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #17352C; }
+.lc-ring b, .lc-ring small { position: relative; }
+.lc-ring b { font: 500 22px/1 var(--font-serif); }
+.lc-ring small { font-size: 12px; color: rgba(246, 240, 229, .7); }
+.lc-del { position: absolute; z-index: 2; top: 10px; right: 10px; background: rgba(255, 255, 255, .94) !important; box-shadow: 0 2px 8px rgba(0, 0, 0, .16); }
+.lc-del:hover { color: var(--red) !important; }
+.lc-b { flex: 1; display: flex; flex-direction: column; padding: 18px 20px 20px; }
+.lc-b h3 { font: 500 23px/1.2 var(--font-serif); letter-spacing: -0.015em; color: var(--navy); overflow-wrap: anywhere; }
+.lc-meta { margin-top: 4px; font-size: 14.5px; color: var(--muted); }
+.lc .ks { margin-top: 14px; }
+.lc-nums { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 14px; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.lc-nums span { display: grid; gap: 2px; font-size: 13px; color: var(--muted); }
+.lc-nums span + span { padding-left: 14px; border-left: 1px solid var(--border); }
+.lc-nums b { font: 500 24px/1 var(--font-serif); color: var(--navy); font-variant-numeric: lining-nums tabular-nums; }
+.lc-say { margin-top: 12px; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.lc.st-changes .lc-say { padding: 10px 12px; border-radius: 12px; background: #F7E4E1; color: #7A211B; }
+.lc.st-draft .lc-say { font-weight: 600; color: var(--text); }
+.lc-act { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 16px; }
+.lc-act .btn { flex: 1; min-height: 46px; }
+.lc-ic { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink-2); cursor: pointer; }
+.lc-ic:hover { border-color: var(--evergreen); color: var(--evergreen); }
+.lc-ic .i { width: 18px; height: 18px; }
+.lc-new { background: none; border: 2px dashed var(--border-strong); box-shadow: none; }
+.lc-new:hover { border-color: var(--evergreen); background: #fff; }
+.lc-new a { flex: 1; display: grid; place-content: center; justify-items: center; gap: 8px; min-height: 260px; padding: 24px; text-align: center; text-decoration: none; color: var(--text); }
+.lc-new span { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--brass); color: #1B1408; }
+.lc-new span .i { width: 24px; height: 24px; }
+.lc-new b { font: 500 22px/1.2 var(--font-serif); color: var(--navy); }
+.lc-new small { max-width: 26ch; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.kh .kh-chips { margin-bottom: 20px; }
+
+/* The inbox inside the Keeper home */
+.kh-page.kh-full { padding: 0; display: flex; flex-direction: column; }
+.kh-page.kh-full > * { max-width: none; margin: 0; }
+.kh-page.kh-full > .kh-head { display: none; }
+.kh-inbox { flex: 1; min-width: 0; }
+.kh-inbox .inbox { margin: 0; }
+.kh-inbox .msg-tabs { flex-wrap: wrap; overflow: visible; }
+@media (min-width: 900px) {
+  .kh-inbox .inbox { grid-template-columns: 360px 1fr; }
+  .kh-inbox .msg-side { border-left: 0; }
+}
+@media (min-width: 1024px) and (max-width: 1499px) {
+  .kh-inbox .msg-cols { grid-template-columns: 1fr; }
+  .kh-inbox .msg-info { display: none; }
+  .kh-inbox .msg-view { display: inline-flex; }
+}
+@media (min-width: 1700px) { .kh-inbox .inbox { grid-template-columns: 400px 1fr; } }
+@media (min-width: 1024px) { .kh-page.kh-full > * { max-width: none; } }
+@media (prefers-reduced-motion: reduce) { .lc, .lc-img img { transition: none; } .lc:hover { transform: none; } .lc:hover .lc-img img { transform: none; } }
