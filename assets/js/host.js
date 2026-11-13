@@ -245,8 +245,8 @@
 
   /* The way back to the Keeper home (for people with no listing: to their account page), the same on every page
    * that is opened from it. `tab` is the tab to land on. */
-  HV.back = function (tab) {
-    var keeper = H.store.get('ecs-keeper', false) || (ECS.user && ECS.user.role === 'admin');
+  HV.back = function (tab, always) {
+    var keeper = always || H.store.get('ecs-keeper', false) || (ECS.user && ECS.user.role === 'admin');
     return '<a class="kh-back" href="/host' + (keeper && tab ? '?tab=' + tab : '') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a>';
   };
 
@@ -504,7 +504,7 @@
   function bindDash(wrap) {
     var d = dash, again = function () { loadDash(d.host, d.user); };
     // The menu stays in view under the site header.
-    var hdr = document.querySelector('.site-header'); if (hdr) wrap.style.setProperty('--kh-top', hdr.offsetHeight + 'px');
+    var hdr = document.querySelector('.site-header'); if (hdr) { wrap.style.setProperty('--kh-top', hdr.offsetHeight + 'px'); wrap.style.setProperty('--kh-extra', Math.max(0, Math.round(wrap.getBoundingClientRect().top + window.scrollY - hdr.offsetHeight)) + 'px'); }
     wrap.addEventListener('click', function (e) {
       var b;
       if ((b = e.target.closest('[data-thread]'))) {
@@ -630,12 +630,18 @@
     function shell() {
       host.innerHTML = HV.demoBar() +
         '<div class="ed">' +
-          '<aside class="ed-side">' + HV.back('listings') +
-            '<p class="ed-title">' + esc(l.name || t('New listing')) + '</p><ol class="ed-nav"></ol></aside>' +
-          '<div class="ed-main"><div class="ed-prog" aria-hidden="true"><i></i></div><form class="ed-form" novalidate></form>' +
+          '<aside class="ed-side">' + HV.back('listings', true) +
+            '<p class="ed-eyebrow">' + esc(t(l.status === 'draft' || !l.status ? 'New listing' : 'Your listing')) + '</p>' +
+            '<p class="ed-title">' + esc(l.name || t('New listing')) + '</p><ol class="ed-nav"></ol>' +
+            '<div class="ed-side-foot"><p class="ed-done"></p><div class="ed-prog" aria-hidden="true"><i></i></div><p class="ed-auto">' + H.icon('check') + '<span>' + esc(t('Saved as you type. You can leave and come back.')) + '</span></p></div></aside>' +
+          '<div class="ed-main"><div class="ed-sheet"><form class="ed-form" novalidate></form>' +
             '<div class="ed-bar"><button type="button" class="btn btn-ghost" data-prev>' + esc(t('Back')) + '</button><span class="ed-saved" aria-live="polite"></span>' +
-            '<button type="button" class="btn btn-primary" data-next></button></div></div>' +
+            '<button type="button" class="btn btn-primary" data-next></button></div></div></div>' +
+          '<aside class="ed-live" aria-label="' + esc(t('How renters will see it')) + '"></aside>' +
         '</div>';
+      // The step column stays in view under the site header (and under the demo bar when there is one).
+      var hdr = document.querySelector('.site-header'), ed = $('.ed', host), hh = hdr ? hdr.offsetHeight : 81;
+      ed.style.setProperty('--ed-top', hh + 'px'); ed.style.setProperty('--ed-extra', Math.max(0, Math.round(ed.getBoundingClientRect().top + window.scrollY - hh)) + 'px');
       $('.ed-nav', host).addEventListener('click', function (e) { var b = e.target.closest('[data-step]'); if (b) show(+b.getAttribute('data-step')); });
       $('[data-prev]', host).addEventListener('click', function () { if (cur > 0) show(cur - 1); else go('/host'); });
       $('[data-next]', host).addEventListener('click', function () {
@@ -651,6 +657,17 @@
       }).join('');
       $('.ed-title', host).textContent = l.name || t('New listing');
       $('.ed-prog i', host).style.width = Math.round(ECS.stepsDone(l) / steps.length * 100) + '%';
+      $('.ed-done', host).textContent = t('{n} of 6 steps done', { n: ECS.stepsDone(l) });
+      // The listing as renters will see it, filled in as the Keeper types.
+      var cover = l.photos && l.photos[0], price = ECS.priceFrom(l), nph = (l.photos || []).length;
+      var line = [l.area, l.place_type ? t(l.place_type) : '', l.gender ? H.genderLabel(l.gender) : ''].filter(Boolean).join(' · ');
+      $('.ed-live', host).innerHTML = '<p class="ed-live-h">' + esc(t('How renters will see it')) + '</p>' +
+        '<div class="ed-lv"><div class="ed-lv-img' + (cover ? '' : ' none') + '">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="">' : '<span>' + H.icon('image') + '<small>' + esc(t('Your cover photo')) + '</small></span>') +
+          (nph > 1 ? '<i>' + esc(t('{n} photos', { n: nph })) + '</i>' : '') + '</div>' +
+        '<div class="ed-lv-b"><b class="' + (l.name ? '' : 'ghost') + '">' + esc(l.name || t('The name of your place')) + '</b>' +
+          '<span class="' + (line ? '' : 'ghost') + '">' + esc(line || t('Area, type of place, who can stay')) + '</span>' +
+          '<p class="' + (price ? '' : 'ghost') + '">' + (price ? '<b>' + esc(H.peso(price)) + '</b> ' + esc(t('/ month')) : esc(t('Your monthly price'))) + '</p></div></div>' +
+        '<p class="ed-live-n">' + esc(t('This fills in as you go. Renters see it only after we approve the listing.')) + '</p>';
       var nx = $('[data-next]', host);
       nx.textContent = cur < steps.length - 1 ? t('Save and continue') : (l.status === 'live' || l.status === 'paused' || l.status === 'review' ? t('Save changes') : t('Send for review'));
       nx.disabled = cur === steps.length - 1 && !ECS.ready(l);
