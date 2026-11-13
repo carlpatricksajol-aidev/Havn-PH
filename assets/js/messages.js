@@ -8,6 +8,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   function esc(s) { return H.esc(s); }
   var timer = null, state = null;
+  var EMOJI = '😀 😊 😂 🙂 😉 😍 🥰 😅 🙏 👍 👌 👏 💪 🤝 ❤️ ✨ 🎉 🔥 ✅ ❌ ⏰ 📍 🏠 🛏️ 🔑 🚿 📶 💡 💧 💰 📷 📞'.split(' ');
 
   function when(d) {
     var x = new Date(d), n = new Date();
@@ -39,12 +40,15 @@
   MV.render = function (host, id) {
     clearInterval(timer);
     if (!ECS.enabled()) { App.go('/list'); return; }
-    host.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<div class="inbox"><div class="host-loading"><span class="spin"></span></div></div>';
+    var known = state && state.list && ECS.user && state.uid === ECS.user.id;
+    host.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<div class="inbox">' + (known ? '' : '<div class="host-loading"><span class="spin"></span></div>') + '</div>';
+    if (known) { state.host = host; state.id = id || null; paint(); }
     ECS.session().then(function (s) {
       if (!s) { App.go('/signin?next=' + encodeURIComponent(location.pathname)); return; }
       return ECS.threads().then(function (list) {
-        state = { host: host, list: list, id: id || null, filter: 'all' };
-        paint();
+        var same = known && JSON.stringify(state.list.map(function (x) { return [x.q.id, x.msgs.length]; })) === JSON.stringify(list.map(function (x) { return [x.q.id, x.msgs.length]; }));
+        // Nothing new: keep what is on screen (the open reply box is tied to it).
+        if (!same) { state = { host: host, list: list, id: known ? state.id : id || null, filter: known ? state.filter : 'all', uid: s.user.id }; paint(true); }
         // Quiet refresh while the page is open, so a reply from the other side shows up.
         timer = setInterval(function () {
           if (!document.body.contains($('.inbox', host))) { clearInterval(timer); return; }
@@ -62,6 +66,7 @@
   function paint(keepDraft) {
     var host = state.host, list = state.list;
     var draft = keepDraft && $('.msg-box textarea', host) ? $('.msg-box textarea', host).value : '';
+    var sideAt = $('.msg-side', host) ? $('.msg-side', host).scrollTop : 0;
     var hasBoth = list.some(function (x) { return x.role === 'renter'; }) && list.some(function (x) { return x.role !== 'renter'; });
     var shown = list.filter(function (x) { return state.filter === 'all' || (state.filter === 'renter' ? x.role === 'renter' : x.role !== 'renter'); });
     // The way back: Keepers return to their Keeper home, renters to their account page.
@@ -96,7 +101,17 @@
     var root = $('.inbox', host);
     // The inbox fills the screen under whatever sits above it (top bar, demo bar).
     root.style.setProperty('--msg-h', 'calc(100dvh - ' + Math.round(root.getBoundingClientRect().top + window.scrollY) + 'px)');
+    if (sideAt && $('.msg-side', root)) $('.msg-side', root).scrollTop = sideAt;
     root.addEventListener('click', function (e) {
+      // Another conversation opens in place: no page load, the list stays where it was.
+      var r = e.target.closest('.msg-row');
+      if (r && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+        e.preventDefault(); e.stopPropagation();
+        var nid = r.getAttribute('href').split('/').pop();
+        if (nid !== state.id) history.pushState(history.state, '', r.getAttribute('href'));
+        state.id = nid; paint();
+        return;
+      }
       var f = e.target.closest('[data-msg-filter]');
       if (f) { state.filter = f.getAttribute('data-msg-filter'); state.id = null; history.replaceState(history.state, '', '/messages'); paint(); }
     });
@@ -147,7 +162,9 @@
             (th.role !== 'renter' && th.msgs.length < 2 ? '<div class="msg-quick">' + [t('Yes, it\'s still available. When would you like to see it?'), t('Thanks for asking! It\'s taken for now, but I can tell you when a room opens.')].map(function (s) {
               return '<button type="button" data-quick>' + esc(s) + '</button>';
             }).join('') + '</div>' : '') +
-            '<div class="msg-box-row"><textarea rows="1" maxlength="2000" placeholder="' + esc(t('Write a message')) + '" aria-label="' + esc(t('Write a message')) + '"></textarea>' +
+            '<div class="msg-box-row"><button type="button" class="emo-btn" data-emo aria-label="' + esc(t('Add an emoji')) + '" aria-expanded="false" title="' + esc(t('Add an emoji')) + '">' + H.icon('smile') + '</button>' +
+            '<div class="emo" hidden role="group" aria-label="' + esc(t('Add an emoji')) + '">' + EMOJI.map(function (x) { return '<button type="button" data-emoji>' + x + '</button>'; }).join('') + '</div>' +
+            '<textarea rows="1" maxlength="2000" placeholder="' + esc(t('Write a message')) + '" aria-label="' + esc(t('Write a message')) + '"></textarea>' +
             '<button type="submit" class="btn btn-primary">' + esc(t('Send')) + '</button></div>' +
             '<p class="field-err" role="alert" hidden></p>' +
           '</form>' +
@@ -168,6 +185,18 @@
     ta.addEventListener('input', grow); grow();
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(min-width: 900px)').matches) { e.preventDefault(); form.requestSubmit ? form.requestSubmit() : btn.click(); } });
     form.addEventListener('click', function (e) { var b = e.target.closest('[data-quick]'); if (b) { ta.value = b.textContent; grow(); ta.focus(); } });
+    // Emoji: a small set to pick from, put where the cursor is.
+    var eb = $('[data-emo]', form), ep = $('.emo', form);
+    function emo(open) { ep.hidden = !open; eb.setAttribute('aria-expanded', String(open)); }
+    eb.addEventListener('click', function () { emo(ep.hidden); });
+    ep.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-emoji]'); if (!b) return;
+      var a = ta.selectionStart == null ? ta.value.length : ta.selectionStart, z = ta.selectionEnd == null ? a : ta.selectionEnd, x = b.textContent;
+      ta.value = (ta.value.slice(0, a) + x + ta.value.slice(z)).slice(0, 2000);
+      grow(); ta.focus(); ta.selectionStart = ta.selectionEnd = Math.min(ta.value.length, a + x.length);
+    });
+    form.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ep.hidden) { emo(false); eb.focus(); } });
+    root.addEventListener('click', function (e) { if (!ep.hidden && !e.target.closest('.emo, [data-emo]')) emo(false); });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var body = ta.value.trim();

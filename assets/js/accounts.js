@@ -525,7 +525,7 @@
 
   // The signed-in person, kept current for the header.
   ECS.user = null;
-  ECS.onChange(function (s) { ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); });
+  ECS.onChange(function (s) { ECS.user = s && s.user; if (!ECS.user) H.store.set('ecs-keeper', false); document.dispatchEvent(new CustomEvent('ecs:auth')); });
   function withRole() {
     if (!ECS.user || ECS.mode !== 'live') return;
     ECS.profile().then(function (p) { if (ECS.user && p) { ECS.user.role = p.role; document.dispatchEvent(new CustomEvent('ecs:auth')); } }).catch(function () {});

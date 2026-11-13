@@ -2033,3 +2033,45 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .kh-back:hover { background: var(--evergreen-soft); }
 .kh-back .i { width: 18px; height: 18px; }
 .doc .kh-back { margin-bottom: 18px; }
+
+/* Inbox, second pass: every part sits in its own container so the eye knows where to read. The list is a column of
+   white cards on a soft ground, the open conversation is a white sheet, their words are grey and yours are green. */
+.inbox { max-width: none; background: var(--surface); }
+.msg-side { background: var(--surface); }
+.msg-list { gap: 8px; }
+.msg-row { background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow-card); transition: border-color .15s var(--ease), box-shadow .15s var(--ease); }
+.msg-row:hover { background: #fff; border-color: var(--border-strong); box-shadow: var(--shadow-hover); }
+.msg-row.on { background: #fff; border-color: var(--evergreen); box-shadow: inset 4px 0 0 var(--evergreen), var(--shadow-hover); }
+.msg-row.waiting:not(.on) { border-color: var(--warm-border); background: #FFFDF8; }
+.msg-main { background: #fff; }
+.msg-head { background: #fff; }
+.msg-flow { background: #fff; }
+.bub.theirs .bub-text { background: var(--surface); border-color: transparent; }
+.msg-day span { background: var(--surface); }
+.msg-box { background: #fff; }
+.msg-box textarea { background: var(--page); }
+.msg-box textarea:focus { background: #fff; }
+.msg-quick button { background: var(--page); }
+.msg-pick { background: #fff; }
+.msg-box-row { position: relative; }
+.emo-btn { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
+.emo-btn:hover, .emo-btn[aria-expanded="true"] { background: var(--surface); color: var(--evergreen); }
+.emo-btn .i { width: 22px; height: 22px; }
+.emo { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 6; display: grid; grid-template-columns: repeat(8, 40px); gap: 2px; padding: 10px; border: 1px solid var(--border); border-radius: 16px; background: #fff; box-shadow: var(--shadow-pop); }
+.emo[hidden] { display: none; }
+.emo button { width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; font-size: 22px; line-height: 1; cursor: pointer; }
+.emo button:hover, .emo button:focus-visible { background: var(--surface); outline: none; }
+@media (max-width: 420px) { .emo { grid-template-columns: repeat(7, 40px); } }
+@media (min-width: 900px) {
+  .inbox { grid-template-columns: 380px 1fr; }
+  .msg-side, .inbox.is-open .msg-side { padding: 24px 18px; }
+}
+@media (min-width: 1200px) {
+  .msg-info { background: var(--page); }
+}
+@media (min-width: 1600px) {
+  .inbox { grid-template-columns: 440px 1fr; }
+  .msg-cols { grid-template-columns: 1fr 380px; }
+  .msg-side, .inbox.is-open .msg-side { padding: 28px 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .msg-row { transition: none; } }
