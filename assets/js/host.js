@@ -278,134 +278,104 @@
     }).catch(function (x) { host.innerHTML = HV.demoBar() + '<div class="host-wrap"><p class="host-error">' + esc(x.message) + '</p></div>'; });
   }
 
+  /* The page: a fixed menu on the left (a strip of tabs on phones) and one quiet column of content. Each thing is
+   * said once: what needs the Keeper is on Home, conversations are on Messages, the plan is on its own tab. */
   function paintDash() {
     var d = dash, first = (d.p.full_name || d.user.name || '').split(' ')[0];
     var h = manilaHour(), hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    var title = first ? t(hello + ', {name}', { name: first }) : t(hello);
+    var title = d.tab === 'listings' ? t('Listings') : d.tab === 'messages' ? t('Messages') : d.tab === 'account' ? t('Plan and account') : first ? t(hello + ', {name}', { name: first }) : t(hello);
     var changes = d.ls.filter(function (l) { return l.status === 'changes'; }).length, review = d.ls.filter(function (l) { return l.status === 'review'; }).length;
-    var sum = !d.keeper ? t('Your messages and your details are here.') :
+    var sum = d.tab !== 'overview' ? '' : !d.keeper ? t('Your messages and your details are here.') :
       d.waiting.length === 1 ? t('1 renter is waiting for your reply.') :
       d.waiting.length ? t('{n} renters are waiting for your reply.', { n: d.waiting.length }) :
       changes ? t('A listing needs a few changes before renters can see it.') :
       d.live.length ? t('Your place is up and every renter has an answer.') :
       review ? t('Your listing is with us. We check it within 1 day and email you.') :
       t('Finish your listing and renters can start to write to you.');
-    var stat = function (n, label, tab, hot) {
-      var inner = '<b>' + num(n) + '</b><span>' + esc(t(label)) + '</span>';
-      return tab ? '<button type="button" class="kh-stat' + (hot ? ' hot' : '') + '" data-tab="' + tab + '">' + inner + '</button>' : '<div class="kh-stat">' + inner + '</div>';
+    var item = function (id, icon, label, n, hot) {
+      return '<button type="button" role="tab" aria-selected="' + (d.tab === id) + '" data-tab="' + id + '">' + H.icon(icon) + '<span>' + esc(t(label)) + '</span>' +
+        (hot ? '<b class="count brass">' + n + '</b>' : n ? '<i class="n">' + n + '</i>' : '') + '</button>';
     };
-    var tabBtn = function (id, label, n, hot) {
-      return '<button type="button" role="tab" aria-selected="' + (d.tab === id) + '" data-tab="' + id + '">' + esc(t(label)) +
-        (hot ? '<b class="count brass">' + n + '</b>' : n ? '<span class="n">' + n + '</span>' : '') + '</button>';
-    };
+    var add = '<a class="btn btn-brass kh-add" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a>';
     var body = !d.keeper ? renterHome() : d.tab === 'listings' ? tabListings() : d.tab === 'messages' ? tabMessages() : d.tab === 'account' ? tabAccount() : tabOverview();
     d.host.innerHTML = HV.demoBar() +
-      '<div class="host-wrap kh">' +
-        '<header class="kh-hero"><div class="kh-hero-top"><div><p class="kh-eyebrow">' + esc(t(d.keeper ? 'Keeper home' : 'Your account')) + '</p><h1>' + esc(title) + '</h1><p class="kh-sum">' + esc(sum) + '</p></div>' +
-          (d.keeper ? '<a class="btn btn-brass" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a>' : '') + '</div>' +
-          (d.keeper ? '<div class="kh-stats">' + stat(d.live.length, 'Live listings', 'listings') + stat(d.waiting.length, 'Renters waiting for you', 'messages', d.waiting.length > 0) +
-            stat(d.views, 'Views, last 30 days') + stat(d.saves, 'Saves, last 30 days') + '</div>' : '') +
-        '</header>' +
-        (d.keeper ? '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + tabBtn('overview', 'Overview') + tabBtn('listings', 'Listings', d.ls.length) + tabBtn('messages', 'Messages', d.waiting.length || d.kt.length, d.waiting.length > 0) + tabBtn('account', 'Plan and account') + '</div>' : '') +
-        '<div class="kh-body" role="tabpanel">' + body + '</div>' +
+      '<div class="host-wrap kh' + (d.keeper ? '' : ' kh-solo') + '">' +
+        (d.keeper ? '<aside class="kh-nav"><p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
+          '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + item('overview', 'home', 'Home') + item('listings', 'building', 'Listings', d.ls.length) + item('messages', 'message', 'Messages', d.waiting.length, d.waiting.length > 0) + item('account', 'user', 'Plan and account') + '</div>' +
+          add + '<p class="kh-nav-foot"><a href="/help" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
+        '<div class="kh-page" role="tabpanel">' +
+          '<header class="kh-head"><div><h1>' + esc(title) + '</h1>' + (sum ? '<p class="kh-sum">' + esc(sum) + '</p>' : '') + '</div>' + (d.keeper ? add : '') + '</header>' +
+          body +
+        '</div>' +
       '</div>';
     bindDash($('.kh', d.host));
   }
 
-  /* ---- Overview ---- */
+  /* ---- Home ---- */
   function tabOverview() {
     var d = dash, q = [];
-    d.waiting.slice(0, 3).forEach(function (th) {
-      q.push(queue('message', t(th.q.locked ? 'A message from {name}' : 'Reply to {name}', { name: th.q.renter_name || t('a renter') }), [th.room.name, ago(th.msgs[th.msgs.length - 1].created_at)].join(' · '), '/messages/' + th.q.id, th.q.locked ? 'Read' : 'Reply'));
+    var todo = function (title, sub, href, cta) { q.push([title, sub, href, cta]); };
+    d.waiting.slice(0, 4).forEach(function (th) {
+      todo(t(th.q.locked ? 'A message from {name}' : 'Reply to {name}', { name: th.q.renter_name || t('a renter') }), [th.room.name, ago(th.msgs[th.msgs.length - 1].created_at)].join(' · '), '/messages/' + th.q.id, th.q.locked ? 'Read' : 'Reply');
     });
-    d.ls.filter(function (l) { return l.status === 'changes'; }).forEach(function (l) {
-      q.push(queue('pencil', t('{name} needs a few changes', { name: l.name || t('Untitled listing') }), statusNote(l), '/host/edit/' + l.id, 'Update listing'));
-    });
+    d.ls.filter(function (l) { return l.status === 'changes'; }).forEach(function (l) { todo(t('{name} needs a few changes', { name: l.name || t('Untitled listing') }), statusNote(l), '/host/edit/' + l.id, 'Update listing'); });
     var ready = d.drafts.filter(function (l) { return ECS.ready(l); }), going = d.drafts.filter(function (l) { return !ECS.ready(l) && ECS.stepsDone(l) > 0; });
-    ready.slice(0, 2).forEach(function (l) { q.push(queue('check', t('{name} is ready to send', { name: l.name || t('Untitled listing') }), t('All 6 steps are done. Send it for review.'), '/host/edit/' + l.id + '?step=contact', 'Send')); });
-    if (!ready.length && going.length && !d.main.length) q.push(queue('home', t('Finish {name}', { name: going[0].name || t('Untitled listing') }), statusNote(going[0]), '/host/edit/' + going[0].id, 'Continue'));
-    if (!d.p.mobile) q.push(queue('phone', t('Add your mobile number'), t('So we can reach you about your listings.'), '/host/profile', 'Add'));
-    var show = d.main.length ? d.main.slice(0, 2) : [];
-    return '<div class="kh-grid"><div class="kh-main">' +
-        '<section class="kh-sec"><h2>' + esc(t('Needs you')) + '</h2>' +
-          (q.length ? '<ul class="kq-list">' + q.join('') + '</ul>' : '<p class="kq-clear">' + H.icon('check') + '<span>' + esc(t('All caught up. Nothing needs you right now.')) + '</span></p>') + '</section>' +
-        '<section class="kh-sec"><div class="kh-sec-h"><h2>' + esc(t('Your listings')) + '</h2>' + (d.ls.length > show.length ? '<button type="button" class="kh-more" data-tab="listings">' + esc(t('See all {n}', { n: d.ls.length })) + '</button>' : '') + '</div>' +
-          (show.length ? '<ul class="kl-list">' + show.map(listingCard).join('') + '</ul>' :
-            d.drafts.length ? '<ul class="kd-list">' + d.drafts.slice(0, 3).map(draftRow).join('') + '</ul>' : emptyListings()) + '</section>' +
-      '</div><aside class="kh-side">' +
-        '<section class="kh-card"><h2>' + esc(t('Views')) + '</h2>' + viewsChart() + '</section>' +
-        '<section class="kh-card"><div class="kh-sec-h"><h2>' + esc(t('Latest messages')) + '</h2>' + (d.kt.length ? '<button type="button" class="kh-more" data-tab="messages">' + esc(t('See all')) + '</button>' : '') + '</div>' +
-          (d.kt.length ? '<ul class="km-list flat">' + d.kt.slice(0, 3).map(msgRow).join('') + '</ul>' : '<p class="kh-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') + '</section>' +
-        planCard() +
-      '</aside></div>';
+    ready.slice(0, 2).forEach(function (l) { todo(t('{name} is ready to send', { name: l.name || t('Untitled listing') }), t('All 6 steps are done. Send it for review.'), '/host/edit/' + l.id + '?step=contact', 'Send'); });
+    if (!ready.length && going.length && !d.main.length) todo(t('Finish {name}', { name: going[0].name || t('Untitled listing') }), statusNote(going[0]), '/host/edit/' + going[0].id, 'Continue');
+    if (!d.p.mobile) todo(t('Add your mobile number'), t('So we can reach you about your listings.'), '/host/profile', 'Add');
+    var num = function (n, label, tab) {
+      var inner = '<b>' + numf(n) + '</b><span>' + esc(t(label)) + '</span>';
+      return tab ? '<button type="button" data-tab="' + tab + '">' + inner + '</button>' : '<div>' + inner + '</div>';
+    };
+    var show = (d.main.length ? d.main : d.drafts).slice(0, 4);
+    return '<div class="kh-nums">' + num(d.live.length, 'Live listings', 'listings') + num(d.waiting.length, 'Renters waiting', 'messages') + num(d.views, 'Views, 30 days') + num(d.saves, 'Saves, 30 days') + '</div>' +
+      '<section class="kh-sec"><h2>' + esc(t('To do')) + '</h2>' +
+        (q.length ? '<ul class="kq-list">' + q.map(function (x, i) {
+          return '<li class="kq"><div><b>' + esc(x[0]) + '</b><small>' + esc(x[1]) + '</small></div><a class="btn ' + (i ? 'btn-ghost' : 'btn-primary') + ' btn-sm" href="' + esc(x[2]) + '" data-link>' + esc(t(x[3])) + '</a></li>';
+        }).join('') + '</ul>' : '<p class="kq-clear">' + H.icon('check') + '<span>' + esc(t('All caught up. Nothing needs you right now.')) + '</span></p>') + '</section>' +
+      '<section class="kh-sec"><div class="kh-sec-h"><h2>' + esc(t('Your listings')) + '</h2>' + (d.ls.length > show.length ? '<button type="button" class="kh-more" data-tab="listings">' + esc(t('See all {n}', { n: d.ls.length })) + '</button>' : '') + '</div>' +
+        (show.length ? table(show) : emptyListings()) + '</section>';
   }
-  function queue(icon, title, sub, href, cta) {
-    return '<li class="kq"><span class="kq-ic">' + H.icon(icon) + '</span><div><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></div>' +
-      '<a class="btn btn-primary btn-sm" href="' + esc(href) + '" data-link>' + esc(t(cta)) + '</a></li>';
-  }
+  function numf(n) { return Number(n || 0).toLocaleString('en-PH'); }
   function emptyListings() {
     return '<a class="host-keeper" href="/host/new" data-link><span>' + H.icon('home') + '</span><div><b>' + esc(t('Have a place to rent out?')) + '</b><small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small></div>' + H.icon('chev-right') + '</a>';
   }
-  // Views per day for the last 30 days, all listings together.
-  function viewsChart() {
-    var d = dash, max = Math.max(4, Math.max.apply(null, d.series)), W = 300, Hh = 72, bw = W / d.series.length;
-    var bars = d.series.map(function (v, i) {
-      var bh = v ? Math.max(3, Math.round(v / max * Hh)) : 1.5;
-      return '<rect x="' + (i * bw + 1.5).toFixed(1) + '" y="' + (Hh - bh).toFixed(1) + '" width="' + (bw - 3).toFixed(1) + '" height="' + bh + '" rx="1.5"' + (v ? '' : ' class="zero"') + '><title>' + esc(shortDate(d.days[i] + 'T12:00:00') + ': ' + v) + '</title></rect>';
-    }).join('');
-    return '<p class="kv-total"><b>' + num(d.views) + '</b><span>' + esc(t('in the last 30 days')) + '</span></p>' +
-      '<svg class="kv" viewBox="0 0 ' + W + ' ' + Hh + '" preserveAspectRatio="none" role="img" aria-label="' + esc(t('Views per day, last 30 days')) + '">' + bars + '</svg>' +
-      '<p class="kv-axis"><span>' + esc(shortDate(d.days[0] + 'T12:00:00')) + '</span><span>' + esc(t('Today')) + '</span></p>' +
-      '<p class="kh-muted small">' + esc(d.views ? t('{n} saves in the same time. A view is a renter opening your listing.', { n: num(d.saves) }) : t('No views yet. They show here when renters open your live listing.')) + '</p>';
-  }
 
-  /* ---- Listings ---- */
-  function listingCard(l) {
-    var st = STATUS[l.status] || STATUS.draft, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), x = dash.per[l.id] || {}, up = l.status === 'live' || l.status === 'paused';
-    var act = [];
-    if (l.status === 'changes') act.push('<a class="btn btn-primary btn-sm" href="/host/edit/' + l.id + '" data-link>' + esc(t('Update listing')) + '</a>');
-    else act.push('<a class="btn btn-ghost btn-sm" href="/host/edit/' + l.id + '" data-link>' + H.icon('pencil') + '<span>' + esc(t('Edit')) + '</span></a>');
-    if (l.status === 'live') act.push('<a class="btn btn-ghost btn-sm" href="/room/' + l.id + '" data-link>' + H.icon('eye') + '<span>' + esc(t('See it as a renter')) + '</span></a>');
-    if (l.status === 'live') act.push('<button type="button" class="btn btn-ghost btn-sm" data-copy="/room/' + l.id + '">' + H.icon('copy') + '<span>' + esc(t('Copy link')) + '</span></button>');
-    if (l.status === 'live') act.push('<button type="button" class="btn btn-ghost btn-sm" data-pause="' + l.id + '">' + H.icon('pause') + '<span>' + esc(t('Pause')) + '</span></button>');
-    if (l.status === 'paused') act.push('<button type="button" class="btn btn-primary btn-sm" data-unpause="' + l.id + '">' + H.icon('play') + '<span>' + esc(t('Show again')) + '</span></button>');
-    var plan = !up ? '' : ECS.planOn(l) ?
-      '<p class="kl-plan on">' + H.icon('sparkle') + '<span>' + esc(t('{plan} plan until {date}', { plan: l.plan.charAt(0).toUpperCase() + l.plan.slice(1), date: new Date(l.plan_until + 'T12:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) })) + '</span></p>' :
-      '<p class="kl-plan"><span>' + esc(t('Free plan')) + '</span> · <a href="/host/plans" data-link>' + esc(t('See plans')) + '</a></p>';
-    return '<li class="kl ' + st.cls + '">' +
-      '<a class="kl-img" href="/host/edit/' + l.id + '" data-link aria-label="' + esc(t('Edit')) + ' ' + esc(l.name || t('Untitled listing')) + '">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="" loading="lazy">' : H.icon('home')) +
-        '<span class="kl-pill ' + st.cls + '"><i></i>' + esc(t(st.label)) + '</span></a>' +
-      '<div class="kl-b"><h3>' + esc(l.name || t('Untitled listing')) + '</h3>' +
-        '<p class="kl-meta">' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : ''].filter(Boolean).join(' · ')) + '</p>' +
-        (statusNote(l) ? '<p class="kl-note">' + esc(statusNote(l)) + '</p>' : '') +
-        (up ? '<ul class="kl-stats"><li class="kl-cap">' + esc(t('Last 30 days')) + '</li>' +
-          '<li>' + H.icon('eye') + '<b>' + num(x.views) + '</b> ' + esc(t('views')) + '</li>' +
-          '<li>' + H.icon('heart') + '<b>' + num(x.saves) + '</b> ' + esc(t('saves')) + '</li>' +
-          '<li>' + H.icon('message') + '<b>' + num(x.msgs) + '</b> ' + esc(t('renters wrote')) + '</li>' +
-          (x.waiting ? '<li><button type="button" class="kl-wait" data-tab="messages">' + esc(x.waiting === 1 ? t('1 waiting for your reply') : t('{n} waiting for your reply', { n: x.waiting })) + '</button></li>' : '') + '</ul>' : '') +
-        plan +
-        '<div class="kl-act">' + act.join('') + '</div>' +
-      '</div></li>';
+  /* ---- Listings: one row each, the same columns every time ---- */
+  function table(list) {
+    return '<div class="kt"><div class="kt-h" aria-hidden="true"><span class="kt-hl">' + esc(t('Listing')) + '</span><span>' + esc(t('Status')) + '</span><span class="kt-nums"><span class="r">' + esc(t('Views')) + '</span><span class="r">' + esc(t('Saves')) + '</span><span class="r">' + esc(t('Renters')) + '</span></span><span></span></div>' +
+      '<ul>' + list.map(row).join('') + '</ul></div>';
   }
-  function draftRow(l) {
-    var n = ECS.stepsDone(l);
-    return '<li class="kd"><span class="kd-ring" style="--p:' + Math.round(n / 6 * 100) + '" aria-hidden="true"><span>' + n + '/6</span></span>' +
-      '<div><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc([t('{n} of 6 steps done', { n: n }), l.updated_at ? t('edited {date}', { date: shortDate(l.updated_at) }) : ''].filter(Boolean).join(' · ')) + '</small></div>' +
-      '<a class="btn btn-primary btn-sm" href="/host/edit/' + l.id + '" data-link>' + esc(t('Continue')) + '</a>' +
-      '<button type="button" class="kd-del" data-del="' + l.id + '" aria-label="' + esc(t('Delete draft')) + ': ' + esc(l.name || t('Untitled listing')) + '">' + H.icon('trash') + '</button></li>';
+  function row(l) {
+    var st = STATUS[l.status] || STATUS.draft, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), x = dash.per[l.id] || {}, up = l.status === 'live' || l.status === 'paused';
+    var name = l.name || t('Untitled listing'), n = ECS.stepsDone(l);
+    var ic = function (attr, icon, label) { return '<button type="button" class="kt-ic" ' + attr + ' aria-label="' + esc(label + ': ' + name) + '" title="' + esc(label) + '">' + H.icon(icon) + '</button>'; };
+    var cell = function (v, label, hot) { return '<span class="kt-n r">' + (up ? '<b>' + numf(v) + '</b>' + (hot ? '<i class="kt-dot" title="' + esc(t('Waiting for your reply')) + '"></i>' : '') + '<em> ' + esc(t(label)) + '</em>' : '<b class="none">–</b>') + '</span>'; };
+    var main = l.status === 'draft' ? ['Continue', 'btn-primary'] : l.status === 'changes' ? ['Update listing', 'btn-primary'] : ['Edit', 'btn-ghost'];
+    return '<li class="kt-r">' +
+      '<a class="kt-img" href="/host/edit/' + l.id + '" data-link tabindex="-1" aria-hidden="true">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="" loading="lazy">' : H.icon('home')) + '</a>' +
+      '<div class="kt-name"><a href="/host/edit/' + l.id + '" data-link>' + esc(name) + '</a><small>' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : ''].filter(Boolean).join(' · ') || t('No details yet')) + '</small></div>' +
+      '<div class="kt-st ' + st.cls + '"><span><i></i>' + esc(t(st.label)) + '</span>' +
+        (l.status === 'draft' ? '<small>' + esc(t('{n} of 6 steps done', { n: n })) + '</small>' : ECS.planOn(l) ? '<small>' + esc(t('{plan} plan', { plan: l.plan.charAt(0).toUpperCase() + l.plan.slice(1) })) + '</small>' : '') + '</div>' +
+      '<div class="kt-nums">' + cell(x.views, 'views') + cell(x.saves, 'saves') + cell(x.msgs, 'renters', x.waiting > 0) + '</div>' +
+      '<div class="kt-act">' +
+        (l.status === 'live' ? ic('data-go="/room/' + l.id + '"', 'eye', t('See it as a renter')) + ic('data-copy="/room/' + l.id + '"', 'copy', t('Copy link')) + ic('data-pause="' + l.id + '"', 'pause', t('Pause')) : '') +
+        (l.status === 'paused' ? ic('data-unpause="' + l.id + '"', 'play', t('Show again')) : '') +
+        (l.status === 'draft' ? ic('data-del="' + l.id + '"', 'trash', t('Delete draft')) : '') +
+        '<a class="btn ' + main[1] + ' btn-sm" href="/host/edit/' + l.id + '" data-link>' + esc(t(main[0])) + '</a></div>' +
+    '</li>';
   }
   function tabListings() {
     var d = dash, F = [['all', 'All'], ['live', 'Live'], ['review', 'In review'], ['changes', 'Needs changes'], ['paused', 'Paused'], ['draft', 'Drafts']];
     var n = function (k) { return k === 'all' ? d.ls.length : d.ls.filter(function (l) { return l.status === k; }).length; };
     if (d.filter !== 'all' && !n(d.filter)) d.filter = 'all';
-    var chips = F.filter(function (f) { return f[0] === 'all' || n(f[0]); });
-    var main = d.main.filter(function (l) { return d.filter === 'all' || l.status === d.filter; }), drafts = d.filter === 'all' || d.filter === 'draft' ? d.drafts : [];
     if (!d.ls.length) return '<section class="kh-sec">' + emptyListings() + '</section>';
+    var chips = F.filter(function (f) { return f[0] === 'all' || n(f[0]); });
+    var list = d.main.concat(d.drafts).filter(function (l) { return d.filter === 'all' || l.status === d.filter; });
     return '<section class="kh-sec">' +
       (chips.length > 2 ? '<div class="kh-chips" role="group" aria-label="' + esc(t('Show')) + '">' + chips.map(function (f) { return '<button type="button" aria-pressed="' + (d.filter === f[0]) + '" data-filter="' + f[0] + '">' + esc(t(f[1])) + ' <span>' + n(f[0]) + '</span></button>'; }).join('') + '</div>' : '') +
-      (main.length ? '<ul class="kl-list">' + main.map(listingCard).join('') + '</ul>' : '') +
-      (drafts.length ? (main.length ? '<h2 class="kh-sub">' + esc(t('Drafts')) + '</h2>' : '') + '<p class="kh-muted">' + esc(t('Only you can see a draft. Finish the 6 steps and send it for review.')) + '</p><ul class="kd-list">' + drafts.map(draftRow).join('') + '</ul>' : '') +
-      '</section>';
+      table(list) +
+      '<p class="kh-muted small">' + esc(t('Views, saves and renters are for the last 30 days. Only you can see a draft.')) + '</p></section>';
   }
 
   /* ---- Messages ---- */
@@ -416,9 +386,8 @@
     var tag = keeper && th.waiting ? (th.q.locked ? '<span class="km-tag off">' + esc(t('Locked')) + '</span>' : '<span class="km-tag">' + esc(t('Your turn')) + '</span>') : !keeper && th.waiting ? '<span class="km-tag">' + esc(t('New reply')) + '</span>' : '';
     return '<li><a class="km' + (th.waiting ? ' wait' : '') + '" href="/messages/' + esc(th.q.id) + '" data-link>' +
       '<span class="km-av">' + (keeper ? esc(initials(name)) : H.icon('home')) + '</span>' +
-      '<span class="km-b"><span class="km-top"><b>' + esc(name) + '</b><time>' + esc(ago(last.created_at)) + '</time></span>' +
-        '<span class="km-room">' + esc(sub) + '</span>' +
-        '<span class="km-snip">' + esc((mine ? t('You') + ': ' : '') + (last.body || '')) + '</span></span>' + tag + '</a></li>';
+      '<span class="km-b"><span class="km-top"><b>' + esc(name) + '</b><span class="km-room">' + esc(sub) + '</span></span>' +
+        '<span class="km-snip">' + esc((mine ? t('You') + ': ' : '') + (last.body || '')) + '</span></span>' + tag + '<time>' + esc(ago(last.created_at)) + '</time></a></li>';
   }
   function quotaLine() {
     var d = dash; if (!d.onFree) return '';
@@ -429,53 +398,49 @@
   }
   function tabMessages() {
     var d = dash, rest = d.kt.filter(function (th) { return !th.waiting; });
-    return '<section class="kh-sec"><div class="kh-sec-h"><h2>' + esc(t('Messages from renters')) + '</h2><a class="kh-more" href="/messages" data-link>' + esc(t('Open the inbox')) + '</a></div>' + quotaLine() +
+    return '<section class="kh-sec">' + quotaLine() +
       (d.kt.length ? '' : '<p class="kh-muted">' + esc(t('No messages yet. When a renter asks about one of your live listings, it shows here and we email you.')) + '</p>') +
-      (d.waiting.length ? '<h3 class="kh-group">' + esc(t('Waiting for your reply')) + ' <span>' + d.waiting.length + '</span></h3><ul class="km-list">' + d.waiting.map(msgRow).join('') + '</ul>' : '') +
-      (rest.length ? '<h3 class="kh-group">' + esc(t('Answered')) + ' <span>' + rest.length + '</span></h3><ul class="km-list">' + rest.map(msgRow).join('') + '</ul>' : '') + '</section>' +
-      (d.rt.length ? '<section class="kh-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2><ul class="km-list">' + d.rt.map(msgRow).join('') + '</ul></section>' : '');
+      (d.waiting.length ? '<h2 class="kh-group">' + esc(t('Waiting for your reply')) + ' <span>' + d.waiting.length + '</span></h2><ul class="km-list">' + d.waiting.map(msgRow).join('') + '</ul>' : '') +
+      (rest.length ? '<h2 class="kh-group">' + esc(t('Answered')) + ' <span>' + rest.length + '</span></h2><ul class="km-list">' + rest.map(msgRow).join('') + '</ul>' : '') +
+      (d.rt.length ? '<h2 class="kh-group">' + esc(t('Rooms you asked about')) + ' <span>' + d.rt.length + '</span></h2><ul class="km-list">' + d.rt.map(msgRow).join('') + '</ul>' : '') +
+      (d.kt.length || d.rt.length ? '<p class="kh-muted small"><a href="/messages" data-link>' + esc(t('Open the inbox')) + '</a></p>' : '') + '</section>';
   }
 
   /* ---- Plan and account ---- */
-  function planCard() {
+  function planBlock() {
     var d = dash, paid = d.ls.filter(function (l) { return ECS.planOn(l); });
-    if (!d.onFree && !paid.length) return '';
     var used = d.onFree ? Math.min(d.quota.used, d.quota.limit) : 0;
-    return '<section class="kh-card kp"><h2>' + esc(t('Your plan')) + '</h2>' +
-      paid.map(function (l) { return '<p class="kp-row">' + H.icon('sparkle') + '<span><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc(t('{plan} plan until {date}', { plan: l.plan.charAt(0).toUpperCase() + l.plan.slice(1), date: new Date(l.plan_until + 'T12:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) })) + '</small></span></p>'; }).join('') +
+    return '<section class="kh-sec kp"><h2>' + esc(t('Your plan')) + '</h2>' +
+      paid.map(function (l) { return '<p class="kp-row"><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc(t('{plan} plan until {date}', { plan: l.plan.charAt(0).toUpperCase() + l.plan.slice(1), date: new Date(l.plan_until + 'T12:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) })) + '</small></p>'; }).join('') +
       (d.onFree ? '<p class="kp-name">' + esc(t('Free plan')) + '</p>' +
         '<div class="kp-bar" role="img" aria-label="' + esc(t('{n} of {max} new renters answered this month', { n: used, max: d.quota.limit })) + '"><i style="width:' + Math.round(used / d.quota.limit * 100) + '%"></i></div>' +
-        '<p class="kh-muted small">' + esc(t('{n} of {max} new renters answered this month', { n: used, max: d.quota.limit })) + '. ' + esc(t('Starts again on {date}.', { date: ECS.quotaResets() })) + '</p>' +
-        '<a class="btn btn-ghost btn-sm" href="/host/plans" data-link>' + esc(t('See plans')) + '</a>' : '') +
-      '</section>';
+        '<p class="kh-muted small">' + esc(t('{n} of {max} new renters answered this month', { n: used, max: d.quota.limit })) + '. ' + esc(t('Starts again on {date}.', { date: ECS.quotaResets() })) + '</p>' :
+        paid.length ? '' : '<p class="kh-muted">' + esc(t('Plans add the Verified mark, a higher place in search and no limit on answers.')) + '</p>') +
+      '<a class="btn btn-ghost btn-sm" href="/host/plans" data-link>' + esc(t('See plans')) + '</a></section>';
   }
   function linkRows(keeper) {
-    var d = dash, row = function (href, icon, label, sub) { return '<li><a href="' + esc(href) + '" data-link><span class="kq-ic plain">' + H.icon(icon) + '</span><div><b>' + esc(t(label)) + '</b>' + (sub ? '<small>' + esc(t(sub)) + '</small>' : '') + '</div>' + H.icon('chev-right') + '</a></li>'; };
+    var d = dash, r = function (href, label, sub) { return '<li><a href="' + esc(href) + '" data-link><div><b>' + esc(t(label)) + '</b>' + (sub ? '<small>' + esc(t(sub)) + '</small>' : '') + '</div>' + H.icon('chev-right') + '</a></li>'; };
     return '<ul class="kh-links">' +
-      row('/host/profile', 'user', 'Your details', 'Name, mobile number, how renters reach you') +
-      row('/messages', 'message', 'Messages', 'Every conversation in one inbox') +
-      (keeper ? row('/host/plans', 'list', 'Plans for Keepers', 'What each plan adds') : '') +
-      (keeper ? row('/listing-standards', 'shield', 'Keeper standards', 'What we check before a listing goes live') : '') +
-      row('/help', 'info', 'Help', 'Answers and how to reach us') +
-      (d.p.role === 'admin' && App.desk() ? row(App.desk(), 'grid', 'Admin') : '') +
-      (d.p.role === 'admin' || ECS.mode === 'demo' ? row('/host/review', 'check', ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings') : '') +
+      r('/host/profile', 'Your details', 'Name, mobile number, how renters reach you') +
+      (keeper ? '' : r('/messages', 'Messages', 'Every conversation in one inbox')) +
+      (keeper ? r('/listing-standards', 'Keeper standards', 'What we check before a listing goes live') : '') +
+      r('/help', 'Help', 'Answers and how to reach us') +
+      (d.p.role === 'admin' && App.desk() ? r(App.desk(), 'Admin') : '') +
+      (d.p.role === 'admin' || ECS.mode === 'demo' ? r('/host/review', ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings') : '') +
       '</ul>';
   }
   function tabAccount() {
-    var d = dash;
-    return '<div class="kh-grid"><div class="kh-main"><section class="kh-sec"><h2>' + esc(t('Your account')) + '</h2>' +
-      '<p class="kh-muted">' + esc(d.user.email || '') + '</p>' + linkRows(true) + '</section>' +
-      (ECS.mode === 'demo' ? outboxHtml(d.out) : '') + '</div>' +
-      '<aside class="kh-side">' + (planCard() || '<section class="kh-card kp"><h2>' + esc(t('Your plan')) + '</h2><p class="kh-muted">' + esc(t('Plans add the Verified mark, a higher place in search and no limit on answers.')) + '</p><a class="btn btn-ghost btn-sm" href="/host/plans" data-link>' + esc(t('See plans')) + '</a></section>') + '</aside></div>';
+    return '<div class="kh-narrow">' + planBlock() + '<section class="kh-sec"><h2>' + esc(t('Your account')) + '</h2>' + linkRows(true) + '</section>' + (ECS.mode === 'demo' ? outboxHtml(dash.out) : '') + '</div>';
   }
 
   /* ---- People with no listing: a short account page ---- */
   function renterHome() {
     var d = dash;
-    return '<div class="kh-grid"><div class="kh-main"><section class="kh-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
+    return '<div class="kh-narrow"><section class="kh-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
       (d.rt.length ? '<ul class="km-list">' + d.rt.map(msgRow).join('') + '</ul>' : '<p class="kh-muted">' + esc(t('When you message a Keeper about a room, it shows here.')) + ' <a href="/rooms" data-link>' + esc(t('Find a room')) + '</a></p>') + '</section>' +
-      (ECS.mode === 'demo' ? outboxHtml(d.out) : '') + '</div>' +
-      '<aside class="kh-side"><section class="kh-sec">' + linkRows(false) + '</section>' + emptyListings() + '</aside></div>';
+      '<section class="kh-sec"><h2>' + esc(t('Your account')) + '</h2>' + linkRows(false) + '</section>' +
+      '<section class="kh-sec">' + emptyListings() + '</section>' +
+      (ECS.mode === 'demo' ? outboxHtml(d.out) : '') + '</div>';
   }
 
   /* Demo only: the emails the service would have sent, openable as they would look. */
@@ -501,16 +466,19 @@
 
   function bindDash(wrap) {
     var d = dash, again = function () { loadDash(d.host, d.user); };
+    // The menu stays in view under the site header.
+    var hdr = document.querySelector('.site-header'); if (hdr) wrap.style.setProperty('--kh-top', hdr.offsetHeight + 'px');
     wrap.addEventListener('click', function (e) {
       var b;
       if ((b = e.target.closest('[data-tab]'))) {
         d.tab = b.getAttribute('data-tab');
         history.replaceState(history.state, '', '/host' + (d.tab === 'overview' ? '' : '?tab=' + d.tab));
         paintDash();
-        var tabs = $('.kh-tabs', d.host); if (tabs && tabs.getBoundingClientRect().top < 0) tabs.scrollIntoView();
+        window.scrollTo(0, 0);
         var on = $('.kh-tabs [aria-selected="true"]', d.host); if (on && b.closest('.kh-tabs')) on.focus();
       }
       else if ((b = e.target.closest('[data-filter]'))) { d.filter = b.getAttribute('data-filter'); paintDash(); var f = $('.kh-chips [aria-pressed="true"]', d.host); if (f) f.focus(); }
+      else if ((b = e.target.closest('[data-go]'))) go(b.getAttribute('data-go'));
       else if ((b = e.target.closest('[data-copy]'))) {
         var url = location.origin + b.getAttribute('data-copy');
         (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { H.toast(t('Link copied')); }).catch(function () { window.prompt(t('Copy link'), url); });
