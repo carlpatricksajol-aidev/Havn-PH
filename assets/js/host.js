@@ -319,30 +319,66 @@
     bindDash($('.kh', d.host));
   }
 
-  /* ---- Home ---- */
+  /* ---- Home: three questions, each in its own card. Who is waiting for me? Where are my listings at?
+   * How are they doing? ---- */
   function tabOverview() {
-    var d = dash, q = [];
-    var todo = function (title, sub, href, cta) { q.push([title, sub, href, cta]); };
-    d.waiting.slice(0, 4).forEach(function (th) {
-      todo(t(th.q.locked ? 'A message from {name}' : 'Reply to {name}', { name: th.q.renter_name || t('a renter') }), [th.room.name, ago(th.msgs[th.msgs.length - 1].created_at)].join(' · '), '/messages/' + th.q.id, th.q.locked ? 'Read' : 'Reply');
-    });
-    d.ls.filter(function (l) { return l.status === 'changes'; }).forEach(function (l) { todo(t('{name} needs a few changes', { name: l.name || t('Untitled listing') }), statusNote(l), '/host/edit/' + l.id, 'Update listing'); });
-    var ready = d.drafts.filter(function (l) { return ECS.ready(l); }), going = d.drafts.filter(function (l) { return !ECS.ready(l) && ECS.stepsDone(l) > 0; });
-    ready.slice(0, 2).forEach(function (l) { todo(t('{name} is ready to send', { name: l.name || t('Untitled listing') }), t('All 6 steps are done. Send it for review.'), '/host/edit/' + l.id + '?step=contact', 'Send'); });
-    if (!ready.length && going.length && !d.main.length) todo(t('Finish {name}', { name: going[0].name || t('Untitled listing') }), statusNote(going[0]), '/host/edit/' + going[0].id, 'Continue');
-    if (!d.p.mobile) todo(t('Add your mobile number'), t('So we can reach you about your listings.'), '/host/profile', 'Add');
-    var num = function (n, label, tab) {
-      var inner = '<b>' + numf(n) + '</b><span>' + esc(t(label)) + '</span>';
-      return tab ? '<button type="button" data-tab="' + tab + '">' + inner + '</button>' : '<div>' + inner + '</div>';
+    var d = dash, anyUp = d.ls.some(function (l) { return l.status === 'live' || l.status === 'paused'; });
+    var tile = function (icon, n, label, tab, tone, hint) {
+      var inner = '<span class="kn-ic ' + (tone || '') + '">' + H.icon(icon) + '</span><span class="kn-b"><b>' + (n == null ? '–' : numf(n)) + '</b><span>' + esc(t(label)) + '</span>' + (hint ? '<small>' + esc(t(hint)) + '</small>' : '') + '</span>';
+      return tab ? '<button type="button" class="kn" data-tab="' + tab + '">' + inner + '</button>' : '<div class="kn">' + inner + '</div>';
     };
-    var show = (d.main.length ? d.main : d.drafts).slice(0, 4);
-    return '<div class="kh-nums">' + num(d.live.length, 'Live listings', 'listings') + num(d.waiting.length, 'Renters waiting', 'messages') + num(d.views, 'Views, 30 days') + num(d.saves, 'Saves, 30 days') + '</div>' +
-      '<section class="kh-sec"><h2>' + esc(t('To do')) + '</h2>' +
-        (q.length ? '<ul class="kq-list">' + q.map(function (x, i) {
-          return '<li class="kq"><div><b>' + esc(x[0]) + '</b><small>' + esc(x[1]) + '</small></div><a class="btn ' + (i ? 'btn-ghost' : 'btn-primary') + ' btn-sm" href="' + esc(x[2]) + '" data-link>' + esc(t(x[3])) + '</a></li>';
-        }).join('') + '</ul>' : '<p class="kq-clear">' + H.icon('check') + '<span>' + esc(t('All caught up. Nothing needs you right now.')) + '</span></p>') + '</section>' +
-      '<section class="kh-sec"><div class="kh-sec-h"><h2>' + esc(t('Your listings')) + '</h2>' + (d.ls.length > show.length ? '<button type="button" class="kh-more" data-tab="listings">' + esc(t('See all {n}', { n: d.ls.length })) + '</button>' : '') + '</div>' +
-        (show.length ? table(show) : emptyListings()) + '</section>';
+    // Other things to finish (messages have their own card).
+    var q = [], todo = function (icon, title, sub, href, cta) { q.push('<li class="kq"><span class="kq-ic">' + H.icon(icon) + '</span><div><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></div><a class="btn btn-ghost btn-sm" href="' + esc(href) + '" data-link>' + esc(t(cta)) + '</a></li>'); };
+    d.ls.filter(function (l) { return l.status === 'changes'; }).forEach(function (l) { todo('pencil', t('{name} needs a few changes', { name: l.name || t('Untitled listing') }), statusNote(l), '/host/edit/' + l.id, 'Update listing'); });
+    d.drafts.filter(function (l) { return ECS.ready(l); }).slice(0, 2).forEach(function (l) { todo('check', t('{name} is ready to send', { name: l.name || t('Untitled listing') }), t('All 6 steps are done. Send it for review.'), '/host/edit/' + l.id + '?step=contact', 'Send'); });
+    if (!d.p.mobile) todo('phone', t('Add your mobile number'), t('So we can reach you about your listings.'), '/host/profile', 'Add');
+    var show = (d.main.length ? d.main : d.drafts).slice(0, 3);
+    var wait = d.waiting.slice(0, 4);
+    return '<div class="kn-row">' +
+        tile('home', d.live.length, 'Live listings', 'listings', 'green') +
+        tile('message', d.waiting.length, 'Renters waiting for your reply', 'messages', d.waiting.length ? 'brass' : '') +
+        tile('eye', anyUp ? d.views : null, 'Views in the last 30 days', '', '', anyUp ? '' : 'Counts once a listing is live') +
+        tile('heart', anyUp ? d.saves : null, 'Saves in the last 30 days', '', '', anyUp ? '' : 'Counts once a listing is live') +
+      '</div>' +
+      '<div class="kh-cols"><div class="kh-col">' +
+        '<section class="kcard"><div class="kcard-h"><h2>' + esc(t('Renters waiting for you')) + (d.waiting.length ? ' <b class="count brass">' + d.waiting.length + '</b>' : '') + '</h2>' +
+          (d.kt.length ? '<button type="button" class="kh-more" data-tab="messages">' + esc(t('All messages')) + '</button>' : '') + '</div>' +
+          (wait.length ? '<ul class="kw-list">' + wait.map(function (th) {
+            var last = th.msgs[th.msgs.length - 1], name = th.q.renter_name || t('Renter');
+            return '<li class="kw"><span class="km-av">' + esc(initials(name)) + '</span><div class="kw-b"><p class="kw-top"><b>' + esc(name) + '</b><time>' + esc(ago(last.created_at)) + '</time></p>' +
+              '<p class="kw-room">' + esc(th.room.name) + '</p><p class="kw-msg">' + esc(last.body || '') + '</p></div>' +
+              '<a class="btn btn-primary btn-sm" href="/messages/' + esc(th.q.id) + '" data-link>' + esc(t(th.q.locked ? 'Read' : 'Reply')) + '</a></li>';
+          }).join('') + '</ul>' :
+          '<div class="kcard-empty">' + H.icon('check') + '<p><b>' + esc(t('No one is waiting.')) + '</b> ' + esc(t(d.kt.length ? 'Every renter has your answer.' : 'When a renter asks about your live listing, the message shows here and we email you.')) + '</p></div>') +
+        '</section>' +
+        (q.length ? '<section class="kcard"><div class="kcard-h"><h2>' + esc(t('Things to finish')) + '</h2></div><ul class="kq-list">' + q.join('') + '</ul></section>' : '') +
+      '</div><div class="kh-col">' +
+        '<section class="kcard"><div class="kcard-h"><h2>' + esc(t('Your listings')) + '</h2>' + (d.ls.length > show.length ? '<button type="button" class="kh-more" data-tab="listings">' + esc(t('See all {n}', { n: d.ls.length })) + '</button>' : '') + '</div>' +
+          (show.length ? '<ul class="kc-list">' + show.map(homeListing).join('') + '</ul>' : emptyListings()) +
+        '</section>' +
+      '</div></div>';
+  }
+  // Where a listing is on its way to renters: Details, Review, Live.
+  function steps(l) {
+    var s = l.status, at = s === 'draft' ? 0 : s === 'review' || s === 'changes' ? 1 : 2;
+    return '<ol class="ks' + (s === 'changes' ? ' bad' : '') + '">' + ['Details', 'Review', 'Live'].map(function (label, i) {
+      var cls = i < at || s === 'live' ? 'done' : i === at ? 'on' : '';
+      return '<li class="' + cls + '"><i>' + (cls === 'done' ? H.icon('check') : '') + '</i><span>' + esc(t(label)) + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  function homeListing(l) {
+    var st = STATUS[l.status] || STATUS.draft, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), x = dash.per[l.id] || {}, name = l.name || t('Untitled listing');
+    var main = l.status === 'draft' ? ['Continue', 'btn-primary'] : l.status === 'changes' ? ['Update listing', 'btn-primary'] : ['Edit', 'btn-ghost'];
+    return '<li class="kc">' +
+      '<a class="kc-img" href="/host/edit/' + l.id + '" data-link tabindex="-1" aria-hidden="true">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="" loading="lazy">' : H.icon('home')) + '</a>' +
+      '<div class="kc-b"><div class="kc-top"><h3>' + esc(name) + '</h3><span class="kc-pill ' + st.cls + '"><i></i>' + esc(t(st.label)) + '</span></div>' +
+        '<p class="kc-meta">' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : ''].filter(Boolean).join(' · ') || t('No details yet')) + '</p>' +
+        (l.status === 'paused' || l.status === 'removed' ? '' : steps(l)) +
+        (l.status === 'live' ? '<p class="kc-nums"><span>' + H.icon('eye') + '<b>' + numf(x.views) + '</b> ' + esc(t('views')) + '</span><span>' + H.icon('heart') + '<b>' + numf(x.saves) + '</b> ' + esc(t('saves')) + '</span><span>' + H.icon('message') + '<b>' + numf(x.msgs) + '</b> ' + esc(t('renters')) + '</span></p>' :
+          statusNote(l) ? '<p class="kc-note">' + esc(statusNote(l)) + '</p>' : '') +
+        '<div class="kc-act"><a class="btn ' + main[1] + ' btn-sm" href="/host/edit/' + l.id + '" data-link>' + esc(t(main[0])) + '</a>' +
+          (l.status === 'live' ? '<a class="btn btn-ghost btn-sm" href="/room/' + l.id + '" data-link>' + esc(t('See it as a renter')) + '</a>' : '') + '</div>' +
+      '</div></li>';
   }
   function numf(n) { return Number(n || 0).toLocaleString('en-PH'); }
   function emptyListings() {
