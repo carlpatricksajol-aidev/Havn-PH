@@ -25,7 +25,7 @@
   },
   "sign-in-code": {
     "subject": "{{code}} is your ECStay sign-in code",
-    "preheader": "Enter it on ECStay to finish signing in. It works once and expires in 10 minutes."
+    "preheader": "It works once and expires in 10 minutes."
   },
   "welcome": {
     "subject": "Welcome to ECStay, {{name}}",

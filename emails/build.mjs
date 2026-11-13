@@ -44,6 +44,9 @@ export const C = {
 };
 const SERIF = "'Newsreader', Georgia, 'Times New Roman', serif";
 const SANS = "'Hanken Grotesk', Helvetica, Arial, sans-serif";
+// The plain layout (sign-in code) uses the reader's own system font: nothing to download, the same in every mail app.
+const SYS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const ICON_URL = 'https://www.havnph.com/assets/brand/apple-touch-icon.png';
 
 export const LOGO_URL = 'https://www.havnph.com/assets/brand/ecstay-email-logo.png';
 // Display size of the logo. Export the PNG at 2x (264 x 64) with a transparent background.
@@ -91,6 +94,16 @@ const STYLES = {
   'listing-name': `margin:0 0 4px;font-family:${SERIF};font-size:19px;line-height:24px;font-weight:500;letter-spacing:-0.3px;color:${C.ink}`,
   'listing-meta': `margin:0 0 6px;font-family:${SANS};font-size:14px;line-height:20px;color:${C.muted}`,
   'listing-price': `margin:0;font-family:${SANS};font-size:15px;line-height:21px;font-weight:600;color:${C.ink}`,
+  'pl-page': `background-color:${C.white}`,
+  'pl-icon': `display:block;width:40px;height:40px;border:0;outline:none;border-radius:10px;font-family:${SYS};font-size:15px;line-height:40px;font-weight:700;color:${C.evergreen}`,
+  'pl-h1': `margin:28px 0 10px;font-family:${SYS};font-size:24px;line-height:31px;font-weight:600;letter-spacing:-0.4px;color:${C.ink}`,
+  'pl-p': `margin:0 0 22px;font-family:${SYS};font-size:16px;line-height:25px;font-weight:400;color:${C.ink2}`,
+  'pl-box': `padding:22px 12px;background-color:#F3F1EC;border-radius:10px;text-align:center`,
+  'pl-code': `margin:0;padding:0 0 0 8px;font-family:${SYS};font-size:34px;line-height:42px;font-weight:700;letter-spacing:8px;color:${C.ink};font-variant-numeric:tabular-nums;text-align:center`,
+  'pl-small': `margin:0 0 10px;font-family:${SYS};font-size:14px;line-height:22px;font-weight:400;color:${C.muted}`,
+  'pl-line': `height:1px;line-height:1px;font-size:1px;background-color:#E8E5DE`,
+  'pl-foot': `margin:0 0 4px;font-family:${SYS};font-size:12px;line-height:19px;font-weight:400;color:#8A8F8A`,
+  'pl-foot-link': `color:#8A8F8A;text-decoration:underline`,
   'foot-brand': `margin:0 0 8px;font-family:${SANS};font-size:13px;line-height:20px;font-weight:600;color:${C.foot}`,
   'foot-links': `margin:0 0 12px;font-family:${SANS};font-size:13px;line-height:20px;color:${C.muted}`,
   'foot-link': `color:${C.foot};text-decoration:underline`,
@@ -157,6 +170,13 @@ function expandComponents(body) {
     return spacer(btn + alt, '6px 0 26px');
   });
 
+  out = out.replace(/<x-code plain>([\s\S]*?)<\/x-code>/g, (_, code) =>
+    spacer(
+      `<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr>` +
+        `<td class="pl-box" align="center" bgcolor="#F3F1EC"><p class="pl-code">${code.trim()}</p></td></tr></table>`,
+      '0 0 22px',
+    ),
+  );
   out = out.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) =>
     spacer(
       `<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr>` +
@@ -271,7 +291,6 @@ function toText(body) {
     const alt = attr(a, 'alt-text');
     return block(alt ? `${main}\n${alt}` : main);
   });
-  t = t.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) => block(`    ${code.trim()}${attr(a, 'note') ? `\n\n${decode(attr(a, 'note'))}` : ''}`));
   t = t.replace(/<x-quote\b([^>]*)>([\s\S]*?)<\/x-quote>/g, (_, a, text) => {
     const label = attr(a, 'label');
     return block(`${label ? `${label}:\n` : ''}"${inlineText(text)}"`);
@@ -291,6 +310,8 @@ function toText(body) {
     block(`${attr(a, 'name')}\n${attr(a, 'area')}\nFrom ${attr(a, 'price')}/month`),
   );
   t = t.replace(/<x-divider>\s*<\/x-divider>/g, '\n\n');
+  t = t.replace(/<x-code plain>([\s\S]*?)<\/x-code>/g, (_, code) => block(`    ${code.trim()}`));
+  t = t.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) => block(`    ${code.trim()}${attr(a, 'note') ? `\n\n${decode(attr(a, 'note'))}` : ''}`));
   t = t.replace(/<(h1|h2|h3|p)\b[^>]*>([\s\S]*?)<\/\1>/g, (_, tag, inner) => block(inlineText(inner)));
   t = inlineText(t);
   return decode(t).replace(/\n{3,}/g, '\n\n').trim();
@@ -349,7 +370,9 @@ function compose(layout, meta, body) {
     .replace(/\[\[logo_height\]\]/g, String(LOGO_HEIGHT))
     .replace(/\[\[width\]\]/g, String(parseInt(meta.width, 10) || 600))
     .replace('[[content]]', content)
-    .replace('[[footer]]', footerHtml(meta));
+    .replace('[[footer]]', footerHtml(meta))
+    .replace('[[icon_url]]', ICON_URL)
+    .replace('[[reason]]', meta.reason);
   // inline only the <body>; the <head> keeps its <style> as written
   const i = html.indexOf('<body');
   return html.slice(0, i) + inlineStyles(html.slice(i));
@@ -360,9 +383,9 @@ export const placeholders = (s) => [...new Set([...s.matchAll(/\{\{\s*([a-z_]+)\
 // ---------------------------------------------------------------- run
 export function build({ quiet = false } = {}) {
   mkdirSync(DIST, { recursive: true });
-  const layout = readFileSync(join(SRC, 'layout.html'), 'utf8');
+  const layouts = { card: readFileSync(join(SRC, 'layout.html'), 'utf8'), plain: readFileSync(join(SRC, 'layout-plain.html'), 'utf8') };
   const names = readdirSync(SRC)
-    .filter((f) => f.endsWith('.html') && f !== 'layout.html')
+    .filter((f) => f.endsWith('.html') && !f.startsWith('layout'))
     .map((f) => f.replace(/\.html$/, ''))
     .sort();
 
@@ -370,8 +393,11 @@ export function build({ quiet = false } = {}) {
   const report = [];
   for (const name of names) {
     const { meta, body } = parse(join(SRC, `${name}.html`));
-    const html = compose(layout, meta, body);
-    const text = `${toText(body)}\n\n${footerText(meta)}\n`;
+    const html = compose(layouts[meta.layout || 'card'], meta, body);
+    const plain = meta.layout === 'plain';
+    const text = plain
+      ? `${toText(body)}\n\n--\nECStay · Rooms and bedspaces in Davao City\n{{site_url}}\n\n${meta.reason}\n`
+      : `${toText(body)}\n\n${footerText(meta)}\n`;
     writeFileSync(join(DIST, `${name}.html`), html);
     writeFileSync(join(DIST, `${name}.txt`), text);
     subjects[name] = { subject: meta.subject, preheader: meta.preheader };
