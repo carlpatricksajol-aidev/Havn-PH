@@ -108,10 +108,12 @@ It uses its own layout (`src/layout-plain.html`, picked by `layout: plain` in th
 codes (plain, short, nothing to download), and it survives Gmail's dark mode and blocked images. Keep it that way: no
 marketing, no extra links, no tracking.
 
-Its one flourish is the scene on top of the code box: Kapi, the site's 3D capybara, waving in front of the Davao hills
-(`assets/brand/kapi-code.gif`, 540 x 285, about 1 MB, a loop rendered from `assets/capy/kapi.glb` over
-`assets/scene/davao-golden-2400.webp`). The code itself stays live text under it. With images blocked the email still reads
-fine; Outlook on Windows shows the first frame (Kapi standing).
+Its one flourish: the code is the number on a brass plate on an evergreen front door (`assets/brand/door-plate.jpg`,
+1080 x 604, a photo-real picture made for ECStay; `<x-code door>`). The digits are live text laid over the photo, so they
+copy in one tap. The plate is centred in the picture and the picture is centred in its cell, which is what keeps the digits
+on the brass at every width; if the picture is ever replaced, keep the plate centred and about half the width.
+In Apple Mail a slow glint of light crosses the plate (CSS, `.pl-sheen` in the layout); other apps show the still photo.
+With images blocked the code sits on a plain brass-coloured block. Outlook on Windows gets the photo through VML.
 
 1. Supabase dashboard > **Authentication > Email Templates > Magic Link** (newer dashboards:
    Authentication > Emails > Templates > Magic link).

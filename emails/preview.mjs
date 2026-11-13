@@ -14,7 +14,7 @@ import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { build, LOGO_URL, ICON_URL, SCENE_URL } from './build.mjs';
+import { build, LOGO_URL, ICON_URL, DOOR_URL } from './build.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, 'dist');
@@ -78,7 +78,7 @@ const LOGO_FILE = dataUrl(join(REPO, 'assets/brand/ecstay-email-logo.png'), 'ima
 const MARK = dataUrl(join(REPO, 'assets/brand/ecstay-mark.svg'), 'image/svg+xml');
 const ICON_FILE = dataUrl(join(REPO, 'assets/brand/apple-touch-icon.png'), 'image/png');
 function swapLogo(html) {
-  html = html.split(SCENE_URL).join(process.env.PREVIEW_NO_IMAGES ? 'about:blank' : dataUrl(join(REPO, 'assets/brand/kapi-code.gif'), 'image/gif'));
+  html = html.split(DOOR_URL).join(process.env.PREVIEW_NO_IMAGES ? 'about:blank' : dataUrl(join(REPO, 'assets/brand/door-plate.jpg'), 'image/jpeg'));
   if (ICON_FILE) html = html.split(ICON_URL).join(process.env.PREVIEW_NO_IMAGES ? 'about:blank' : ICON_FILE);
   if (LOGO_FILE) return html.split(LOGO_URL).join(LOGO_FILE);
   const re = new RegExp(`<img class="logo"[^>]*src="${LOGO_URL.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}"[^>]*>`);

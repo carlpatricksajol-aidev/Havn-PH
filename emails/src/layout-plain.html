@@ -11,7 +11,15 @@
 <style>
   body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
   a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+  /* A slow glint of light crosses the brass plate, left to right. Mail apps that do not animate show the still photo. */
+  .pl-sheen { background-image: linear-gradient(100deg, rgba(255,246,205,0) 42%, rgba(255,246,205,0.45) 50%, rgba(255,246,205,0) 58%); background-repeat: no-repeat; background-size: 250% 100%; background-position: 100% 0; -webkit-animation: pl-sheen 7s ease-in-out infinite; animation: pl-sheen 7s ease-in-out infinite; }
+  @-webkit-keyframes pl-sheen { 0%, 50% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+  @keyframes pl-sheen { 0%, 50% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+  @media (prefers-reduced-motion: reduce) { .pl-sheen { -webkit-animation: none; animation: none; } }
   @media only screen and (max-width: 480px) {
+    .pl-door { height: 210px !important; }
+    .pl-sheen { width: 176px !important; height: 62px !important; }
+    .pl-door-code { font-size: 26px !important; line-height: 62px !important; letter-spacing: 7px !important; padding-left: 7px !important; }
     .pl-wrap { padding: 28px 20px 36px !important; }
     .pl-code { font-size: 30px !important; letter-spacing: 6px !important; padding-left: 6px !important; }
   }
@@ -21,6 +29,7 @@
     .pl-p { color: #D5D0C6 !important; }
     .pl-box { background-color: #1F2823 !important; }
     .pl-code { color: #F3EEE5 !important; }
+    .pl-door-code { color: #2B2110 !important; }
     .pl-small, .pl-foot, .pl-foot-link { color: #9AA19B !important; }
     .pl-line { background-color: #2A342F !important; }
   }

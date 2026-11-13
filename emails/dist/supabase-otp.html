@@ -11,7 +11,15 @@
 <style>
   body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
   a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+  /* A slow glint of light crosses the brass plate, left to right. Mail apps that do not animate show the still photo. */
+  .pl-sheen { background-image: linear-gradient(100deg, rgba(255,246,205,0) 42%, rgba(255,246,205,0.45) 50%, rgba(255,246,205,0) 58%); background-repeat: no-repeat; background-size: 250% 100%; background-position: 100% 0; -webkit-animation: pl-sheen 7s ease-in-out infinite; animation: pl-sheen 7s ease-in-out infinite; }
+  @-webkit-keyframes pl-sheen { 0%, 50% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+  @keyframes pl-sheen { 0%, 50% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+  @media (prefers-reduced-motion: reduce) { .pl-sheen { -webkit-animation: none; animation: none; } }
   @media only screen and (max-width: 480px) {
+    .pl-door { height: 210px !important; }
+    .pl-sheen { width: 176px !important; height: 62px !important; }
+    .pl-door-code { font-size: 26px !important; line-height: 62px !important; letter-spacing: 7px !important; padding-left: 7px !important; }
     .pl-wrap { padding: 28px 20px 36px !important; }
     .pl-code { font-size: 30px !important; letter-spacing: 6px !important; padding-left: 6px !important; }
   }
@@ -21,6 +29,7 @@
     .pl-p { color: #D5D0C6 !important; }
     .pl-box { background-color: #1F2823 !important; }
     .pl-code { color: #F3EEE5 !important; }
+    .pl-door-code { color: #2B2110 !important; }
     .pl-small, .pl-foot, .pl-foot-link { color: #9AA19B !important; }
     .pl-line { background-color: #2A342F !important; }
   }
@@ -38,8 +47,8 @@
           <td class="pl-wrap" align="left" style="padding:40px 24px 48px;">
             <a href="{{ .SiteURL }}" target="_blank" style="text-decoration:none;"><img class="pl-icon" src="https://www.havnph.com/assets/brand/apple-touch-icon.png" width="40" height="40" alt="ECStay" style="display:block;width:40px;height:40px;border:0;outline:none;border-radius:10px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:40px;font-weight:700;color:#1D3F35"></a>
 <h1 class="pl-h1" style="margin:28px 0 10px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:24px;line-height:31px;font-weight:600;letter-spacing:-0.4px;color:#17221D">Your sign-in code</h1>
-<p class="pl-p" style="margin:0 0 22px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:16px;line-height:25px;font-weight:400;color:#3C443F">Kapi brought it over. Enter it on ECStay to finish signing&nbsp;in.</p>
-<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td style="padding:0 0 22px;"><table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td class="pl-scene-td" bgcolor="#F3D7A6" style="background-color:#F3D7A6;border-radius:14px 14px 0 0;font-size:0;line-height:0"><img class="pl-scene" src="https://www.havnph.com/assets/brand/kapi-code.gif" width="480" alt="Kapi, the ECStay capybara, waving hello from the hills of Davao" style="display:block;width:100%;max-width:100%;height:auto;border:0;outline:none;border-radius:14px 14px 0 0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#5B4A2A"></td></tr><tr><td class="pl-box pl-box-joined" align="center" bgcolor="#F3F1EC" style="padding:22px 12px;background-color:#F3F1EC;text-align:center;border-radius:0 0 14px 14px"><p class="pl-code" style="margin:0;padding:0 0 0 8px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:34px;line-height:42px;font-weight:700;letter-spacing:8px;color:#17221D;font-variant-numeric:tabular-nums;text-align:center">{{ .Token }}</p></td></tr></table></td></tr></table>
+<p class="pl-p" style="margin:0 0 22px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:16px;line-height:25px;font-weight:400;color:#3C443F">Enter this code on ECStay to finish signing&nbsp;in.</p>
+<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td style="padding:0 0 22px;"><table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td class="pl-door" height="250" align="center" valign="middle" bgcolor="#AD7D34" background="https://www.havnph.com/assets/brand/door-plate.jpg" style="height:250px;background-color:#AD7D34;background-image:url(https://www.havnph.com/assets/brand/door-plate.jpg);background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:14px;text-align:center;vertical-align:middle"><!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:480px;height:250px;"><v:fill type="frame" src="https://www.havnph.com/assets/brand/door-plate.jpg" color="#AD7D34" /><v:textbox inset="0,0,0,0"><![endif]--><div class="pl-sheen" style="width:226px;height:78px;margin:0 auto;border-radius:3px"><p class="pl-door-code" style="margin:0;padding:0 0 0 10px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:34px;line-height:78px;font-weight:700;letter-spacing:10px;color:#2B2110;text-shadow:0 1px 0 rgba(255,238,180,0.6);font-variant-numeric:tabular-nums;text-align:center">{{ .Token }}</p></div><!--[if gte mso 9]></v:textbox></v:rect><![endif]--></td></tr></table></td></tr></table>
 <p class="pl-small" style="margin:0 0 10px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#666C66">It works once and expires in 10 minutes.</p>
 <p class="pl-small" style="margin:0 0 10px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#666C66">Didn’t ask for it? You can ignore this email. ECStay will never ask you for this code by call, text or chat.</p>
             <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin:0;"><tr><td style="padding:28px 0 20px;"><table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td class="pl-line" height="1" style="height:1px;line-height:1px;font-size:1px;background-color:#E8E5DE">&nbsp;</td></tr></table></td></tr></table>

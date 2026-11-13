@@ -46,8 +46,9 @@ const SERIF = "'Newsreader', Georgia, 'Times New Roman', serif";
 const SANS = "'Hanken Grotesk', Helvetica, Arial, sans-serif";
 // The plain layout (sign-in code) uses the reader's own system font: nothing to download, the same in every mail app.
 const SYS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-// Kapi (the site's 3D capybara) waving in front of the Davao hills: a looping GIF rendered from the real model.
-export const SCENE_URL = 'https://www.havnph.com/assets/brand/kapi-code.gif';
+// The picture behind the code: a brass plate on an evergreen front door (ECStay's two colours). The code is live text on the plate.
+export const DOOR_URL = 'https://www.havnph.com/assets/brand/door-plate.jpg';
+export const BRASS = '#AD7D34';
 export const ICON_URL = 'https://www.havnph.com/assets/brand/apple-touch-icon.png';
 
 export const LOGO_URL = 'https://www.havnph.com/assets/brand/ecstay-email-logo.png';
@@ -100,9 +101,9 @@ const STYLES = {
   'pl-icon': `display:block;width:40px;height:40px;border:0;outline:none;border-radius:10px;font-family:${SYS};font-size:15px;line-height:40px;font-weight:700;color:${C.evergreen}`,
   'pl-h1': `margin:28px 0 10px;font-family:${SYS};font-size:24px;line-height:31px;font-weight:600;letter-spacing:-0.4px;color:${C.ink}`,
   'pl-p': `margin:0 0 22px;font-family:${SYS};font-size:16px;line-height:25px;font-weight:400;color:${C.ink2}`,
-  'pl-scene-td': `background-color:#F3D7A6;border-radius:14px 14px 0 0;font-size:0;line-height:0`,
-  'pl-scene': `display:block;width:100%;max-width:100%;height:auto;border:0;outline:none;border-radius:14px 14px 0 0;font-family:${SYS};font-size:14px;line-height:22px;color:#5B4A2A`,
-  'pl-box-joined': `border-radius:0 0 14px 14px`,
+  'pl-door': `height:250px;background-color:${BRASS};background-image:url(${DOOR_URL});background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:14px;text-align:center;vertical-align:middle`,
+  'pl-sheen': `width:226px;height:78px;margin:0 auto;border-radius:3px`,
+  'pl-door-code': `margin:0;padding:0 0 0 10px;font-family:${SYS};font-size:34px;line-height:78px;font-weight:700;letter-spacing:10px;color:#2B2110;text-shadow:0 1px 0 rgba(255,238,180,0.6);font-variant-numeric:tabular-nums;text-align:center`,
   'pl-box': `padding:22px 12px;background-color:#F3F1EC;border-radius:10px;text-align:center`,
   'pl-code': `margin:0;padding:0 0 0 8px;font-family:${SYS};font-size:34px;line-height:42px;font-weight:700;letter-spacing:8px;color:${C.ink};font-variant-numeric:tabular-nums;text-align:center`,
   'pl-small': `margin:0 0 10px;font-family:${SYS};font-size:14px;line-height:22px;font-weight:400;color:${C.muted}`,
@@ -175,12 +176,15 @@ function expandComponents(body) {
     return spacer(btn + alt, '6px 0 26px');
   });
 
-  // the scene sits on top of the code box as one piece: picture with round top corners, box with round bottom corners
-  out = out.replace(/<x-code scene>([\s\S]*?)<\/x-code>/g, (_, code) =>
+  // the code as the number on a brass door plate: a photo behind live text (Outlook on Windows gets it through VML)
+  out = out.replace(/<x-code door>([\s\S]*?)<\/x-code>/g, (_, code) =>
     spacer(
-      `<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">` +
-        `<tr><td class="pl-scene-td" bgcolor="#F3D7A6"><img class="pl-scene" src="${SCENE_URL}" width="480" alt="Kapi, the ECStay capybara, waving hello from the hills of Davao"></td></tr>` +
-        `<tr><td class="pl-box pl-box-joined" align="center" bgcolor="#F3F1EC"><p class="pl-code">${code.trim()}</p></td></tr></table>`,
+      `<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr>` +
+        `<td class="pl-door" height="250" align="center" valign="middle" bgcolor="${BRASS}" background="${DOOR_URL}">` +
+        `<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:480px;height:250px;"><v:fill type="frame" src="${DOOR_URL}" color="${BRASS}" /><v:textbox inset="0,0,0,0"><![endif]-->` +
+        `<div class="pl-sheen"><p class="pl-door-code">${code.trim()}</p></div>` +
+        `<!--[if gte mso 9]></v:textbox></v:rect><![endif]-->` +
+        `</td></tr></table>`,
       '0 0 22px',
     ),
   );
@@ -324,7 +328,7 @@ function toText(body) {
     block(`${attr(a, 'name')}\n${attr(a, 'area')}\nFrom ${attr(a, 'price')}/month`),
   );
   t = t.replace(/<x-divider>\s*<\/x-divider>/g, '\n\n');
-  t = t.replace(/<x-code (?:plain|scene)>([\s\S]*?)<\/x-code>/g, (_, code) => block(`    ${code.trim()}`));
+  t = t.replace(/<x-code (?:plain|door)>([\s\S]*?)<\/x-code>/g, (_, code) => block(`    ${code.trim()}`));
   t = t.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) => block(`    ${code.trim()}${attr(a, 'note') ? `\n\n${decode(attr(a, 'note'))}` : ''}`));
   t = t.replace(/<(h1|h2|h3|p)\b[^>]*>([\s\S]*?)<\/\1>/g, (_, tag, inner) => block(inlineText(inner)));
   t = inlineText(t);
