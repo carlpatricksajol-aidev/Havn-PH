@@ -14,6 +14,8 @@ window.HAVN_CONFIG = {
   // Number landlords can call or text, as you want it shown (e.g. '0917 123 4567').
   // Empty = the Call / Text buttons are hidden.
   phone: '',
+  // Email Keepers and renters can write to (e.g. 'hello@yourdomain.com'). Empty = no email link is shown.
+  email: '',
   // Where the "List your place" form goes. Get a free key at web3forms.com: type the
   // email that should receive the forms and the key is emailed to it. Paste it here.
   // Empty = the form hands the landlord's details to Messenger instead.

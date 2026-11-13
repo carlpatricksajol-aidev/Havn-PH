@@ -1806,3 +1806,15 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .col { transition: box-shadow .15s, background-color .15s; }
 .col.over { box-shadow: inset 0 0 0 2px var(--evergreen); }
 .col-empty { border: 1.5px dashed var(--border-strong); border-radius: 12px; text-align: center; }
+
+/* Thank-you pop-up after a Keeper sends a listing */
+.thanks { padding: 12px 4px 4px; text-align: center; }
+.thanks-mark { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--evergreen-soft); color: var(--evergreen); }
+.thanks-mark .i { width: 26px; height: 26px; stroke-width: 2.4; }
+.thanks h3 { font: 500 26px/1.2 var(--font-serif); letter-spacing: -0.015em; color: var(--text); }
+.thanks > p { margin: 10px auto 0; max-width: 42ch; color: var(--ink-2); }
+.thanks > p b { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.thanks-ask { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.thanks-ask p { font-size: 14.5px; color: var(--muted); }
+.thanks-ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.thanks-ways .btn { min-height: 44px; }

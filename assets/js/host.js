@@ -657,13 +657,39 @@
     function submit(btn) {
       if (!ECS.ready(l)) { validate(true); return; }
       busy(btn, true, t('Sending'));
+      var fresh = !(l.status === 'live' || l.status === 'paused' || l.status === 'review');
       flush().then(function () {
-        if (l.status === 'live' || l.status === 'paused' || l.status === 'review') return l; // the service sends edits back to review
+        if (!fresh) return l; // the service sends edits back to review
         return ECS.submitListing(l.id);
       }).then(function () {
-        H.toast(t('Sent for review. We\'ll email you when it\'s live.'));
-        HV.leave(); go('/host');
+        HV.leave();
+        if (!fresh) { H.toast(t('Sent for review. We\'ll email you when it\'s live.')); go('/host'); return; }
+        busy(btn, false);
+        thanks();
       }).catch(function (x) { busy(btn, false); var e = $('.ed-form .field-err', host); if (e) err(e, x.message); });
+    }
+
+    // A new listing was sent: thank the Keeper on the same page, say when to expect our email and how to reach us.
+    function thanks() {
+      var C = window.HAVN_CONFIG || {}, tel = (C.phone || '').replace(/[^\d+]/g, '');
+      var mail = (ECS.user && ECS.user.email) || '';
+      var ways =
+        (tel ? '<a class="btn btn-ghost" href="tel:' + esc(tel) + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + ' ' + esc(C.phone) + '</span></a>' +
+               '<a class="btn btn-ghost" href="sms:' + esc(tel) + '">' + H.icon('message') + '<span>' + esc(t('Text us')) + '</span></a>' : '') +
+        (C.email ? '<a class="btn btn-ghost" href="mailto:' + esc(C.email) + '">' + H.icon('message') + '<span>' + esc(C.email) + '</span></a>' : '') +
+        (!tel && !C.email ? '<a class="btn btn-ghost" href="/contact" data-link data-close>' + H.icon('message') + '<span>' + esc(t('Contact us')) + '</span></a>' : '');
+      H.dialog({
+        className: 'thanks-dlg',
+        title: t('Listing sent'),
+        body: '<div class="thanks"><span class="thanks-mark">' + H.icon('check') + '</span>' +
+          '<h3>' + esc(t('Thank you. We have your listing.')) + '</h3>' +
+          '<p>' + esc(t('We check every listing ourselves before renters see it. This takes up to 1 day.')) + '</p>' +
+          '<p>' + (mail ? t('We will email you at {email} as soon as it is live, or if we need a change.', { email: '<b>' + esc(mail) + '</b>' }) : esc(t('We will email you as soon as it is live, or if we need a change.'))) + '</p>' +
+          '<div class="thanks-ask"><p>' + esc(t('Any question while you wait?')) + '</p><div class="thanks-ways">' + ways + '</div></div></div>',
+        foot: '<button type="button" class="btn btn-primary btn-block" data-close>' + esc(t('Go to my listings')) + '</button>',
+        focus: '.dlg-foot button',
+        onClose: function () { go('/host'); },
+      });
     }
 
     shell();
