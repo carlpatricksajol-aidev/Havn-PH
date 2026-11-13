@@ -255,6 +255,21 @@
         var m = { id: uid(), inquiry_id: inquiryId, sender_id: u.id, sender_role: role, body: String(body).slice(0, 2000), created_at: now() };
         d.messages.push(m); save(d); return Promise.resolve(m);
       },
+      countListing: function () { return Promise.resolve(); },
+      // Demo: example numbers for the listings that are live (the same every time for the same listing).
+      keeperStats: function () {
+        var u = me(); if (!u) return fail(t('Please sign in first.'));
+        var d = db(), out = [];
+        ownIds(d, u).forEach(function (id) {
+          if (d.listings[id].status !== 'live') return;
+          var seed = 7; for (var i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) % 9973;
+          for (var k = 29; k >= 0; k--) {
+            seed = (seed * 137 + 71) % 9973;
+            out.push({ listing_id: id, day: manilaDay(Date.now() - k * 864e5), views: 2 + seed % 8 + (k < 8 ? 3 : 0), saves: seed % 4 === 0 ? 1 : 0 });
+          }
+        });
+        return Promise.resolve(out);
+      },
       adminData: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setLead: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setContact: function () { return fail(t('The admin workspace works with real accounts only.')); },
@@ -399,6 +414,10 @@
       sendReply: function (inquiryId, role, body) {
         return client().then(function (c) { return c.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_role: role, body: String(body).slice(0, 2000) }).select().single(); }).then(check);
       },
+      // One more view or save of a live listing (the database skips the Keeper's own visits and the team's).
+      countListing: function (id, kind) { return client().then(function (c) { return c.rpc('count_listing', { lid: id, kind: kind }); }).then(function () {}, function () {}); },
+      // Views and saves per day, last 30 days, for the signed-in Keeper's listings.
+      keeperStats: function () { return client().then(function (c) { return c.rpc('keeper_stats'); }).then(check).then(function (r) { return r || []; }); },
       // Admins: everything, for the admin workspace (row-level security returns nothing to anyone else).
       adminData: function () {
         return client().then(function (c) {
@@ -485,6 +504,15 @@
       desc: r.description || '', host: { name: r.host_name || 'ECStay landlord', since: new Date(r.created_at || Date.now()).getFullYear() },
       photos: (r.photos || []).map(function (p) { return p.url; }).filter(Boolean),
     };
+  };
+  // A renter opened or saved a real listing: counted for its Keeper, once a day per browser.
+  ECS.count = function (l, kind) {
+    if (ECS.mode !== 'live' || !l || !l.live || !l.dbId) return;
+    var day = manilaDay(), m = H.store.get('ecs-counted', null);
+    if (!m || m.day !== day) m = { day: day, ids: {} };
+    var k = kind + ':' + l.dbId; if (m.ids[k]) return;
+    m.ids[k] = 1; H.store.set('ecs-counted', m);
+    ECS.countListing(l.dbId, kind);
   };
   // Live listings join the samples on the rooms list and map.
   if (ECS.mode !== 'off') {

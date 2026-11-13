@@ -82,6 +82,7 @@
     toggle: function (id) {
       var i = saved.indexOf(id);
       if (i === -1) saved.push(id); else saved.splice(i, 1);
+      if (i === -1 && window.ECS && ECS.count) ECS.count(H.byId(id), 'save');
       H.store.set('havn-saved', saved);
       document.dispatchEvent(new CustomEvent('havn:saved'));
       return i === -1;

@@ -30,6 +30,7 @@
       setMeta(t('Room not found') + ' · ECStay', '', '/');
       return;
     }
+    if (window.ECS && ECS.count) ECS.count(l, 'view');
     var near = H.schoolsByDistance(l);
     var adv = l.advance == null ? 1 : l.advance, dep = l.deposit == null ? 1 : l.deposit;
     var saved = H.saved.has(l.id);
