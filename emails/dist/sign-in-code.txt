@@ -1,6 +1,6 @@
 Your sign-in code
 
-Enter this code on ECStay to finish signing in.
+Kapi brought it over. Enter it on ECStay to finish signing in.
 
 {{code}}
 

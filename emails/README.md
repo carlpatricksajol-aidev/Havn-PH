@@ -108,6 +108,11 @@ It uses its own layout (`src/layout-plain.html`, picked by `layout: plain` in th
 codes (plain, short, nothing to download), and it survives Gmail's dark mode and blocked images. Keep it that way: no
 marketing, no extra links, no tracking.
 
+Its one flourish is the scene on top of the code box: Kapi, the site's 3D capybara, waving in front of the Davao hills
+(`assets/brand/kapi-code.gif`, 540 x 285, about 1 MB, a loop rendered from `assets/capy/kapi.glb` over
+`assets/scene/davao-golden-2400.webp`). The code itself stays live text under it. With images blocked the email still reads
+fine; Outlook on Windows shows the first frame (Kapi standing).
+
 1. Supabase dashboard > **Authentication > Email Templates > Magic Link** (newer dashboards:
    Authentication > Emails > Templates > Magic link).
 2. Subject: `{{ .Token }} is your ECStay sign-in code` (the code first, so it can be read from the notification)
