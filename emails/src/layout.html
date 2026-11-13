@@ -29,7 +29,8 @@
     .logo-cell { padding-top: 22px !important; padding-bottom: 20px !important; }
     .content { padding-top: 28px !important; }
     .h1 { font-size: 26px !important; line-height: 32px !important; }
-    .code { font-size: 34px !important; line-height: 42px !important; letter-spacing: 8px !important; padding: 20px 8px 20px 16px !important; }
+    .plate { padding: 26px 8px 20px !important; }
+    .code { font-size: 36px !important; line-height: 44px !important; letter-spacing: 10px !important; padding-left: 10px !important; }
     .btn-table { width: 100% !important; }
     .btn-a { display: block !important; padding-left: 16px !important; padding-right: 16px !important; }
     .alt-link { text-align: center !important; }
@@ -41,7 +42,7 @@
   @media (prefers-color-scheme: dark) {
     .bg-page { background-color: #0F1713 !important; }
     .card { background-color: #17211C !important; border-color: #2B3832 !important; }
-    .h1, .h2, .strong, .item-t, .row-v, .listing-name, .listing-price, .quote-text, .box-big { color: #F3EEE5 !important; }
+    .h1, .h2, .h3, .sign, .plain, .strong, .item-t, .row-v, .listing-name, .listing-price, .quote-text, .box-big { color: #F3EEE5 !important; }
     .p, .item-p, .box-small { color: #CDC8BE !important; }
     .small, .row-l, .listing-meta, .foot-note, .foot-links { color: #A5ABA5 !important; }
     .label, .num { color: #D6B07A !important; }
@@ -49,8 +50,10 @@
     .foot-brand, .foot-link { color: #E4DED3 !important; }
     .line { background-color: #2B3832 !important; }
     .rows, .row-l, .row-v, .listing { border-color: #2B3832 !important; }
-    .code, .quote, .box { background-color: #212D27 !important; border-color: #2F3D36 !important; }
-    .code { color: #F3EEE5 !important; }
+    .quote, .box { background-color: #212D27 !important; border-color: #2F3D36 !important; }
+    .plate { background-color: #1F4539 !important; }
+    .code { color: #F9F6F0 !important; }
+    .code-note { color: #C9D8CF !important; }
     .btn-td, .btn-a { background-color: #E6EDE8 !important; color: #132C25 !important; }
     .logo { background-color: #F9F6F0 !important; border-radius: 8px !important; padding: 6px 10px !important; }
   }
@@ -62,8 +65,8 @@
 <table role="presentation" class="bg-page" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#F9F6F0">
   <tr>
     <td class="outer" align="center" style="padding:32px 12px 40px;">
-      <!--[if mso]><table role="presentation" width="600" align="center" border="0" cellspacing="0" cellpadding="0"><tr><td><![endif]-->
-      <table role="presentation" class="container" width="100%" border="0" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;">
+      <!--[if mso]><table role="presentation" width="[[width]]" align="center" border="0" cellspacing="0" cellpadding="0"><tr><td><![endif]-->
+      <table role="presentation" class="container" width="100%" border="0" cellspacing="0" cellpadding="0" style="width:100%;max-width:[[width]]px;">
         <tr>
           <td class="card" bgcolor="#FFFFFF">
             <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">

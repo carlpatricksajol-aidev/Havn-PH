@@ -34,7 +34,7 @@ logo and the footer links (help, privacy, terms) use it.
 
 | Template | When it's sent | Subject | Placeholders (besides `site_url`) |
 |---|---|---|---|
-| `sign-in-code` | Someone asks for an email code to sign in. In production Supabase sends `supabase-otp.html` instead (see below). | Your ECStay code: `{{code}}` | `code` |
+| `sign-in-code` | Someone asks for an email code to sign in. In production Supabase sends `supabase-otp.html` instead (see below). | `{{code}}` is your ECStay sign-in code | `code`, `email` (the address the code was asked for) |
 | `welcome` | After a landlord's first sign-in. Lifecycle email: has an unsubscribe link. | Welcome to ECStay, `{{name}}` | `name`, `unsubscribe_url` |
 | `listing-submitted` | A landlord sends a listing for review. | We got your listing: `{{listing_name}}` | `name`, `listing_name`, `area`, `price`, `photo_url` |
 | `listing-live` | A reviewer approves the listing. | `{{listing_name}}` is now live on ECStay | `name`, `listing_name`, `listing_url` |
@@ -102,11 +102,12 @@ The preheader is already inside each HTML file; `subjects.json` lists it too for
 ## The sign-in code in Supabase
 
 `dist/supabase-otp.html` is the same email as `sign-in-code`, using only Supabase's own variables:
-`{{ .Token }}` for the 6-digit code and `{{ .SiteURL }}` for the site.
+`{{ .Token }}` for the 6-digit code, `{{ .Email }}` for the address it was asked for and `{{ .SiteURL }}` for the site.
+It is narrower than the other emails (520px, set by `width:` in its front matter) and shows the code on an evergreen plate.
 
 1. Supabase dashboard > **Authentication > Email Templates > Magic Link** (newer dashboards:
    Authentication > Emails > Templates > Magic link).
-2. Subject: `Your ECStay code: {{ .Token }}`
+2. Subject: `{{ .Token }} is your ECStay sign-in code` (the code first, so it can be read from the notification)
 3. Body: paste the whole of `dist/supabase-otp.html` (switch the editor to source/HTML first) and save.
    Because the template shows `{{ .Token }}` and no link, `signInWithOtp` users get a code instead
    of a magic link.

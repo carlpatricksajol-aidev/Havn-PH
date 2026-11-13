@@ -41,6 +41,7 @@ const sample = {
   price: '₱4,500',
   photo_url: dataUrl(join(REPO, 'assets/photos/r-4a602277-640.webp'), 'image/webp'),
   code: '482913',
+  email: 'maria.santos@gmail.com',
   renter_name: 'Joshua Santos',
   renter_mobile: '0917 555 0142',
   move_in: 'December 2026',
@@ -64,6 +65,7 @@ function fill(html) {
   return html
     .replace(/\{\{\s*\.Token\s*\}\}/g, sample.code)
     .replace(/\{\{\s*\.SiteURL\s*\}\}/g, sample.site_url)
+    .replace(/\{\{\s*\.Email\s*\}\}/g, sample.email)
     .replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, k) => {
       if (!(k in sample)) throw new Error(`no sample value for {{${k}}}`);
       return escapeHtml(sample[k]);
@@ -95,7 +97,7 @@ const { names } = build({ quiet: true });
 const all = [...names, 'supabase-otp'].filter((n) => !only.length || only.includes(n));
 
 mkdirSync(join(OUT, 'html'), { recursive: true });
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await chromium.launch({ channel: process.env.PREVIEW_BROWSER || 'chrome', headless: true });
 const shots = [];
 try {
   for (const name of all) {

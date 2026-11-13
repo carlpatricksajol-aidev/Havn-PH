@@ -9,7 +9,7 @@
 // A body file starts with a front-matter comment (subject, preheader, reason, marketing) and uses
 // plain tags with brand classes (h1, h2, p, small, link, strong) plus a few components:
 //   <x-button href="" text="">Label</x-button>   bulletproof pill button (text = plain-text version)
-//   <x-code>{{code}}</x-code>                    big sign-in code in a linen box
+//   <x-code note="">{{code}}</x-code>            big sign-in code on an evergreen plate, with a small line under it
 //   <x-quote label="">...</x-quote>              linen box with a thin brass rule (reviewer note, message)
 //   <x-rows><x-row label="">value</x-row></x-rows>  label / value lines with hairline dividers
 //   <x-list><x-item title="">text</x-item></x-list> numbered list, brass serif numerals
@@ -67,7 +67,12 @@ const STYLES = {
   'label': `margin:0 0 6px;font-family:${SANS};font-size:13px;line-height:18px;font-weight:600;color:${C.brassText}`,
   'btn-td': `border-radius:999px;background-color:${C.evergreen};mso-padding-alt:15px 32px`,
   'btn-a': `display:inline-block;padding:15px 32px;font-family:${SANS};font-size:16px;line-height:20px;font-weight:600;color:${C.white};text-decoration:none;border-radius:999px;text-align:center`,
-  'code': `padding:24px 12px 24px 24px;background-color:${C.linen};border:1px solid ${C.line};border-radius:12px;font-family:${SANS};font-size:40px;line-height:48px;font-weight:600;letter-spacing:12px;color:${C.evergreenDark};font-variant-numeric:tabular-nums;text-align:center`,
+  'plate': `padding:30px 16px 24px;background-color:${C.evergreen};border-radius:16px;text-align:center`,
+  'code': `margin:0;padding:0 0 0 14px;font-family:${SANS};font-size:44px;line-height:52px;font-weight:600;letter-spacing:14px;color:${C.page};font-variant-numeric:tabular-nums;text-align:center`,
+  'code-note': `margin:10px 0 0;font-family:${SANS};font-size:13px;line-height:20px;font-weight:400;letter-spacing:0.2px;color:#C9D8CF;text-align:center`,
+  'plain': `color:${C.ink};font-weight:600;text-decoration:none`,
+  'h3': `margin:0 0 6px;font-family:${SANS};font-size:15px;line-height:22px;font-weight:600;color:${C.ink}`,
+  'sign': `margin:22px 0 14px;font-family:${SERIF};font-size:18px;line-height:26px;font-weight:500;letter-spacing:-0.2px;color:${C.ink}`,
   'quote': `padding:18px 22px 18px 20px;background-color:${C.linen};border-left:3px solid ${C.brass};border-radius:0 12px 12px 0`,
   'quote-text': `margin:0;font-family:${SANS};font-size:16px;line-height:25px;font-weight:400;color:${C.ink};white-space:pre-line`,
   'box': `padding:20px 24px;background-color:${C.linen};border-radius:12px`,
@@ -152,11 +157,14 @@ function expandComponents(body) {
     return spacer(btn + alt, '6px 0 26px');
   });
 
-  out = out.replace(/<x-code>([\s\S]*?)<\/x-code>/g, (_, code) =>
+  out = out.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) =>
     spacer(
       `<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr>` +
-        `<td class="code" align="center" bgcolor="${C.linen}">${code.trim()}</td></tr></table>`,
-      '4px 0 22px',
+        `<td class="plate" align="center" bgcolor="${C.evergreen}">` +
+        `<p class="code">${code.trim()}</p>` +
+        (attr(a, 'note') ? `<p class="code-note">${attr(a, 'note')}</p>` : '') +
+        `</td></tr></table>`,
+      '8px 0 24px',
     ),
   );
 
@@ -255,14 +263,15 @@ function inlineText(html) {
 }
 
 function toText(body) {
-  let t = body;
+  // links marked "plain" are only there to stop mail apps from re-styling an address: keep their text alone
+  let t = body.replace(/<a class="plain"[^>]*>([\s\S]*?)<\/a>/g, '$1');
   const block = (s) => `\n\n${s}\n\n`;
   t = t.replace(/<x-button\b([^>]*)>([\s\S]*?)<\/x-button>/g, (_, a, label) => {
     const main = attr(a, 'text') || `${inlineText(label)}: ${attr(a, 'href')}`;
     const alt = attr(a, 'alt-text');
     return block(alt ? `${main}\n${alt}` : main);
   });
-  t = t.replace(/<x-code>([\s\S]*?)<\/x-code>/g, (_, code) => block(`    ${code.trim()}`));
+  t = t.replace(/<x-code\b([^>]*)>([\s\S]*?)<\/x-code>/g, (_, a, code) => block(`    ${code.trim()}${attr(a, 'note') ? `\n\n${decode(attr(a, 'note'))}` : ''}`));
   t = t.replace(/<x-quote\b([^>]*)>([\s\S]*?)<\/x-quote>/g, (_, a, text) => {
     const label = attr(a, 'label');
     return block(`${label ? `${label}:\n` : ''}"${inlineText(text)}"`);
@@ -282,7 +291,7 @@ function toText(body) {
     block(`${attr(a, 'name')}\n${attr(a, 'area')}\nFrom ${attr(a, 'price')}/month`),
   );
   t = t.replace(/<x-divider>\s*<\/x-divider>/g, '\n\n');
-  t = t.replace(/<(h1|h2|p)\b[^>]*>([\s\S]*?)<\/\1>/g, (_, tag, inner) => block(inlineText(inner)));
+  t = t.replace(/<(h1|h2|h3|p)\b[^>]*>([\s\S]*?)<\/\1>/g, (_, tag, inner) => block(inlineText(inner)));
   t = inlineText(t);
   return decode(t).replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -338,6 +347,7 @@ function compose(layout, meta, body) {
     .replace('[[logo_url]]', LOGO_URL)
     .replace(/\[\[logo_width\]\]/g, String(LOGO_WIDTH))
     .replace(/\[\[logo_height\]\]/g, String(LOGO_HEIGHT))
+    .replace(/\[\[width\]\]/g, String(parseInt(meta.width, 10) || 600))
     .replace('[[content]]', content)
     .replace('[[footer]]', footerHtml(meta));
   // inline only the <body>; the <head> keeps its <style> as written
@@ -371,11 +381,12 @@ export function build({ quiet = false } = {}) {
       // Supabase Auth variant: Go-template variables only.
       const supa = html
         .replace(/\{\{\s*code\s*\}\}/g, '{{ .Token }}')
+        .replace(/\{\{\s*email\s*\}\}/g, '{{ .Email }}')
         .replace(/\{\{\s*site_url\s*\}\}/g, '{{ .SiteURL }}');
       const left = placeholders(supa);
       if (left.length) throw new Error(`supabase-otp.html still has placeholders: ${left.join(', ')}`);
       writeFileSync(join(DIST, 'supabase-otp.html'), supa);
-      report.push(['supabase-otp', ['{{ .Token }}', '{{ .SiteURL }}']]);
+      report.push(['supabase-otp', ['{{ .Token }}', '{{ .Email }}', '{{ .SiteURL }}']]);
     }
   }
   writeFileSync(join(DIST, 'subjects.json'), `${JSON.stringify(subjects, null, 2)}\n`);

@@ -1,11 +1,16 @@
 <!--
-subject: Your ECStay code: {{code}}
-preheader: Enter it on ECStay to sign in. It expires in 10 minutes.
-reason: You got this email because someone entered this address to sign in to ECStay.
+subject: {{code}} is your ECStay sign-in code
+preheader: Enter it on ECStay to finish signing in. It works once and expires in 10 minutes.
+reason: You got this email because this address was entered to sign in to ECStay.
 marketing: no
+width: 520
 -->
-<h1 class="h1">Your sign-in code</h1>
-<p class="p">Enter this code on ECStay to finish signing&nbsp;in.</p>
-<x-code>{{code}}</x-code>
-<p class="p">It expires in 10 minutes. If you didn’t ask for this, you can ignore it.</p>
-<p class="small">Keep this code to yourself. ECStay will never ask for it by text, call or chat.</p>
+<h1 class="h1">Here’s your sign-in&nbsp;code</h1>
+<p class="p">Enter it on the ECStay page where you asked to sign&nbsp;in.</p>
+<x-code note="Works once &nbsp;&middot;&nbsp; Expires in 10 minutes">{{code}}</x-code>
+<p class="small">Requested for <a class="plain" href="{{site_url}}">{{email}}</a></p>
+<x-divider></x-divider>
+<h3 class="h3">Didn’t ask for a code?</h3>
+<p class="small">Someone may have typed your email by mistake. You can ignore this message. Nobody can sign in without the code.</p>
+<p class="small">ECStay will never ask you for this code by text, call or chat. Please don’t share it.</p>
+<p class="sign">Salamat,<br>The ECStay team</p>

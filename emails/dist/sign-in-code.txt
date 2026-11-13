@@ -1,20 +1,21 @@
-Your sign-in code
+Here’s your sign-in code
 
-
-
-Enter this code on ECStay to finish signing in.
-
-
+Enter it on the ECStay page where you asked to sign in.
 
 {{code}}
 
+Works once · Expires in 10 minutes
 
+Requested for {{email}}
 
-It expires in 10 minutes. If you didn’t ask for this, you can ignore it.
+Didn’t ask for a code?
 
+Someone may have typed your email by mistake. You can ignore this message. Nobody can sign in without the code.
 
+ECStay will never ask you for this code by text, call or chat. Please don’t share it.
 
-Keep this code to yourself. ECStay will never ask for it by text, call or chat.
+Salamat,
+The ECStay team
 
 --
 ECStay · Rooms and bedspaces in Davao City
@@ -22,4 +23,4 @@ Help: {{site_url}}/help
 Privacy: {{site_url}}/privacy
 Terms: {{site_url}}/terms
 
-You got this email because someone entered this address to sign in to ECStay.
+You got this email because this address was entered to sign in to ECStay.

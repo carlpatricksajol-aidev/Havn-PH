@@ -24,8 +24,8 @@
     "preheader": "{{renter_name}} is looking to move in {{move_in}}. Reply by text or call."
   },
   "sign-in-code": {
-    "subject": "Your ECStay code: {{code}}",
-    "preheader": "Enter it on ECStay to sign in. It expires in 10 minutes."
+    "subject": "{{code}} is your ECStay sign-in code",
+    "preheader": "Enter it on ECStay to finish signing in. It works once and expires in 10 minutes."
   },
   "welcome": {
     "subject": "Welcome to ECStay, {{name}}",
