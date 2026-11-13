@@ -64,13 +64,15 @@
     var draft = keepDraft && $('.msg-box textarea', host) ? $('.msg-box textarea', host).value : '';
     var hasBoth = list.some(function (x) { return x.role === 'renter'; }) && list.some(function (x) { return x.role !== 'renter'; });
     var shown = list.filter(function (x) { return state.filter === 'all' || (state.filter === 'renter' ? x.role === 'renter' : x.role !== 'renter'); });
+    // The way back: Keepers return to their Keeper home, renters to their account page.
+    var keeper = list.some(function (x) { return x.role === 'keeper'; }) || (ECS.user && ECS.user.role === 'admin');
     var wide = window.matchMedia('(min-width: 900px)').matches;
     var open = list.filter(function (x) { return x.q.id === state.id; })[0] || (wide && !state.id ? shown[0] : null);
 
     $('.inbox', host).outerHTML =
       '<div class="inbox' + (open && state.id ? ' is-open' : '') + '">' +
         '<aside class="msg-side">' +
-          '<div class="msg-side-top"><h1>' + esc(t('Messages')) + '</h1>' +
+          '<div class="msg-side-top"><a class="msg-back" href="' + (keeper ? '/host?tab=messages' : '/host') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a><h1>' + esc(t('Messages')) + '</h1>' +
             (hasBoth ? '<div class="msg-tabs" role="tablist">' + [['all', 'All'], ['renter', 'Rooms I asked about'], ['keeper', 'My listings']].map(function (o) {
               return '<button type="button" role="tab" aria-selected="' + (state.filter === o[0]) + '" class="' + (state.filter === o[0] ? 'on' : '') + '" data-msg-filter="' + o[0] + '">' + esc(t(o[1])) + '</button>';
             }).join('') + '</div>' : '') +

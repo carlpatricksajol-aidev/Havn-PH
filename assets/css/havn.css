@@ -2027,3 +2027,8 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .kh-page > .kh-narrow { max-width: 720px; }
   .kh-head h1 { font-size: 42px; }
 }
+
+/* Inbox: the way back to the Keeper home (or the account page) */
+.msg-back { display: flex; width: max-content; white-space: nowrap; align-items: center; gap: 8px; min-height: 40px; margin: 0 0 10px -12px; padding: 0 14px 0 12px; border-radius: 999px; font: 600 14.5px var(--font-body); color: var(--evergreen); text-decoration: none; }
+.msg-back:hover { background: var(--evergreen-soft); }
+.msg-back .i { width: 18px; height: 18px; }
