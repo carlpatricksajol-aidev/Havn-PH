@@ -537,7 +537,7 @@
     if (fbox) {
       fbox.innerHTML = !feat.length ? '' : '<section class="featured" aria-labelledby="featured-title">' +
         '<div class="featured-head">' + STAR_ICON + '<h2 id="featured-title">' + H.esc(t('Featured rooms')) + '</h2></div>' +
-        '<div class="featured-track">' + feat.map(function (l) { return A.cardHtml(l, true, { featured: true }); }).join('') + '</div></section>';
+        '<div class="featured-track">' + feat.map(function (l) { return A.cardHtml(l, true, { featured: true, single: true }); }).join('') + '</div></section>';
       H.bindSlides(fbox);
     }
     /* The small bar that stays under the header once the Featured rooms have scrolled away. */

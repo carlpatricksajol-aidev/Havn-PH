@@ -1365,7 +1365,9 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 
 /* Home rows: arrows on the photos' left and right edges (computers); swipe on phones */
 .hrow-body { position: relative; }
-.hrow-track .slides { overflow: hidden; }
+/* One photo per card here: the photo box must not be a scroller of its own, or a swipe that starts on a photo is
+   swallowed by it (it has overscroll-behavior: contain for the multi-photo cards) and the row never moves. */
+.hrow-track .slides, .featured-track .slides { overflow: hidden; overflow: clip; overscroll-behavior: auto; scroll-snap-type: none; }
 .hrow-track { touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
 .hrow-track a, .hrow-track img { -webkit-user-drag: none; user-select: none; }
 .hrow-nav { display: none; }
