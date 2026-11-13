@@ -58,7 +58,7 @@
     var cur = tab();
     var tabs = [['leads', 'Leads', d.inquiries.length], ['listings', 'Listings', d.listings.length], ['people', 'People', d.profiles.length], ['messages', 'Messages', d.contacts.length]];
     host.innerHTML = '<div class="adm">' +
-      '<div class="adm-head"><div><p class="host-hi">ECStay</p><h1>' + esc(t('Admin')) + '</h1></div>' +
+      '<div class="adm-head"><div>' + (window.HostView ? HostView.back() : '') + '<p class="host-hi">ECStay</p><h1>' + esc(t('Admin')) + '</h1></div>' +
         '<a class="btn btn-ghost btn-sm" href="/host" data-link>' + H.icon('user') + '<span>' + esc(t('My account')) + '</span></a></div>' +
       '<ul class="adm-stats">' + stats.map(function (s) { return '<li><a href="' + esc(location.pathname) + '?tab=' + s[2] + '" data-link><b>' + s[0] + '</b><span>' + esc(t(s[1])) + '</span></a></li>'; }).join('') + '</ul>' +
       '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + tabs.map(function (x) {

@@ -243,6 +243,13 @@
   function dayKeys(n) { var out = []; for (var k = n - 1; k >= 0; k--) out.push(new Date(Date.now() + 8 * 36e5 - k * 864e5).toISOString().slice(0, 10)); return out; }
   function num(n) { return Number(n || 0).toLocaleString('en-PH'); }
 
+  /* The way back to the Keeper home (for people with no listing: to their account page), the same on every page
+   * that is opened from it. `tab` is the tab to land on. */
+  HV.back = function (tab) {
+    var keeper = H.store.get('ecs-keeper', false) || (ECS.user && ECS.user.role === 'admin');
+    return '<a class="kh-back" href="/host' + (keeper && tab ? '?tab=' + tab : '') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a>';
+  };
+
   HV.dashboard = function (host) {
     needUser(host, function (user) { loadDash(host, user); });
   };
@@ -273,6 +280,7 @@
       d.live = d.ls.filter(function (l) { return l.status === 'live'; });
       d.onFree = d.p.role !== 'admin' && d.quota && d.ls.some(function (l) { return (l.status === 'live' || l.status === 'paused') && !ECS.planOn(l); });
       if (!d.keeper) d.tab = 'overview';
+      H.store.set('ecs-keeper', !!d.keeper);
       dash = d;
       paintDash();
     }).catch(function (x) { host.innerHTML = HV.demoBar() + '<div class="host-wrap"><p class="host-error">' + esc(x.message) + '</p></div>'; });
@@ -302,7 +310,7 @@
       '<div class="host-wrap kh' + (d.keeper ? '' : ' kh-solo') + '">' +
         (d.keeper ? '<aside class="kh-nav"><p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
           '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + item('overview', 'home', 'Home') + item('listings', 'building', 'Listings', d.ls.length) + item('messages', 'message', 'Messages', d.waiting.length, d.waiting.length > 0) + item('account', 'user', 'Plan and account') + '</div>' +
-          add + '<p class="kh-nav-foot"><a href="/help" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
+          add + '<p class="kh-nav-foot"><a href="/help?from=keeper" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
         '<div class="kh-page" role="tabpanel">' +
           '<header class="kh-head"><div><h1>' + esc(title) + '</h1>' + (sum ? '<p class="kh-sum">' + esc(sum) + '</p>' : '') + '</div>' + (d.keeper ? add : '') + '</header>' +
           body +
@@ -423,8 +431,8 @@
     return '<ul class="kh-links">' +
       r('/host/profile', 'Your details', 'Name, mobile number, how renters reach you') +
       (keeper ? '' : r('/messages', 'Messages', 'Every conversation in one inbox')) +
-      (keeper ? r('/listing-standards', 'Keeper standards', 'What we check before a listing goes live') : '') +
-      r('/help', 'Help', 'Answers and how to reach us') +
+      (keeper ? r('/listing-standards?from=keeper', 'Keeper standards', 'What we check before a listing goes live') : '') +
+      r('/help?from=keeper', 'Help', 'Answers and how to reach us') +
       (d.p.role === 'admin' && App.desk() ? r(App.desk(), 'Admin') : '') +
       (d.p.role === 'admin' || ECS.mode === 'demo' ? r('/host/review', ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings') : '') +
       '</ul>';
@@ -504,7 +512,7 @@
         host.innerHTML = HV.demoBar() +
           (welcome ? '<div class="auth">' + authBg() + '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' + '<div class="auth-card auth-details">' : '<div class="host-wrap host-narrow">') +
             (welcome ? '<h1>' + esc(t('A few details first')) + '</h1><p class="auth-sub">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
-              : '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your account')) + '</span></a><h1>' + esc(t('Your details')) + '</h1>') +
+              : HV.back('account') + '<h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
               '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +
               (welcome ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +
@@ -556,7 +564,7 @@
         if (!id) { history.replaceState(null, '', '/host/edit/' + l.id); }
         // The profile mobile is this listing's contact number unless they change it (saved, not just shown).
         openEditor(host, l, !l.contact_mobile && prof.mobile ? { contact_mobile: prof.mobile } : null);
-      }).catch(function (x) { host.innerHTML = HV.demoBar() + '<div class="host-wrap"><p class="host-error">' + esc(x.message) + '</p><a class="btn btn-ghost" href="/host" data-link>' + esc(t('Back to your listings')) + '</a></div>'; });
+      }).catch(function (x) { host.innerHTML = HV.demoBar() + '<div class="host-wrap"><p class="host-error">' + esc(x.message) + '</p>' + HV.back('listings') + '</div>'; });
     });
   };
 
@@ -589,7 +597,7 @@
     function shell() {
       host.innerHTML = HV.demoBar() +
         '<div class="ed">' +
-          '<aside class="ed-side"><a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a>' +
+          '<aside class="ed-side">' + HV.back('listings') +
             '<p class="ed-title">' + esc(l.name || t('New listing')) + '</p><ol class="ed-nav"></ol></aside>' +
           '<div class="ed-main"><div class="ed-prog" aria-hidden="true"><i></i></div><form class="ed-form" novalidate></form>' +
             '<div class="ed-bar"><button type="button" class="btn btn-ghost" data-prev>' + esc(t('Back')) + '</button><span class="ed-saved" aria-live="polite"></span>' +
@@ -979,7 +987,7 @@
           '<div class="pp">' +
             '<header class="pp-top">' +
               (start ? '<ol class="pp-steps"><li class="done">' + CHECK + '<span>' + esc(t('Your details')) + '</span></li><li class="on"><i>2</i><span>' + esc(t('Choose a plan')) + '</span></li><li><i>3</i><span>' + esc(t('Add your place')) + '</span></li></ol>'
-                     : '<a class="back-link" href="/host" data-link>' + H.icon('chev-left') + '<span>' + esc(t('Your listings')) + '</span></a>') +
+                     : HV.back('account')) +
               '<h1>' + esc(t('Listing is free. Pay only to be seen first.')) + '</h1>' +
               '<p class="pp-lede">' + esc(t('Start free today. Move up any time to answer every renter and show higher in search.')) + '</p>' +
             '</header>' +
@@ -1079,7 +1087,7 @@
         var p = r[0] || {}, q = r[1] || [];
         if (ECS.mode === 'live' && p.role !== 'admin') { go('/host'); return; }
         host.innerHTML = HV.demoBar() + '<div class="host-wrap">' +
-          '<a class="auth-back" href="/host" data-link>' + H.icon('arrow-left') + '<span>' + esc(t('Your listings')) + '</span></a>' +
+          HV.back('account') +
           '<h1>' + esc(t('Review listings')) + '</h1><p class="host-muted">' + esc(t('Check the photos, price and pin against the Keeper standards. Approve it, or ask for changes with a short note; the Keeper gets an email either way.')) + '</p>' +
           (q.length ? '<ul class="rv-list">' + q.map(function (l) {
             var o = l.owner || {}, rules = l.rules || {};

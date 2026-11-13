@@ -72,7 +72,7 @@
     $('.inbox', host).outerHTML =
       '<div class="inbox' + (open && state.id ? ' is-open' : '') + '">' +
         '<aside class="msg-side">' +
-          '<div class="msg-side-top"><a class="msg-back" href="' + (keeper ? '/host?tab=messages' : '/host') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a><h1>' + esc(t('Messages')) + '</h1>' +
+          '<div class="msg-side-top"><a class="kh-back" href="' + (keeper ? '/host?tab=messages' : '/host') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a><h1>' + esc(t('Messages')) + '</h1>' +
             (hasBoth ? '<div class="msg-tabs" role="tablist">' + [['all', 'All'], ['renter', 'Rooms I asked about'], ['keeper', 'My listings']].map(function (o) {
               return '<button type="button" role="tab" aria-selected="' + (state.filter === o[0]) + '" class="' + (state.filter === o[0] ? 'on' : '') + '" data-msg-filter="' + o[0] + '">' + esc(t(o[1])) + '</button>';
             }).join('') + '</div>' : '') +

@@ -689,7 +689,7 @@
       var P = (window.ECS_PAGES || {})[arg];
       if (!P) { kind = 'missing'; }
       else {
-        inner.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<article class="doc"><h1>' + H.esc(P.title) + '</h1>' + P.html + (arg === 'contact' ? '<div class="doc-form"></div>' : '') + '</article>';
+        inner.innerHTML = (window.HostView ? HostView.demoBar() : '') + '<article class="doc">' + (/[?&]from=keeper/.test(location.search) && window.HostView && window.ECS && ECS.user ? HostView.back('account') : '') + '<h1>' + H.esc(P.title) + '</h1>' + P.html + (arg === 'contact' ? '<div class="doc-form"></div>' : '') + '</article>';
         if (arg === 'contact') HostView.contactForm($('.doc-form', inner));
         meta(P.title, P.description, false);
         var hash = location.hash && document.getElementById(location.hash.slice(1));
