@@ -674,22 +674,31 @@
       var C = window.HAVN_CONFIG || {}, tel = (C.phone || '').replace(/[^\d+]/g, '');
       var mail = (ECS.user && ECS.user.email) || '';
       var ways =
-        (tel ? '<a class="btn btn-ghost" href="tel:' + esc(tel) + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + ' ' + esc(C.phone) + '</span></a>' +
-               '<a class="btn btn-ghost" href="sms:' + esc(tel) + '">' + H.icon('message') + '<span>' + esc(t('Text us')) + '</span></a>' : '') +
-        (C.email ? '<a class="btn btn-ghost" href="mailto:' + esc(C.email) + '">' + H.icon('message') + '<span>' + esc(C.email) + '</span></a>' : '') +
-        (!tel && !C.email ? '<a class="btn btn-ghost" href="/contact" data-link data-close>' + H.icon('message') + '<span>' + esc(t('Contact us')) + '</span></a>' : '');
-      H.dialog({
-        className: 'thanks-dlg',
+        (tel ? '<a class="btn" href="tel:' + esc(tel) + '">' + H.icon('phone') + '<span>' + esc(t('Call')) + ' ' + esc(C.phone) + '</span></a>' +
+               '<a class="btn" href="sms:' + esc(tel) + '">' + H.icon('message') + '<span>' + esc(t('Text us')) + '</span></a>' : '') +
+        (C.email ? '<a class="btn" href="mailto:' + esc(C.email) + '">' + H.icon('message') + '<span>' + esc(C.email) + '</span></a>' : '') +
+        (!tel && !C.email ? '<a class="btn" href="/contact" data-link data-close>' + H.icon('message') + '<span>' + esc(t('Contact us')) + '</span></a>' : '');
+      var stops = [];
+      var dlg = H.dialog({
+        className: 'cele',
         title: t('Listing sent'),
-        body: '<div class="thanks"><span class="thanks-mark">' + H.icon('check') + '</span>' +
-          '<h3>' + esc(t('Thank you. We have your listing.')) + '</h3>' +
+        body: '<div class="cele-body">' +
+          '<div class="cele-coin" aria-hidden="true"><span class="cele-coin-still">' + H.icon('check') + '</span></div>' +
+          '<h3>' + esc(t('Thank you. Your listing is with us.')) + '</h3>' +
           '<p>' + esc(t('We check every listing ourselves before renters see it. This takes up to 1 day.')) + '</p>' +
           '<p>' + (mail ? t('We will email you at {email} as soon as it is live, or if we need a change.', { email: '<b>' + esc(mail) + '</b>' }) : esc(t('We will email you as soon as it is live, or if we need a change.'))) + '</p>' +
-          '<div class="thanks-ask"><p>' + esc(t('Any question while you wait?')) + '</p><div class="thanks-ways">' + ways + '</div></div></div>',
-        foot: '<button type="button" class="btn btn-primary btn-block" data-close>' + esc(t('Go to my listings')) + '</button>',
+          '<div class="cele-ask"><p>' + esc(t('Any question while you wait?')) + '</p><div class="cele-ways">' + ways + '</div></div></div>',
+        foot: '<button type="button" class="btn btn-brass btn-block" data-close>' + esc(t('Go to my listings')) + '</button>',
         focus: '.dlg-foot button',
-        onClose: function () { go('/host'); },
+        onClose: function () { stops.forEach(function (f) { try { f(); } catch (e) {} }); go('/host'); },
       });
+      // The 3D medallion and the confetti load on their own; if they cannot, the plain mark stays.
+      import('/assets/js/celebrate.js').then(function (m) {
+        var coin = dlg.el.querySelector('.cele-coin'); if (!coin || !document.body.contains(coin)) return;
+        stops.push(m.medallion(coin));
+        var r = coin.getBoundingClientRect(), w = dlg.el.getBoundingClientRect();
+        setTimeout(function () { if (document.body.contains(dlg.el)) stops.push(m.confetti(dlg.el, { x: r.left + r.width / 2 - w.left, y: r.top + r.height / 2 - w.top })); }, 650);
+      }).catch(function () {});
     }
 
     shell();

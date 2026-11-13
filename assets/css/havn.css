@@ -1807,14 +1807,44 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .col.over { box-shadow: inset 0 0 0 2px var(--evergreen); }
 .col-empty { border: 1.5px dashed var(--border-strong); border-radius: 12px; text-align: center; }
 
-/* Thank-you pop-up after a Keeper sends a listing */
-.thanks { padding: 12px 4px 4px; text-align: center; }
-.thanks-mark { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--evergreen-soft); color: var(--evergreen); }
-.thanks-mark .i { width: 26px; height: 26px; stroke-width: 2.4; }
-.thanks h3 { font: 500 26px/1.2 var(--font-serif); letter-spacing: -0.015em; color: var(--text); }
-.thanks > p { margin: 10px auto 0; max-width: 42ch; color: var(--ink-2); }
-.thanks > p b { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
-.thanks-ask { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-.thanks-ask p { font-size: 14.5px; color: var(--muted); }
-.thanks-ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
-.thanks-ways .btn { min-height: 44px; }
+/* The celebration after a Keeper sends a listing: evergreen and brass, a live 3D medallion, foil confetti */
+.cele .dlg-backdrop { background: rgba(9, 20, 16, .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.cele .dlg {
+  position: relative; color: #F6F0E5; border: 1px solid rgba(217, 177, 102, .28);
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(217, 177, 102, .2), rgba(217, 177, 102, 0) 70%),
+    linear-gradient(180deg, #1D3F35 0%, #132C25 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+}
+.cele .dlg-head { position: absolute; top: 6px; right: 6px; z-index: 3; padding: 0; border: 0; }
+.cele .dlg-head h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.cele .dlg-head .icon-btn { color: rgba(246, 240, 229, .75); background: transparent; }
+.cele .dlg-head .icon-btn:hover { background: rgba(246, 240, 229, .1); color: #F6F0E5; }
+.cele .dlg-body { padding: 8px 28px 26px; }
+.cele .dlg-foot { border-top: 1px solid rgba(246, 240, 229, .12); padding-top: 16px; }
+.cele .dlg-foot .btn { min-height: 52px; font-size: 16px; }
+.cele-body { text-align: center; }
+.cele-coin { position: relative; width: 210px; height: 210px; margin: 6px auto 2px; }
+.cele-coin canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s ease; }
+.cele-coin.live canvas { opacity: 1; }
+/* Until the 3D medallion is ready (or if it cannot load): a plain brass disc with a check. */
+.cele-coin-still { position: absolute; inset: 55px; display: grid; place-items: center; border-radius: 50%; color: #1B1408;
+  background: radial-gradient(circle at 35% 30%, #F0D49A, #C79A4B 55%, #8A6431); transition: opacity .4s ease; }
+.cele-coin-still .i { width: 40px; height: 40px; stroke-width: 2.4; }
+.cele-coin.live .cele-coin-still { opacity: 0; }
+.cele-body h3 { font: 500 30px/1.15 var(--font-serif); letter-spacing: -0.02em; color: #FBF7EF; text-wrap: balance; }
+.cele-body > p { margin: 12px auto 0; max-width: 40ch; color: rgba(246, 240, 229, .82); }
+.cele-body > p b { color: #F0D49A; font-weight: 600; overflow-wrap: anywhere; }
+.cele-ask { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(217, 177, 102, .3); }
+.cele-ask p { font-size: 14.5px; color: rgba(246, 240, 229, .65); }
+.cele-ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.cele-ways .btn { min-height: 44px; color: #F6F0E5; background: rgba(246, 240, 229, .06); border: 1px solid rgba(246, 240, 229, .28); }
+.cele-ways .btn:hover { background: rgba(246, 240, 229, .12); border-color: rgba(246, 240, 229, .5); }
+.cele-confetti { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
+@media (min-width: 768px) {
+  .cele .dlg { width: min(520px, 100%); }
+  .cele .dlg-body { padding: 14px 44px 30px; }
+  .cele-coin { width: 240px; height: 240px; }
+  .cele-coin-still { inset: 64px; }
+  .cele-body h3 { font-size: 34px; }
+}
