@@ -236,6 +236,10 @@
           [['keeper', 'Hello! Yes, it is free from December 1. \u20b15,500 a month, own CR, you pay your own electric meter.', 49], ['renter', 'How much do I need to move in?', 48], ['keeper', 'One month advance and one month deposit, so \u20b111,000. You can visit any day after 5 PM.', 47]].forEach(function (m) {
             d.messages.push({ id: uid(), inquiry_id: b, sender_role: m[0], body: m[1], created_at: ago(m[2]) });
           });
+          // One example reaction from the other side, so the demo shows how they look.
+          d.reactions = d.reactions || [];
+          var mineMsg = d.messages.filter(function (m) { return m.inquiry_id === a && m.sender_role === 'keeper'; }).pop();
+          if (mineMsg) d.reactions.push({ inquiry_id: a, target: mineMsg.id, user_id: 'example-renter', emoji: '👍' });
           d.seeded = d.seeded || {}; d.seeded[u.id] = 1; save(d);
         }
         var mine = Object.keys(d.listings).map(function (k) { return d.listings[k]; }).filter(function (l) { return l.owner_id === u.id; });
@@ -243,7 +247,7 @@
         var inqs = d.inquiries.filter(function (q) { return q.renter_id === u.id || q.as_keeper === u.id || ids.indexOf(q.listing_id) >= 0; });
         var roleOf = function (q, own) { return q.as_keeper === u.id || (own && q.renter_id !== u.id) ? 'keeper' : 'renter'; };
         inqs = inqs.map(function (q) { return roleOf(q, ids.indexOf(q.listing_id) >= 0) === 'keeper' ? asKeeper(d, u, q) : q; });
-        var out = ECS.buildThreads(inqs, mine, d.messages, u.id, roleOf);
+        var out = ECS.buildThreads(inqs, mine, d.messages, u.id, roleOf, d.reactions || []);
         out.quota = { limit: ECS.FREE_REPLIES, used: used(d, u) };
         return Promise.resolve(out);
       },
@@ -254,6 +258,13 @@
         if (role === 'keeper' && q && !q.example && !answered(d, q) && used(d, u) >= ECS.FREE_REPLIES) return fail(t(ECS.LIMIT_MSG));
         var m = { id: uid(), inquiry_id: inquiryId, sender_id: u.id, sender_role: role, body: String(body).slice(0, 2000), created_at: now() };
         d.messages.push(m); save(d); return Promise.resolve(m);
+      },
+      // One reaction per person per message; no emoji = take it away.
+      react: function (inquiryId, target, emoji) {
+        var u = me(); if (!u) return fail(t('Please sign in first.'));
+        var d = db(); d.reactions = (d.reactions || []).filter(function (r) { return !(r.inquiry_id === inquiryId && r.target === target && r.user_id === u.id); });
+        if (emoji) d.reactions.push({ inquiry_id: inquiryId, target: target, user_id: u.id, emoji: emoji });
+        save(d); return Promise.resolve();
       },
       countListing: function () { return Promise.resolve(); },
       // Demo: example numbers for the listings that are live (the same every time for the same listing).
@@ -403,9 +414,10 @@
             // About the person's own listings: the database leaves the renter's number out until they answer.
             c.rpc('keeper_inquiries').then(check).catch(function () { return []; }),
             c.rpc('keeper_quota').then(check).catch(function () { return null; }),
+            c.from('message_reactions').select('inquiry_id,target,user_id,emoji').limit(5000).then(check).catch(function () { return []; }),
           ]).then(function (r) {
             var have = {}; r[0].forEach(function (q) { have[q.id] = true; });
-            var out = ECS.buildThreads(r[0].concat((r[3] || []).filter(function (q) { return !have[q.id]; })), r[1], r[2], a[1]);
+            var out = ECS.buildThreads(r[0].concat((r[3] || []).filter(function (q) { return !have[q.id]; })), r[1], r[2], a[1], null, r[5]);
             out.quota = r[4];
             return out;
           });
@@ -413,6 +425,14 @@
       },
       sendReply: function (inquiryId, role, body) {
         return client().then(function (c) { return c.from('inquiry_messages').insert({ inquiry_id: inquiryId, sender_role: role, body: String(body).slice(0, 2000) }).select().single(); }).then(check);
+      },
+      // One reaction per person per message; no emoji = take it away. The database checks the person is in the conversation.
+      react: function (inquiryId, target, emoji) {
+        return Promise.all([client(), uidNow()]).then(function (a) {
+          var c = a[0];
+          if (!emoji) return c.from('message_reactions').delete().eq('inquiry_id', inquiryId).eq('target', target).eq('user_id', a[1]);
+          return c.from('message_reactions').upsert({ inquiry_id: inquiryId, target: target, user_id: a[1], emoji: emoji }, { onConflict: 'inquiry_id,target,user_id' });
+        }).then(check);
       },
       // One more view or save of a live listing (the database skips the Keeper's own visits and the team's).
       countListing: function (id, kind) { return client().then(function (c) { return c.rpc('count_listing', { lid: id, kind: kind }); }).then(function () {}, function () {}); },
@@ -464,8 +484,10 @@
   };
   /* Conversations for the inbox: each inquiry with its replies, which side the reader is on, and the room it is
    * about. `waiting` = the last word was the other side's, so it is the reader's turn. */
-  ECS.buildThreads = function (inqs, listings, msgs, me, roleOf) {
+  ECS.REACTIONS = ['❤️', '😆', '😮', '😢', '😠', '👍'];
+  ECS.buildThreads = function (inqs, listings, msgs, me, roleOf, reacts) {
     var L = {}; (listings || []).forEach(function (l) { L[l.id] = l; });
+    var R = {}; (reacts || []).forEach(function (r) { var k = r.inquiry_id + '|' + r.target; (R[k] = R[k] || []).push({ emoji: r.emoji, user: r.user_id }); });
     var M = {}; (msgs || []).forEach(function (m) { (M[m.inquiry_id] = M[m.inquiry_id] || []).push(m); });
     return (inqs || []).map(function (q) {
       var own = L[q.listing_id], site = window.H && H.byId ? H.byId(q.listing_ref) : null;
@@ -476,7 +498,10 @@
         { name: q.listing_name || t('A room'), photo: q.photo || null, price: 0, area: '', url: null };
       var list = [{ id: q.id + '-0', inquiry_id: q.id, sender_role: 'renter', body: q.message || '', created_at: q.created_at }]
         .concat((M[q.id] || []).slice().sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); }));
-      return { q: q, role: role, room: room, msgs: list, waiting: list[list.length - 1].sender_role !== role };
+      // Reactions sit on each message; the renter's opening message is the target 'first'.
+      list = list.map(function (m, i) { return Object.assign({}, m, { target: i === 0 ? 'first' : m.id, reacts: R[q.id + '|' + (i === 0 ? 'first' : m.id)] || [] }); });
+      var rsig = list.map(function (m) { return m.reacts.map(function (r) { return r.user + r.emoji; }).join(','); }).join('|');
+      return { q: q, role: role, room: room, msgs: list, waiting: list[list.length - 1].sender_role !== role, rsig: rsig };
     }).sort(function (a, b) { return new Date(b.msgs[b.msgs.length - 1].created_at) - new Date(a.msgs[a.msgs.length - 1].created_at); });
   };
 

@@ -8,7 +8,17 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   function esc(s) { return H.esc(s); }
   var timer = null, state = null;
-  var EMOJI = '😀 😊 😂 🙂 😉 😍 🥰 😅 🙏 👍 👌 👏 💪 🤝 ❤️ ✨ 🎉 🔥 ✅ ❌ ⏰ 📍 🏠 🛏️ 🔑 🚿 📶 💡 💧 💰 📷 📞'.split(' ');
+  var EMOJI = [['Smileys', '😀 😃 😄 😁 😆 😅 😂 🤣 🙂 😉 😊 😇 🥰 😍 😘 😋 😜 🤗 🤔 😐 😴 😌 😎 🥳 😮 😢 😭 😠 😳 🥺 😬 🤒'], ['Hands', '👍 👎 👌 🙏 👏 🙌 💪 🤝 👋 ✌️ 🤞 👉 👈 👆 👇 ✍️'], ['Hearts', '❤️ 🧡 💛 💚 💙 💜 🤍 💕 💖 ✨ 🎉 🔥 ⭐ 💯 🌸 🌞'], ['Home', '🏠 🏡 🏢 🛏️ 🛋️ 🚪 🔑 🚿 🚽 🧺 🧹 📶 💡 💧 ❄️ 🍳 🚗 🛵 🚌 🎒 📚 💼 🐶 🐱'], ['Signs', '✅ ❌ ⏰ 📅 📍 💰 💵 🧾 📷 📞 📱 ✉️ ❓ ❗ 🆗 🚫']];
+  var RX_NAME = { '❤️': 'Love', '😆': 'Haha', '😮': 'Wow', '😢': 'Sad', '😠': 'Angry', '👍': 'Like' };
+  function myId() { return ECS.user ? ECS.user.id : ''; }
+  // The reactions under one message: one chip per emoji with its count; the reader's own is marked.
+  function chips(m) {
+    var by = {}, order = [];
+    (m.reacts || []).forEach(function (r) { if (!by[r.emoji]) { by[r.emoji] = { n: 0, mine: false }; order.push(r.emoji); } by[r.emoji].n++; if (r.user === myId()) by[r.emoji].mine = true; });
+    return order.map(function (e) {
+      return '<button type="button" class="rx' + (by[e].mine ? ' mine' : '') + '" data-rx="' + esc(e) + '" aria-pressed="' + by[e].mine + '" aria-label="' + esc(t(RX_NAME[e] || 'Reaction') + (by[e].n > 1 ? ' ' + by[e].n : '') + (by[e].mine ? ' · ' + t('Tap to remove') : '')) + '">' + e + (by[e].n > 1 ? '<b>' + by[e].n + '</b>' : '') + '</button>';
+    }).join('');
+  }
 
   function when(d) {
     var x = new Date(d), n = new Date();
@@ -46,7 +56,7 @@
     ECS.session().then(function (s) {
       if (!s) { App.go('/signin?next=' + encodeURIComponent(location.pathname)); return; }
       return ECS.threads().then(function (list) {
-        var same = known && JSON.stringify(state.list.map(function (x) { return [x.q.id, x.msgs.length]; })) === JSON.stringify(list.map(function (x) { return [x.q.id, x.msgs.length]; }));
+        var same = known && JSON.stringify(state.list.map(function (x) { return [x.q.id, x.msgs.length, x.rsig]; })) === JSON.stringify(list.map(function (x) { return [x.q.id, x.msgs.length, x.rsig]; }));
         // Nothing new: keep what is on screen (the open reply box is tied to it).
         if (!same) { state = { host: host, list: list, id: known ? state.id : id || null, filter: known ? state.filter : 'all', uid: s.user.id }; paint(true); }
         // Quiet refresh while the page is open, so a reply from the other side shows up.
@@ -54,9 +64,9 @@
           if (!document.body.contains($('.inbox', host))) { clearInterval(timer); return; }
           if (document.hidden) return;
           ECS.threads().then(function (fresh) {
-            var before = JSON.stringify(state.list.map(function (x) { return [x.q.id, x.msgs.length]; }));
+            var before = JSON.stringify(state.list.map(function (x) { return [x.q.id, x.msgs.length, x.rsig]; }));
             state.list = fresh;
-            if (before !== JSON.stringify(fresh.map(function (x) { return [x.q.id, x.msgs.length]; }))) paint(true);
+            if (before !== JSON.stringify(fresh.map(function (x) { return [x.q.id, x.msgs.length, x.rsig]; }))) paint(true);
           }).catch(function () {});
         }, 20000);
       });
@@ -123,10 +133,12 @@
     var bubbles = th.msgs.map(function (m) {
       var mine = m.sender_role === th.role, d = dayLabel(m.created_at), head = '';
       if (d !== lastDay) { head = '<li class="msg-day"><span>' + esc(d) + '</span></li>'; lastDay = d; }
-      return head + '<li class="bub ' + (mine ? 'mine' : 'theirs') + '">' +
+      return head + '<li class="bub ' + (mine ? 'mine' : 'theirs') + '" data-mid="' + esc(m.target || '') + '">' +
         (mine ? '' : '<span class="bub-av" aria-hidden="true">' + esc(m.sender_role === 'renter' ? initials(q.renter_name) : m.sender_role === 'keeper' ? 'K' : 'EC') + '</span>') +
         '<div><p class="bub-who">' + esc(who(th, m)) + ' · ' + esc(new Date(m.created_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })) + '</p>' +
-        '<p class="bub-text">' + esc(m.body || t('(no message)')) + '</p></div></li>';
+        '<div class="bub-wrap"><p class="bub-text">' + esc(m.body || t('(no message)')) + '</p>' +
+          (m.target ? '<button type="button" class="bub-react" data-react aria-haspopup="true" aria-expanded="false" aria-label="' + esc(t('React to this message')) + '" title="' + esc(t('React')) + '">' + H.icon('smile') + '</button>' : '') + '</div>' +
+        '<div class="bub-reacts">' + chips(m) + '</div></div></li>';
     }).join('');
     var facts = [];
     if (q.move_in) facts.push([t('Move-in'), q.move_in]);
@@ -163,7 +175,9 @@
               return '<button type="button" data-quick>' + esc(s) + '</button>';
             }).join('') + '</div>' : '') +
             '<div class="msg-box-row"><button type="button" class="emo-btn" data-emo aria-label="' + esc(t('Add an emoji')) + '" aria-expanded="false" title="' + esc(t('Add an emoji')) + '">' + H.icon('smile') + '</button>' +
-            '<div class="emo" hidden role="group" aria-label="' + esc(t('Add an emoji')) + '">' + EMOJI.map(function (x) { return '<button type="button" data-emoji>' + x + '</button>'; }).join('') + '</div>' +
+            '<div class="emo" hidden role="group" aria-label="' + esc(t('Add an emoji')) + '">' + EMOJI.map(function (g) {
+              return '<p>' + esc(t(g[0])) + '</p><div>' + g[1].split(' ').map(function (x) { return '<button type="button" data-emoji>' + x + '</button>'; }).join('') + '</div>';
+            }).join('') + '</div>' +
             '<textarea rows="1" maxlength="2000" placeholder="' + esc(t('Write a message')) + '" aria-label="' + esc(t('Write a message')) + '"></textarea>' +
             '<button type="submit" class="btn btn-primary">' + esc(t('Send')) + '</button></div>' +
             '<p class="field-err" role="alert" hidden></p>' +
@@ -185,6 +199,38 @@
     ta.addEventListener('input', grow); grow();
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(min-width: 900px)').matches) { e.preventDefault(); form.requestSubmit ? form.requestSubmit() : btn.click(); } });
     form.addEventListener('click', function (e) { var b = e.target.closest('[data-quick]'); if (b) { ta.value = b.textContent; grow(); ta.focus(); } });
+    // Reactions: the smiley beside a message opens six to choose from; choosing your own again takes it away.
+    function closeBar() { var b = $('.rx-bar', root); if (b) { var o = b.parentNode.querySelector('[data-react]'); if (o) o.setAttribute('aria-expanded', 'false'); b.remove(); } }
+    function setReact(li, emoji) {
+      var m = th.msgs.filter(function (x) { return x.target === li.getAttribute('data-mid'); })[0]; if (!m) return;
+      var before = m.reacts.slice(), had = before.filter(function (r) { return r.user === myId(); })[0];
+      var next = had && had.emoji === emoji ? null : emoji;
+      m.reacts = before.filter(function (r) { return r.user !== myId(); }); if (next) m.reacts.push({ emoji: next, user: myId() });
+      $('.bub-reacts', li).innerHTML = chips(m);
+      th.rsig = th.msgs.map(function (x) { return x.reacts.map(function (r) { return r.user + r.emoji; }).join(','); }).join('|');
+      ECS.react(th.q.id, m.target, next).catch(function (x) { m.reacts = before; $('.bub-reacts', li).innerHTML = chips(m); H.toast(x.message); });
+    }
+    flow.addEventListener('click', function (e) {
+      var b, li = e.target.closest('.bub');
+      if ((b = e.target.closest('[data-pick]'))) { closeBar(); setReact(li, b.getAttribute('data-pick')); }
+      else if ((b = e.target.closest('[data-rx]'))) { closeBar(); setReact(li, b.getAttribute('data-rx')); }
+      else if ((b = e.target.closest('[data-react]'))) {
+        var open = b.getAttribute('aria-expanded') === 'true'; closeBar(); if (open) return;
+        var m = th.msgs.filter(function (x) { return x.target === li.getAttribute('data-mid'); })[0] || { reacts: [] };
+        var mine = (m.reacts.filter(function (r) { return r.user === myId(); })[0] || {}).emoji;
+        var bar = document.createElement('div'); bar.className = 'rx-bar'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', t('React'));
+        bar.innerHTML = ECS.REACTIONS.map(function (x) { return '<button type="button" data-pick="' + esc(x) + '" aria-pressed="' + (mine === x) + '" aria-label="' + esc(t(RX_NAME[x])) + '" title="' + esc(t(RX_NAME[x])) + '">' + x + '</button>'; }).join('');
+        b.parentNode.appendChild(bar); b.setAttribute('aria-expanded', 'true');
+        // Keep the bar inside the conversation, whichever side the message is on.
+        var fr = flow.getBoundingClientRect(), br = bar.getBoundingClientRect();
+        if (br.left < fr.left + 8) bar.style.transform = 'translateX(' + Math.ceil(fr.left + 8 - br.left) + 'px)';
+        else if (br.right > fr.right - 8) bar.style.transform = 'translateX(' + Math.floor(fr.right - 8 - br.right) + 'px)';
+        if (br.top < fr.top + 4) bar.classList.add('below');
+        bar.querySelector('button').focus();
+      }
+    });
+    flow.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.rx-bar', root)) { var o = $('.rx-bar', root).parentNode.querySelector('[data-react]'); closeBar(); if (o) o.focus(); } });
+    root.addEventListener('click', function (e) { if (!e.target.closest('.rx-bar, [data-react]')) closeBar(); });
     // Emoji: a small set to pick from, put where the cursor is.
     var eb = $('[data-emo]', form), ep = $('.emo', form);
     function emo(open) { ep.hidden = !open; eb.setAttribute('aria-expanded', String(open)); }
@@ -203,7 +249,7 @@
       if (!body) { ta.focus(); return; }
       err.hidden = true; btn.disabled = true;
       ECS.sendReply(th.q.id, th.role, body).then(function (m) {
-        th.msgs.push(m); th.waiting = false; state.id = state.id || th.q.id;
+        m.target = m.id; m.reacts = []; th.msgs.push(m); th.waiting = false; state.id = state.id || th.q.id;
         // A first answer uses one of the month's five and shows the renter's number: read the inbox again.
         if (th.role === 'keeper' && th.q.answered === false) ECS.threads().then(function (fresh) { state.list = fresh; paint(true); }).catch(function () {});
         state.list.sort(function (a, b) { return new Date(b.msgs[b.msgs.length - 1].created_at) - new Date(a.msgs[a.msgs.length - 1].created_at); });

@@ -2075,3 +2075,35 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
   .msg-side, .inbox.is-open .msg-side { padding: 28px 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .msg-row { transition: none; } }
+
+/* Inbox: reactions on a message, and the emoji picker in groups */
+.bub > div { min-width: 0; }
+.bub-wrap { position: relative; display: flex; align-items: center; gap: 4px; }
+.bub.mine .bub-wrap { flex-direction: row-reverse; }
+.bub-wrap .bub-text { margin-top: 3px; min-width: 0; }
+.bub-react { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
+.bub-react:hover, .bub-react[aria-expanded="true"] { background: var(--surface); color: var(--evergreen); }
+.bub-react .i { width: 18px; height: 18px; }
+@media (hover: hover) {
+  .bub-react { opacity: 0; transition: opacity .12s; }
+  .bub:hover .bub-react, .bub-react:focus-visible, .bub-react[aria-expanded="true"] { opacity: 1; }
+}
+.bub-reacts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: -6px; padding-left: 10px; position: relative; z-index: 1; }
+.bub-reacts:empty { display: none; }
+.bub.mine .bub-reacts { justify-content: flex-end; padding: 0 44px 0 0; }
+.bub.theirs .bub-reacts { padding-right: 38px; }
+.rx { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 7px; border: 1px solid var(--border); border-radius: 999px; background: #fff; box-shadow: var(--shadow-card); font-size: 15px; line-height: 1; cursor: pointer; }
+.rx b { font: 700 12px var(--font-display); color: var(--ink-2); }
+.rx.mine { border-color: var(--evergreen); background: var(--evergreen-soft); }
+.rx-bar { position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 7; display: flex; gap: 2px; padding: 5px; border: 1px solid var(--border); border-radius: 999px; background: #fff; box-shadow: var(--shadow-pop); animation: rx-in .14s var(--ease); }
+.bub.mine .rx-bar { left: auto; right: 0; }
+.rx-bar.below { bottom: auto; top: calc(100% + 4px); }
+.rx-bar button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; font-size: 24px; line-height: 1; cursor: pointer; transition: transform .12s var(--ease); }
+.rx-bar button:hover, .rx-bar button:focus-visible { transform: scale(1.25) translateY(-2px); outline: none; background: var(--surface); }
+.rx-bar button[aria-pressed="true"] { background: var(--evergreen-soft); }
+@keyframes rx-in { from { opacity: 0; transform: translateY(6px) scale(.92); } }
+.emo { display: block; width: 356px; max-width: calc(100vw - 24px); max-height: 300px; overflow-y: auto; overscroll-behavior: contain; padding: 6px 10px 10px; }
+.emo p { position: sticky; top: -6px; z-index: 1; margin: 0 -10px; padding: 8px 12px 4px; background: #fff; font: 650 11.5px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.emo div { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+.emo button { width: 100%; aspect-ratio: 1; height: auto; }
+@media (prefers-reduced-motion: reduce) { .rx-bar { animation: none; } .rx-bar button { transition: none; } .rx-bar button:hover, .rx-bar button:focus-visible { transform: none; } }
