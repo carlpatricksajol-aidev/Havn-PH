@@ -250,6 +250,20 @@
     return '<a class="kh-back" href="/host' + (keeper && tab ? '?tab=' + tab : '') + '" data-link>' + H.icon('arrow-left') + '<span>' + esc(t(keeper ? 'Keeper home' : 'Your account')) + '</span></a>';
   };
 
+  /* The side menu can be folded to a strip of icons (wide screens). The choice is kept for next time. */
+  HV.navToggle = function () {
+    var min = H.store.get('ecs-nav-min', false);
+    return '<button type="button" class="nav-tog" data-nav-tog aria-expanded="' + !min + '" aria-label="' + esc(t(min ? 'Open the menu' : 'Fold the menu')) + '" title="' + esc(t(min ? 'Open the menu' : 'Fold the menu')) + '">' + H.icon('chev-left') + '</button>';
+  };
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-nav-tog]'); if (!b) return;
+    var root = b.closest('.adm, .kh'); if (!root) return;
+    var min = !root.classList.contains('nav-min');
+    root.classList.toggle('nav-min', min); H.store.set('ecs-nav-min', min);
+    b.setAttribute('aria-expanded', String(!min));
+    b.setAttribute('aria-label', t(min ? 'Open the menu' : 'Fold the menu')); b.setAttribute('title', t(min ? 'Open the menu' : 'Fold the menu'));
+  });
+
   HV.dashboard = function (host) {
     needUser(host, function (user) { loadDash(host, user); });
   };
@@ -301,14 +315,14 @@
       review ? t('Your listing is with us. We check it within 1 day and email you.') :
       t('Finish your listing and renters can start to write to you.');
     var item = function (id, icon, label, n, hot) {
-      return '<button type="button" role="tab" aria-selected="' + (d.tab === id) + '" data-tab="' + id + '">' + H.icon(icon) + '<span>' + esc(t(label)) + '</span>' +
+      return '<button type="button" role="tab" aria-selected="' + (d.tab === id) + '" data-tab="' + id + '" title="' + esc(t(label)) + '">' + H.icon(icon) + '<span>' + esc(t(label)) + '</span>' +
         (hot ? '<b class="count brass">' + n + '</b>' : n ? '<i class="n">' + n + '</i>' : '') + '</button>';
     };
-    var add = '<a class="btn btn-brass kh-add" href="/host/new" data-link>' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a>';
+    var add = '<a class="btn btn-brass kh-add" href="/host/new" data-link title="' + esc(t('Add a listing')) + '">' + H.icon('plus') + '<span>' + esc(t('Add a listing')) + '</span></a>';
     var body = !d.keeper ? renterHome() : d.tab === 'listings' ? tabListings() : d.tab === 'messages' ? tabMessages() : d.tab === 'account' ? tabAccount() : tabOverview();
     d.host.innerHTML = HV.demoBar() +
-      '<div class="host-wrap kh' + (d.keeper ? '' : ' kh-solo') + '">' +
-        (d.keeper ? '<aside class="kh-nav"><p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
+      '<div class="host-wrap kh' + (d.keeper ? '' : ' kh-solo') + (H.store.get('ecs-nav-min', false) ? ' nav-min' : '') + '">' +
+        (d.keeper ? '<aside class="kh-nav">' + HV.navToggle() + '<p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
           '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + item('overview', 'home', 'Home') + item('listings', 'building', 'Listings', d.ls.length) + item('messages', 'message', 'Messages', d.waiting.length, d.waiting.length > 0) + item('account', 'user', 'Plan and account') + '</div>' +
           add + '<p class="kh-nav-foot"><a href="/help?from=keeper" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
         '<div class="kh-page' + (d.keeper && d.tab === 'messages' ? ' kh-full' : '') + '" role="tabpanel">' +

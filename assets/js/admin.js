@@ -62,10 +62,10 @@
     var SUB = { today: 'What the team needs to do, most pressing first.', review: 'Check each listing against the Keeper standards, then approve it or ask for changes.', leads: 'Every renter who wrote to a Keeper. Set the stage as it moves along.', listings: 'Every listing with its Keeper, status and plan.', people: 'Everyone who signed up.', messages: 'Messages from the contact page.', insights: 'How many people visit, what they search for, and which listings they open.' };
     var tools = cur === 'today' || cur === 'review' || cur === 'insights' ? '' : '<div class="adm-tools"><label class="adm-search">' + H.icon('search') + '<input type="search" data-adm-search placeholder="' + esc(t('Search this page')) + '" aria-label="' + esc(t('Search this page')) + '"></label>' +
       (cur === 'leads' || cur === 'people' ? '<button type="button" class="btn btn-ghost btn-sm" data-adm-csv="' + cur + '">' + H.icon('external') + '<span>' + esc(t('Download as a sheet')) + '</span></button>' : '') + '</div>';
-    host.innerHTML = '<div class="adm">' +
-      '<aside class="adm-nav"><p class="kh-brand">' + esc(t('ECStay admin')) + '</p>' +
+    host.innerHTML = '<div class="adm' + (H.store.get('ecs-nav-min', false) ? ' nav-min' : '') + '">' +
+      '<aside class="adm-nav">' + HostView.navToggle() + '<p class="kh-brand">' + esc(t('ECStay admin')) + '</p>' +
         '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + nav.map(function (x) {
-          return '<a href="' + esc(here) + '?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + H.icon(x[1]) + '<span>' + esc(t(x[2])) + '</span>' + (x[3] ? '<i class="' + (x[4] && x[3] ? 'hot' : '') + '">' + x[3] + '</i>' : '') + '</a>';
+          return '<a href="' + esc(here) + '?tab=' + x[0] + '" data-link title="' + esc(t(x[2])) + '"' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + H.icon(x[1]) + '<span>' + esc(t(x[2])) + '</span>' + (x[3] ? '<i class="' + (x[4] && x[3] ? 'hot' : '') + '">' + x[3] + '</i>' : '') + '</a>';
         }).join('') + '</nav>' +
         '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('My own Keeper home')) + '</a><span>' + esc((ECS.user && ECS.user.email) || '') + '</span></p></aside>' +
       '<div class="adm-page"><header class="adm-head"><div><h1>' + esc(t(TITLE[cur])) + '</h1><p class="adm-sub">' + esc(t(SUB[cur])) + '</p></div>' + tools + '</header>' +

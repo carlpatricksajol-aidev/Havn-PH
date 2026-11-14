@@ -2568,3 +2568,24 @@ button.kn:hover { border-color: var(--evergreen); box-shadow: var(--shadow-hover
 .av rect.zero { fill: var(--linen-line); }
 .av-axis { display: flex; justify-content: space-between; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .rvc-photos img { transition: none; } .rvc-photos a:hover img { transform: none; } }
+
+/* The side menu folds to a strip of icons on wide screens */
+.nav-tog { display: none; }
+@media (min-width: 1024px) {
+  .kh-nav, .adm-nav { transition: width .22s var(--ease), padding .22s var(--ease); }
+  .nav-tog { position: absolute; top: 20px; right: 12px; z-index: 2; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: rgba(246, 240, 229, .1); color: #F6F0E5; cursor: pointer; }
+  .nav-tog:hover { background: rgba(246, 240, 229, .2); }
+  .nav-tog:focus-visible { outline: 2px solid #E7C784; outline-offset: 2px; }
+  .nav-tog .i { width: 16px; height: 16px; transition: transform .22s var(--ease); }
+  .nav-min .kh-nav, .nav-min .adm-nav { width: 76px; padding-left: 12px; padding-right: 12px; }
+  .nav-min .nav-tog { position: static; margin: 0 auto 4px; }
+  .nav-min .nav-tog .i { transform: rotate(180deg); }
+  .nav-min .kh-brand, .nav-min .kh-nav-foot, .nav-min .kh-tabs button > span, .nav-min .adm-tabs a > span, .nav-min .kh-nav .kh-add span { display: none; }
+  .nav-min .kh-tabs, .nav-min .adm-tabs { margin-top: 10px; }
+  .nav-min .kh-tabs button, .nav-min .adm-tabs a { position: relative; justify-content: center; gap: 0; padding: 0; }
+  .nav-min .kh-tabs button .i, .nav-min .adm-tabs a .i { width: 20px; height: 20px; }
+  .nav-min .kh-tabs .count, .nav-min .kh-tabs .n, .nav-min .adm-tabs i { position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; font-size: 10.5px; line-height: 17px; text-align: center; }
+  .nav-min .kh-tabs .n, .nav-min .adm-tabs i:not(.hot) { display: none; }
+  .nav-min .kh-nav .kh-add { width: 48px; min-width: 0; padding: 0; margin-left: auto; margin-right: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .kh-nav, .adm-nav, .nav-tog .i { transition: none; } }
