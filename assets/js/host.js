@@ -1136,6 +1136,7 @@
       Promise.all([ECS.profile().catch(function () { return {}; }), ECS.reviewQueue()]).then(function (r) {
         var p = r[0] || {}, q = r[1] || [];
         if (ECS.mode === 'live' && p.role !== 'admin') { go('/host'); return; }
+        if (ECS.mode === 'live' && App.desk()) { go(App.desk() + '?tab=review'); return; }
         host.innerHTML = HV.demoBar() + '<div class="host-wrap">' +
           HV.back('account') +
           '<h1>' + esc(t('Review listings')) + '</h1><p class="host-muted">' + esc(t('Check the photos, price and pin against the Keeper standards. Approve it, or ask for changes with a short note; the Keeper gets an email either way.')) + '</p>' +

@@ -281,6 +281,8 @@
         });
         return Promise.resolve(out);
       },
+      adminInsights: function () { return fail(t('The admin workspace works with real accounts only.')); },
+      countSite: function () { return Promise.resolve(); },
       adminData: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setLead: function () { return fail(t('The admin workspace works with real accounts only.')); },
       setContact: function () { return fail(t('The admin workspace works with real accounts only.')); },
@@ -434,6 +436,10 @@
           return c.from('message_reactions').upsert({ inquiry_id: inquiryId, target: target, user_id: a[1], emoji: emoji }, { onConflict: 'inquiry_id,target,user_id' });
         }).then(check);
       },
+      // Admins: visits and searches by day, and each listing's views and saves, for the last 30 days.
+      adminInsights: function () { return client().then(function (c) { return c.rpc('admin_insights'); }).then(check); },
+      // One more visit to the site, or one more search for a place (the database skips the team).
+      countSite: function (kind, key) { return client().then(function (c) { return c.rpc('count_site', { kind: kind, key: key || '' }); }).then(function () {}, function () {}); },
       // One more view or save of a live listing (the database skips the Keeper's own visits and the team's).
       countListing: function (id, kind) { return client().then(function (c) { return c.rpc('count_listing', { lid: id, kind: kind }); }).then(function () {}, function () {}); },
       // Views and saves per day, last 30 days, for the signed-in Keeper's listings.
@@ -530,6 +536,18 @@
       photos: (r.photos || []).map(function (p) { return p.url; }).filter(Boolean),
     };
   };
+  // The site was opened, or a place was searched: counted once a day per browser (per place), with no personal data.
+  ECS.track = function (kind, key) {
+    if (ECS.mode !== 'live') return;
+    key = String(key || '').trim().toLowerCase().slice(0, 60);
+    if (kind === 'search' && key.length < 2) return;
+    var day = manilaDay(), m = H.store.get('ecs-tracked', null);
+    if (!m || m.day !== day) m = { day: day, ids: {} };
+    var k = kind + ':' + key; if (m.ids[k]) return;
+    m.ids[k] = 1; H.store.set('ecs-tracked', m);
+    ECS.countSite(kind, key);
+  };
+  setTimeout(function () { ECS.track('visit'); }, 1500);
   // A renter opened or saved a real listing: counted for its Keeper, once a day per browser.
   ECS.count = function (l, kind) {
     if (ECS.mode !== 'live' || !l || !l.live || !l.dbId) return;

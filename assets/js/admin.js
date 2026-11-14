@@ -12,7 +12,7 @@
   var LSTATUS = { draft: 'Draft', review: 'In review', changes: 'Needs changes', live: 'Live', paused: 'Paused', removed: 'Removed' };
   function esc(s) { return H.esc(s); }
   function day(d) { return d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : ''; }
-  function tab() { var x = new URLSearchParams(location.search).get('tab'); return /^(today|leads|listings|people|messages)$/.test(x) ? x : 'today'; }
+  function tab() { var x = new URLSearchParams(location.search).get('tab'); return /^(today|review|leads|listings|people|messages|insights)$/.test(x) ? x : 'today'; }
 
   // The data is kept between visits to this page, so going from tab to tab (or back to Admin) shows at once; it is then
   // read again quietly and the page repaints only if something changed.
@@ -32,7 +32,8 @@
   var rev = 0;   // goes up with every change made here; a read that started before a change is thrown away and done again
   function reload(host) {
     var at = rev;
-    return ECS.adminData().then(function (d) {
+    return Promise.all([ECS.adminData(), ECS.adminInsights().catch(function () { return null; })]).then(function (r) {
+      var d = r[0]; d.insights = r[1] || { site: [], listings: [] };
       if (at !== rev) return reload(host);
       var same = data && JSON.stringify(d) === JSON.stringify(data);
       data = d;
@@ -56,20 +57,19 @@
     var count = function (arr, f) { return arr.filter(f).length; };
     var nReview = count(d.listings, function (l) { return l.status === 'review'; }), nNew = count(d.inquiries, function (q) { return q.status === 'new'; }), nOpen = count(d.contacts, function (m) { return m.status === 'new'; });
     var cur = tab(), here = location.pathname;
-    var nav = [['today', 'grid', 'Today', nReview + nNew + nOpen, true], ['leads', 'users', 'Leads', nNew, nNew > 0], ['listings', 'building', 'Listings', nReview || d.listings.length, nReview > 0], ['people', 'user', 'People', d.profiles.length, false], ['messages', 'message', 'Messages', nOpen, nOpen > 0]];
-    var TITLE = { today: 'Today', leads: 'Leads', listings: 'Listings', people: 'People', messages: 'Messages' };
-    var SUB = { today: 'What the team needs to do, most pressing first.', leads: 'Every renter who wrote to a Keeper. Drag a card as it moves along.', listings: 'Every listing with its Keeper, status and plan.', people: 'Everyone who signed up.', messages: 'Messages from the contact page.' };
-    var tools = cur === 'today' ? '' : '<div class="adm-tools"><label class="adm-search">' + H.icon('search') + '<input type="search" data-adm-search placeholder="' + esc(t('Search this page')) + '" aria-label="' + esc(t('Search this page')) + '"></label>' +
+    var nav = [['today', 'grid', 'Today', nReview + nNew + nOpen, true], ['review', 'check', 'Review', nReview, true], ['leads', 'users', 'Leads', nNew, true], ['listings', 'building', 'Listings', 0, false], ['people', 'user', 'People', 0, false], ['messages', 'message', 'Messages', nOpen, true], ['insights', 'eye', 'Insights', 0, false]];
+    var TITLE = { today: 'Today', review: 'Review listings', leads: 'Leads', listings: 'Listings', people: 'People', messages: 'Messages', insights: 'Insights' };
+    var SUB = { today: 'What the team needs to do, most pressing first.', review: 'Check each listing against the Keeper standards, then approve it or ask for changes.', leads: 'Every renter who wrote to a Keeper. Set the stage as it moves along.', listings: 'Every listing with its Keeper, status and plan.', people: 'Everyone who signed up.', messages: 'Messages from the contact page.', insights: 'How many people visit, what they search for, and which listings they open.' };
+    var tools = cur === 'today' || cur === 'review' || cur === 'insights' ? '' : '<div class="adm-tools"><label class="adm-search">' + H.icon('search') + '<input type="search" data-adm-search placeholder="' + esc(t('Search this page')) + '" aria-label="' + esc(t('Search this page')) + '"></label>' +
       (cur === 'leads' || cur === 'people' ? '<button type="button" class="btn btn-ghost btn-sm" data-adm-csv="' + cur + '">' + H.icon('external') + '<span>' + esc(t('Download as a sheet')) + '</span></button>' : '') + '</div>';
     host.innerHTML = '<div class="adm">' +
       '<aside class="adm-nav"><p class="kh-brand">' + esc(t('ECStay admin')) + '</p>' +
         '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + nav.map(function (x) {
           return '<a href="' + esc(here) + '?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + H.icon(x[1]) + '<span>' + esc(t(x[2])) + '</span>' + (x[3] ? '<i class="' + (x[4] && x[3] ? 'hot' : '') + '">' + x[3] + '</i>' : '') + '</a>';
         }).join('') + '</nav>' +
-        '<a class="btn btn-brass adm-review" href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(nReview ? t('Review listings ({n})', { n: nReview }) : t('Review listings')) + '</span></a>' +
-        '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('Keeper home')) + '</a><span>' + esc((ECS.user && ECS.user.email) || '') + '</span></p></aside>' +
+        '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('My own Keeper home')) + '</a><span>' + esc((ECS.user && ECS.user.email) || '') + '</span></p></aside>' +
       '<div class="adm-page"><header class="adm-head"><div><h1>' + esc(t(TITLE[cur])) + '</h1><p class="adm-sub">' + esc(t(SUB[cur])) + '</p></div>' + tools + '</header>' +
-        '<div class="adm-body">' + (cur === 'today' ? todayTab(d, listById, profById, nList) : cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
+        '<div class="adm-body">' + (cur === 'today' ? todayTab(d, listById, profById, nList) : cur === 'review' ? review(d, profById) : cur === 'insights' ? insights(d) : cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
       '</div></div>';
     var hdr = document.querySelector('.site-header'); if (hdr) host.querySelector('.adm').style.setProperty('--kh-top', hdr.offsetHeight + 'px');
     if (!host._admBound) { host._admBound = true; bind(host); }
@@ -80,10 +80,10 @@
     var here = location.pathname, week = Date.now() - 7 * 864e5, in7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), now = today();
     var count = function (arr, f) { return arr.filter(f).length; };
     var person = function (p) { return (p && (p.full_name || p.email)) || t('(no name yet)'); };
+    // One way to reach the person: their number to call, or their email when there is no number.
     var reach = function (mobile, email) {
-      return (mobile ? '<a class="adm-ic" href="tel:' + esc(mobile) + '" title="' + esc(t('Call') + ' ' + ECS.showMobile(mobile)) + '" aria-label="' + esc(t('Call') + ' ' + ECS.showMobile(mobile)) + '">' + H.icon('phone') + '</a>' +
-        '<a class="adm-ic" href="sms:' + esc(mobile) + '" title="' + esc(t('Text {m}', { m: ECS.showMobile(mobile) })) + '" aria-label="' + esc(t('Text {m}', { m: ECS.showMobile(mobile) })) + '">' + H.icon('message') + '</a>' : '') +
-        (email ? '<a class="adm-ic" href="mailto:' + esc(email) + '" title="' + esc(email) + '" aria-label="' + esc(t('Email') + ' ' + email) + '">' + H.icon('external') + '</a>' : '');
+      return mobile ? '<a class="aq-call" href="tel:' + esc(mobile) + '">' + H.icon('phone') + '<span>' + esc(ECS.showMobile(mobile)) + '</span></a>' :
+        email ? '<a class="aq-call" href="mailto:' + esc(email) + '">' + H.icon('message') + '<span>' + esc(t('Email')) + '</span></a>' : '';
     };
     var row = function (pic, title, sub, right, flag) { return '<li class="aq"><span class="aq-pic">' + pic + '</span><div class="aq-b"><b>' + esc(title) + '</b><small>' + sub + '</small></div>' + (flag || '') + '<div class="aq-act">' + right + '</div></li>'; };
     var card = function (title, n, body, empty, more) {
@@ -98,7 +98,7 @@
       var k = profById[l.owner_id] || {}, cover = l.photos && l.photos[0], at = l.submitted_at || l.updated_at, late = hoursSince(at) >= 24;
       return row(cover ? '<img src="' + esc(cover.url || cover) + '" alt="" loading="lazy">' : H.icon('home'), l.name || t('Untitled listing'),
         esc([person(k), l.area, t('waiting {time}', { time: since(at) })].filter(Boolean).join(' · ')),
-        reach(l.contact_mobile || k.mobile, k.email) + '<a class="btn btn-primary btn-sm" href="/host/review" data-link>' + esc(t('Review')) + '</a>',
+        '<a class="btn btn-primary btn-sm" href="' + esc(here) + '?tab=review" data-adm-go data-link>' + esc(t('Review')) + '</a>',
         late ? '<span class="aq-flag late">' + esc(t('Over 1 day')) + '</span>' : '<span class="aq-flag">' + esc(t('{n} hr left', { n: Math.max(1, Math.round(24 - hoursSince(at))) })) + '</span>');
     }).join('');
 
@@ -108,7 +108,7 @@
       var ours = !listById[q.listing_id];
       return row(esc(String(q.renter_name || '?').trim().charAt(0).toUpperCase()), q.renter_name || t('Renter'),
         esc([q.listing_name || q.listing_ref, t('{time} ago', { time: since(q.created_at) })].filter(Boolean).join(' · ')) + (q.message ? '<em>' + esc(q.message) + '</em>' : ''),
-        reach(q.renter_mobile, q.renter_email) + (ours ? '<a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Reply')) + '</a>' : '<a class="btn btn-ghost btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Read')) + '</a>'),
+        (ours ? '<a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Reply')) + '</a>' : '<a class="btn btn-ghost btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Read')) + '</a>'),
         ours ? '<span class="aq-flag late">' + esc(t('Team answers')) + '</span>' : '');
     }).join('');
 
@@ -149,7 +149,7 @@
     };
     var late = count(rev, function (l) { return hoursSince(l.submitted_at || l.updated_at) >= 24; });
     return '<ul class="adm-stats kn-row">' +
-        tile('check', rev.length, 'Listings to review', 'listings', rev.length ? 'brass' : '', late ? t('{n} over 1 day', { n: late }) : '') +
+        tile('check', rev.length, 'Listings to review', 'review', rev.length ? 'brass' : '', late ? t('{n} over 1 day', { n: late }) : '') +
         tile('users', fresh.length, 'New leads', 'leads', fresh.length ? 'brass' : '', t('{n} this week', { n: count(d.inquiries, function (q) { return new Date(q.created_at).getTime() >= week; }) })) +
         tile('home', count(d.listings, function (l) { return l.status === 'live'; }), 'Live listings', 'listings', 'green', t('{n} on a paid plan', { n: count(d.listings, function (l) { return l.status === 'live' && ECS.planOn(l); }) })) +
         tile('user', d.profiles.length, 'People signed up', 'people', '', t('{n} this week', { n: count(d.profiles, function (p) { return new Date(p.created_at).getTime() >= week; }) })) +
@@ -177,33 +177,73 @@
     document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
-  /* ---- Leads board ---- */
+  /* ---- Review: one listing at a time, everything needed to decide on one card ---- */
+  function review(d, profById) {
+    var q = d.listings.filter(function (l) { return l.status === 'review'; }).sort(function (a, b) { return (a.submitted_at || a.updated_at) < (b.submitted_at || b.updated_at) ? -1 : 1; });
+    if (!q.length) return '<div class="kcard"><div class="kcard-empty">' + H.icon('check') + '<p><b>' + esc(t('Nothing to review.')) + '</b> ' + esc(t('When a Keeper sends a listing, it shows here and counts down from 1 day.')) + '</p></div></div>';
+    return q.map(function (l, i) {
+      var k = profById[l.owner_id] || {}, rules = l.rules || {}, bills = l.bills || {}, ph = l.photos || [], at = l.submitted_at || l.updated_at, late = hoursSince(at) >= 24;
+      var mobile = l.contact_mobile || k.mobile || '';
+      var fact = function (label, value) { return value ? '<div><dt>' + esc(t(label)) + '</dt><dd>' + value + '</dd></div>' : ''; };
+      var RULE = { allowed: 'Allowed', daytime: 'Daytime only', none: 'Not allowed', yes: 'Allowed', no: 'Not allowed', outside: 'Outside only' };
+      var ruleTxt = [['visitors', 'Visitors'], ['cooking', 'Cooking'], ['pets', 'Pets'], ['smoking', 'Smoking']].map(function (r) { return rules[r[0]] ? t(r[1]) + ': ' + t(RULE[rules[r[0]]] || rules[r[0]]) : ''; }).filter(Boolean).concat(rules.curfew ? [t('Curfew') + ': ' + rules.curfew] : []).join(' · ');
+      return '<article class="rvc" data-id="' + esc(l.id) + '">' +
+        '<header class="rvc-h"><div><p class="rvc-n">' + esc(t('{n} of {m}', { n: i + 1, m: q.length })) + '</p><h2>' + esc(l.name || t('Untitled listing')) + '</h2>' +
+          '<p class="rvc-meta">' + esc([l.place_type ? t(l.place_type) : '', l.gender ? H.genderLabel(l.gender) : '', l.area].filter(Boolean).join(' · ')) + '</p></div>' +
+          '<span class="aq-flag' + (late ? ' late' : '') + '">' + esc(late ? t('Waiting {time}: over 1 day', { time: since(at) }) : t('Waiting {time}', { time: since(at) })) + '</span></header>' +
+        '<div class="rvc-photos n' + Math.min(ph.length, 5) + '">' + ph.slice(0, 5).map(function (x, j) {
+          return '<a href="' + esc(x.url || x) + '" target="_blank" rel="noopener" aria-label="' + esc(t('Photo {n}', { n: j + 1 })) + '"><img src="' + esc(x.url || x) + '" alt="" loading="lazy">' + (j === 4 && ph.length > 5 ? '<i>+' + (ph.length - 5) + '</i>' : '') + '</a>';
+        }).join('') + '</div>' +
+        '<div class="rvc-cols"><div class="rvc-main">' +
+          '<h3>' + esc(t('Rooms and prices')) + '</h3><ul class="rvc-rooms">' + (l.rooms || []).map(function (x) { return '<li><span>' + esc(t(x.type)) + '</span><b>' + esc(H.peso(x.price)) + '</b><small>' + esc(t('{n} available', { n: x.count })) + '</small></li>'; }).join('') + '</ul>' +
+          '<h3>' + esc(t('Description')) + '</h3><p class="rvc-desc">' + esc(l.description || '') + '</p>' +
+          '<dl class="rvc-facts">' +
+            fact('Address', esc(l.address || '') + ' <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + l.lat + '&mlon=' + l.lng + '#map=18/' + l.lat + '/' + l.lng + '">' + esc(t('Check the pin')) + '</a>') +
+            fact('Move-in cost', esc(t('{a} advance, {d} deposit', { a: l.advance_months == null ? '?' : l.advance_months, d: l.deposit_months == null ? '?' : l.deposit_months }))) +
+            fact('Bills', esc([bills.electric ? t('Electricity') + ': ' + bills.electric : '', bills.water ? t('Water') + ': ' + bills.water : ''].filter(Boolean).join(' · '))) +
+            fact('Amenities', esc((l.amenities || []).map(function (a) { return (window.HAVN_AMENITIES && HAVN_AMENITIES[a] && t(HAVN_AMENITIES[a].label)) || a; }).join(', '))) +
+            fact('Rules', esc(ruleTxt)) +
+          '</dl></div>' +
+        '<aside class="rvc-side"><div class="rvc-keeper"><h3>' + esc(t('Keeper')) + '</h3><b>' + esc(k.full_name || t('(no name yet)')) + '</b>' +
+            (mobile ? '<a href="tel:' + esc(mobile) + '">' + H.icon('phone') + '<span>' + esc(ECS.showMobile(mobile)) + '</span></a>' : '') +
+            (k.email ? '<a href="mailto:' + esc(k.email) + '">' + H.icon('message') + '<span>' + esc(k.email) + '</span></a>' : '') + '</div>' +
+          '<ul class="rvc-check"><li>' + H.icon('check') + esc(t('Photos are real and show these rooms')) + '</li><li>' + H.icon('check') + esc(t('The price is per month and complete')) + '</li><li>' + H.icon('check') + esc(t('The pin sits on the building')) + '</li></ul>' +
+          '<label class="rvc-note"><span>' + esc(t('Note to the Keeper')) + ' <small>' + esc(t('needed when asking for changes')) + '</small></span><textarea rows="3" maxlength="500" data-note placeholder="' + esc(t('e.g. Please add a photo of the bathroom.')) + '"></textarea></label>' +
+          '<button type="button" class="btn btn-primary btn-block" data-approve>' + esc(t('Approve and publish')) + '</button>' +
+          '<button type="button" class="btn btn-ghost btn-block" data-changes>' + esc(t('Ask for changes')) + '</button>' +
+          '<p class="rvc-fine">' + esc(t('The Keeper gets an email either way.')) + '</p></aside></div>' +
+      '</article>';
+    }).join('');
+  }
+
+  /* ---- Leads: one row each. The stage is a dropdown, and the row takes the colour of its stage. ---- */
+  var leadFilter = 'all';
   function leads(d, listById, profById) {
     if (!d.inquiries.length) return '<p class="host-empty-line">' + esc(t('No leads yet. Every message a renter sends to a Keeper appears here.')) + '</p>';
-    return '<div class="board">' + STAGES.map(function (st) {
-      var items = d.inquiries.filter(function (q) { return q.status === st[0]; });
-      return '<section class="col" data-stage="' + st[0] + '"><h2>' + esc(t(st[1])) + '<i>' + items.length + '</i></h2>' +
-        (items.length ? items.map(function (q) {
-          var l = listById[q.listing_id], k = l && profById[l.owner_id];
-          return '<article class="lead" draggable="true" data-id="' + esc(q.id) + '">' +
-            '<header><b>' + esc(q.renter_name) + '</b><time>' + esc(day(q.created_at)) + '</time></header>' +
-            '<p class="lead-room">' + H.icon('home') + '<span>' + esc(q.listing_name || q.listing_ref) + '</span></p>' +
-            '<p class="lead-meta">' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', k ? t('Keeper: {name}', { name: k.full_name || k.email }) : t('Sample listing (no Keeper)')].filter(Boolean).join(' · ')) + '</p>' +
-            (q.message ? '<p class="lead-msg">' + esc(q.message) + '</p>' : '') +
-            '<p class="lead-contact"><a href="tel:' + esc(q.renter_mobile) + '">' + H.icon('phone') + esc(ECS.showMobile(q.renter_mobile)) + '</a>' +
-              (q.renter_email ? '<a href="mailto:' + esc(q.renter_email) + '">' + H.icon('message') + esc(q.renter_email) + '</a>' : '') + '</p>' +
-            '<label class="lead-stage"><span>' + esc(t('Stage')) + '</span><select data-lead-stage>' + STAGES.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === q.status ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
-            '<textarea data-lead-note rows="2" maxlength="1000" placeholder="' + esc(t('Add a note (only admins see this)')) + '">' + esc(q.admin_note || '') + '</textarea>' +
-          '</article>';
-        }).join('') : '<p class="col-empty">' + esc(t('Drag a lead here')) + '</p>') +
-      '</section>';
-    }).join('') + '</div>';
+    var n = function (k) { return k === 'all' ? d.inquiries.length : d.inquiries.filter(function (q) { return q.status === k; }).length; };
+    if (leadFilter !== 'all' && !n(leadFilter)) leadFilter = 'all';
+    var rows = d.inquiries.filter(function (q) { return leadFilter === 'all' || q.status === leadFilter; });
+    return '<div class="adm-chips" role="group" aria-label="' + esc(t('Stage')) + '">' + [['all', 'All']].concat(STAGES).map(function (s) {
+        return '<button type="button" class="st-' + s[0] + '" aria-pressed="' + (leadFilter === s[0]) + '" data-lead-filter="' + s[0] + '">' + (s[0] === 'all' ? '' : '<i></i>') + esc(t(s[1])) + ' <span>' + n(s[0]) + '</span></button>';
+      }).join('') + '</div>' +
+      '<div class="lr-wrap"><div class="lr-h" aria-hidden="true"><span>' + esc(t('Renter')) + '</span><span>' + esc(t('Asked about')) + '</span><span>' + esc(t('Message')) + '</span><span>' + esc(t('Stage')) + '</span><span>' + esc(t('Team note')) + '</span></div>' +
+      '<ul class="lr-list">' + rows.map(function (q) {
+        var l = listById[q.listing_id], k = l && profById[l.owner_id];
+        return '<li class="lead lr st-' + esc(q.status) + '" data-id="' + esc(q.id) + '">' +
+          '<div class="lr-who"><b>' + esc(q.renter_name) + '</b><a href="tel:' + esc(q.renter_mobile) + '">' + esc(ECS.showMobile(q.renter_mobile)) + '</a>' + (q.renter_email ? '<a href="mailto:' + esc(q.renter_email) + '">' + esc(q.renter_email) + '</a>' : '') + '</div>' +
+          '<div class="lr-room"><b>' + esc(q.listing_name || q.listing_ref) + '</b><small>' + esc([q.move_in ? t('Move-in: {m}', { m: q.move_in }) : '', day(q.created_at)].filter(Boolean).join(' · ')) + '</small>' +
+            '<small class="' + (k ? '' : 'ours') + '">' + esc(k ? t('Keeper: {name}', { name: k.full_name || k.email }) : t('Sample listing: the team answers')) + '</small></div>' +
+          '<p class="lr-msg" title="' + esc(q.message || '') + '">' + esc(q.message || '') + '</p>' +
+          '<label class="lr-stage"><span class="sr">' + esc(t('Stage')) + '</span><select data-lead-stage>' + STAGES.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === q.status ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
+          '<textarea class="lr-note" data-lead-note rows="1" maxlength="1000" aria-label="' + esc(t('Team note')) + '" placeholder="' + esc(t('Add a note')) + '">' + esc(q.admin_note || '') + '</textarea>' +
+        '</li>';
+      }).join('') + '</ul></div>';
   }
 
   /* ---- A listing's paid plan: set here when the Keeper's payment arrives ---- */
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function planCell(l) {
-    if (l.status !== 'live' && l.status !== 'paused') return '';
+    if (l.status !== 'live' && l.status !== 'paused') return '<span class="tbl-none">–</span>';
     var ended = l.plan && (!l.plan_until || l.plan_until < today());
     return '<select data-plan aria-label="' + esc(t('Plan')) + '">' + [['', 'Free'], ['basic', 'Basic'], ['verified', 'Verified'], ['premium', 'Premium']].map(function (o) {
         return '<option value="' + o[0] + '"' + ((l.plan || '') === o[0] ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>';
@@ -212,22 +252,74 @@
       (ended ? '<small class="plan-ended">' + esc(t('Term ended')) + '</small>' : '');
   }
 
-  /* ---- Listings table ---- */
+  /* ---- Listings: the ones that matter first; half-started drafts sit behind their own filter ---- */
+  var listFilter = 'active';
   function listings(d, profById) {
     if (!d.listings.length) return '<p class="host-empty-line">' + esc(t('No listings yet. When a Keeper starts one, it appears here.')) + '</p>';
+    var views = {}; ((d.insights || {}).listings || []).forEach(function (x) { views[x.listing_id] = x; });
+    var is = { active: function (l) { return l.status !== 'draft' && l.status !== 'removed'; }, live: function (l) { return l.status === 'live'; }, review: function (l) { return l.status === 'review' || l.status === 'changes'; },
+      draft: function (l) { return l.status === 'draft'; }, all: function () { return true; } };
+    var n = function (k) { return d.listings.filter(is[k]).length; };
+    var liveKeepers = {}; d.listings.forEach(function (l) { if (l.status === 'live') liveKeepers[l.owner_id] = 1; });
     var order = { review: 0, changes: 1, live: 2, paused: 3, draft: 4, removed: 5 };
-    var rows = d.listings.slice().sort(function (a, b) { return order[a.status] - order[b.status] || (a.updated_at < b.updated_at ? 1 : -1); });
-    return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + [t('Listing'), t('Keeper'), t('Area'), t('From'), t('Status'), t('Plan'), t('Updated'), ''].map(esc).join('</th><th>') + '</th></tr></thead><tbody>' +
+    var rows = d.listings.filter(is[listFilter]).sort(function (a, b) { return order[a.status] - order[b.status] || (ECS.stepsDone(b) - ECS.stepsDone(a)) || (a.updated_at < b.updated_at ? 1 : -1); });
+    var tile = function (icon, v, label, tone) { return '<li><div class="kn"><span class="kn-ic ' + (tone || '') + '">' + H.icon(icon) + '</span><span class="kn-b"><b>' + v + '</b><span>' + esc(t(label)) + '</span></span></div></li>'; };
+    return '<ul class="kn-row adm-sum">' + tile('home', n('live'), 'Live listings', 'green') + tile('user', Object.keys(liveKeepers).length, 'Keepers with a live listing', 'green') +
+        tile('check', d.listings.filter(function (l) { return l.status === 'review'; }).length, 'Waiting for review', d.listings.some(function (l) { return l.status === 'review'; }) ? 'brass' : '') + tile('pencil', n('draft'), 'Drafts not sent yet') + '</ul>' +
+      '<div class="adm-chips" role="group" aria-label="' + esc(t('Show')) + '">' + [['active', 'Sent to us'], ['live', 'Live'], ['review', 'In review'], ['draft', 'Drafts'], ['all', 'All']].map(function (f) {
+        return '<button type="button" aria-pressed="' + (listFilter === f[0]) + '" data-list-filter="' + f[0] + '">' + esc(t(f[1])) + ' <span>' + n(f[0]) + '</span></button>';
+      }).join('') + '</div>' +
+      (rows.length ? '<div class="tbl-wrap"><table class="tbl tbl-l"><thead><tr><th>' + [t('Listing'), t('Keeper'), t('Status'), t('Views, 30 days'), t('Plan'), ''].map(esc).join('</th><th>') + '</th></tr></thead><tbody>' +
       rows.map(function (l) {
-        var k = profById[l.owner_id] || {}, cover = l.photos && l.photos[0], price = ECS.priceFrom(l);
+        var k = profById[l.owner_id] || {}, cover = l.photos && l.photos[0], price = ECS.priceFrom(l), v = views[l.id];
         return '<tr data-id="' + esc(l.id) + '"><td class="tbl-main">' + (cover ? '<img src="' + esc(cover.url || cover) + '" alt="" loading="lazy">' : '<span class="tbl-noimg">' + H.icon('home') + '</span>') +
-          '<span><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc([l.place_type, (l.photos || []).length + ' ' + t('photos')].filter(Boolean).join(' · ')) + '</small></span></td>' +
-          '<td><b>' + esc(k.full_name || '') + '</b><small>' + esc([k.email, ECS.showMobile(l.contact_mobile || k.mobile || '')].filter(Boolean).join(' · ')) + '</small></td>' +
-          '<td>' + esc(l.area || '') + '</td><td>' + (price ? H.peso(price) : '') + '</td>' +
-          '<td><span class="pill st-' + l.status + '">' + esc(t(LSTATUS[l.status])) + '</span></td><td class="tbl-plan">' + planCell(l) + '</td><td>' + esc(day(l.updated_at)) + '</td>' +
-          '<td class="tbl-act">' + (l.status === 'review' ? '<a class="btn btn-primary btn-sm" href="/host/review" data-link>' + esc(t('Review')) + '</a>' :
+          '<span><b>' + esc(l.name || t('Untitled listing')) + '</b><small>' + esc([l.area, price ? t('from {p} a month', { p: H.peso(price) }) : '', (l.photos || []).length + ' ' + t('photos')].filter(Boolean).join(' · ')) + '</small></span></td>' +
+          '<td><b>' + esc(k.full_name || k.email || '') + '</b><small>' + esc(ECS.showMobile(l.contact_mobile || k.mobile || '')) + '</small></td>' +
+          '<td><span class="pill st-' + l.status + '">' + esc(t(LSTATUS[l.status])) + '</span>' + (l.status === 'draft' ? '<small>' + esc(t('{n} of 6 steps done', { n: ECS.stepsDone(l) })) + '</small>' : '<small>' + esc(day(l.updated_at)) + '</small>') + '</td>' +
+          '<td class="tbl-num">' + (l.status === 'live' || l.status === 'paused' ? '<b>' + ((v && v.views) || 0) + '</b><small>' + esc(t('{n} saves', { n: (v && v.saves) || 0 })) + '</small>' : '<span class="tbl-none">–</span>') + '</td>' +
+          '<td class="tbl-plan">' + planCell(l) + '</td>' +
+          '<td class="tbl-act">' + (l.status === 'review' ? '<a class="btn btn-primary btn-sm" href="' + esc(location.pathname) + '?tab=review" data-adm-go data-link>' + esc(t('Review')) + '</a>' :
             l.status === 'live' ? '<a class="btn btn-ghost btn-sm" href="/room/' + l.id + '" data-link>' + esc(t('View')) + '</a><button type="button" class="btn-link" data-unpublish>' + esc(t('Take down')) + '</button>' : '') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+      }).join('') + '</tbody></table></div>' : '<p class="host-empty-line">' + esc(t('No listings in this group.')) + '</p>');
+  }
+
+  /* ---- Insights: how the site is doing. Visits and searches are counted from the day this page was added. ---- */
+  function insights(d) {
+    var I = d.insights || { site: [], listings: [] }, listById = {}; d.listings.forEach(function (l) { listById[l.id] = l; });
+    var days = []; for (var k = 29; k >= 0; k--) days.push(new Date(Date.now() + 8 * 36e5 - k * 864e5).toISOString().slice(0, 10));
+    var at = {}; days.forEach(function (x, i) { at[x] = i; });
+    var visits = days.map(function () { return 0; }), nVisit = 0, nSearch = 0, terms = {};
+    I.site.forEach(function (s) {
+      var i = at[String(s.day).slice(0, 10)]; if (i == null) return;
+      if (s.kind === 'visit') { visits[i] += s.n; nVisit += s.n; } else { nSearch += s.n; terms[s.key] = (terms[s.key] || 0) + s.n; }
+    });
+    var top = Object.keys(terms).map(function (x) { return [x, terms[x]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+    var seen = I.listings.filter(function (x) { return listById[x.listing_id]; }).sort(function (a, b) { return b.views - a.views; }).slice(0, 6);
+    var nViews = I.listings.reduce(function (a, x) { return a + (x.views || 0); }, 0);
+    var areas = {}; d.listings.forEach(function (l) { if (l.status === 'live' && l.area) areas[l.area] = (areas[l.area] || 0) + 1; });
+    var areaTop = Object.keys(areas).map(function (x) { return [x, areas[x]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+    var liveKeepers = {}; d.listings.forEach(function (l) { if (l.status === 'live') liveKeepers[l.owner_id] = 1; });
+    var tile = function (icon, v, label, tone, hint) { return '<li><div class="kn"><span class="kn-ic ' + (tone || '') + '">' + H.icon(icon) + '</span><span class="kn-b"><b>' + Number(v).toLocaleString('en-PH') + '</b><span>' + esc(t(label)) + '</span>' + (hint ? '<small>' + esc(t(hint)) + '</small>' : '') + '</span></div></li>'; };
+    var bars = function (list, empty) {
+      if (!list.length) return '<p class="adm-quiet">' + esc(t(empty)) + '</p>';
+      var max = list[0][1] || 1;
+      return '<ol class="ab">' + list.map(function (x, i) { return '<li><span class="ab-n">' + (i + 1) + '</span><span class="ab-l">' + esc(x[0]) + '</span><span class="ab-bar"><i style="width:' + Math.max(4, Math.round(x[1] / max * 100)) + '%"></i></span><b>' + x[1] + '</b></li>'; }).join('') + '</ol>';
+    };
+    var vmax = Math.max(4, Math.max.apply(null, visits)), W = 600, Hh = 90, bw = W / 30;
+    var chart = '<svg class="av" viewBox="0 0 ' + W + ' ' + Hh + '" preserveAspectRatio="none" role="img" aria-label="' + esc(t('Visits per day, last 30 days')) + '">' + visits.map(function (v, i) {
+      var bh = v ? Math.max(3, Math.round(v / vmax * Hh)) : 1.5;
+      return '<rect x="' + (i * bw + 2).toFixed(1) + '" y="' + (Hh - bh).toFixed(1) + '" width="' + (bw - 4).toFixed(1) + '" height="' + bh + '" rx="2"' + (v ? '' : ' class="zero"') + '><title>' + esc(day(days[i] + 'T12:00:00') + ': ' + v) + '</title></rect>';
+    }).join('') + '</svg><p class="av-axis"><span>' + esc(day(days[0] + 'T12:00:00')) + '</span><span>' + esc(t('Today')) + '</span></p>';
+    var card = function (title, sub, body) { return '<section class="kcard"><div class="kcard-h"><h2>' + esc(t(title)) + '</h2></div>' + (sub ? '<p class="adm-quiet">' + esc(t(sub)) + '</p>' : '') + body + '</section>'; };
+    return '<ul class="kn-row adm-sum">' + tile('eye', nVisit, 'Visits to the site', 'green', 'last 30 days') + tile('search', nSearch, 'Searches', '', 'last 30 days') + tile('home', nViews, 'Listing pages opened', '', 'last 30 days') + tile('user', Object.keys(liveKeepers).length, 'Keepers with a live listing', 'green') + '</ul>' +
+      '<div class="kh-cols adm-cols"><div class="kh-col">' +
+        card('Visits per day', '', chart) +
+        card('What renters search for', 'The places and words typed into search, most searched first.', bars(top, 'No searches counted yet. They build up as renters use the site.')) +
+      '</div><div class="kh-col">' +
+        card('Most opened listings', 'Live listings by how often renters opened them.', bars(seen.map(function (x) { return [listById[x.listing_id].name || t('Untitled listing'), x.views]; }), 'No listing has been opened yet. This fills in once listings are live.')) +
+        card('Live listings by area', 'Where the supply is.', bars(areaTop, 'No live listings yet.')) +
+      '</div></div>' +
+      '<p class="adm-quiet">' + esc(t('Visits and searches are counted from 15 Nov 2026. A visit is one browser on one day; the team is not counted.')) + '</p>';
   }
 
   /* ---- People table ---- */
@@ -289,7 +381,7 @@
     /* Drag a lead card onto another column. Typing in the note, picking a stage and tapping a link stay ordinary. */
     var dragId = null;
     host.addEventListener('pointerdown', function (e) {
-      var c = e.target.closest('.lead'); if (c) c.draggable = !e.target.closest('textarea, select, a');
+      return;
     });
     host.addEventListener('dragstart', function (e) {
       var c = e.target.closest && e.target.closest('.lead'); if (!c) return;
@@ -337,7 +429,19 @@
     });
     host.addEventListener('click', function (e) {
       var b;
-      if ((b = e.target.closest('[data-adm-csv]'))) download(b.getAttribute('data-adm-csv'));
+      if ((b = e.target.closest('[data-lead-filter]'))) { leadFilter = b.getAttribute('data-lead-filter'); paint(host, data); }
+      else if ((b = e.target.closest('[data-list-filter]'))) { listFilter = b.getAttribute('data-list-filter'); paint(host, data); }
+      else if ((b = e.target.closest('[data-approve], [data-changes]'))) {
+        var card = b.closest('.rvc'), note = card.querySelector('[data-note]'), yes = b.hasAttribute('data-approve');
+        if (!yes && note.value.trim().length < 5) { note.focus(); H.toast(t('Write a short note so the Keeper knows what to change.')); return; }
+        if (yes && !window.confirm(t('Publish this listing? Renters will see it right away.'))) return;
+        b.disabled = true; rev++;
+        ECS.review(card.getAttribute('data-id'), yes ? 'live' : 'changes', yes ? null : note.value.trim()).then(function () {
+          H.toast(yes ? t('Published. The Keeper has been emailed.') : t('Sent back with your note.'));
+          note.blur(); return reload(host);
+        }).catch(function (x) { b.disabled = false; H.toast(x.message); });
+      }
+      else if ((b = e.target.closest('[data-adm-csv]'))) download(b.getAttribute('data-adm-csv'));
       else if ((b = e.target.closest('[data-msg-done]'))) {
         var li = b.closest('.msg');
         ECS.setContact(li.getAttribute('data-id'), { status: li.classList.contains('is-done') ? 'new' : 'done' }).then(function () { return reload(host); }).catch(function (x) { H.toast(x.message); });

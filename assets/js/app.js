@@ -809,6 +809,7 @@
   function apply(scrollTop) {
     history.replaceState(null, '', urlFor(S));
     lastBrowseUrl = urlFor(S);
+    if (window.ECS && ECS.track && (S.place || S.q)) ECS.track('search', S.place ? placeLabel(S) : S.q);
     renderHeader();
     renderResults();
     renderNav();
