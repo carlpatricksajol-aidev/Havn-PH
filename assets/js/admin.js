@@ -1,4 +1,6 @@
 /* ECStay — admin workspace (private address, admins only, real accounts):
+ *   Today     the team's work for the day: listings to review (1 day promised), new leads, open messages, plans
+ *             ending, Keepers who stopped half way, newest sign-ups
  *   Leads     every renter message as a card on a board: New → Contacted → Viewing set → Moved in → Closed
  *   Listings  every listing with its Keeper and status; approve or send back from here
  *   People    everyone who signed up: Keepers (with listing counts) and renters (with messages sent)
@@ -10,7 +12,7 @@
   var LSTATUS = { draft: 'Draft', review: 'In review', changes: 'Needs changes', live: 'Live', paused: 'Paused', removed: 'Removed' };
   function esc(s) { return H.esc(s); }
   function day(d) { return d ? new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : ''; }
-  function tab() { var x = new URLSearchParams(location.search).get('tab'); return /^(leads|listings|people|messages)$/.test(x) ? x : 'leads'; }
+  function tab() { var x = new URLSearchParams(location.search).get('tab'); return /^(today|leads|listings|people|messages)$/.test(x) ? x : 'today'; }
 
   // The data is kept between visits to this page, so going from tab to tab (or back to Admin) shows at once; it is then
   // read again quietly and the page repaints only if something changed.
@@ -40,33 +42,139 @@
     });
   }
 
+  function since(d) {
+    var h = Math.max(0, (Date.now() - new Date(d).getTime()) / 36e5);
+    return h < 1 ? t('under 1 hour') : h < 24 ? t('{n} hr', { n: Math.round(h) }) : t('{n} days', { n: Math.floor(h / 24) });
+  }
+  function hoursSince(d) { return (Date.now() - new Date(d).getTime()) / 36e5; }
+
   function paint(host, d) {
     var listById = {}, profById = {}, nList = {}, nLead = {};
     d.listings.forEach(function (l) { listById[l.id] = l; nList[l.owner_id] = (nList[l.owner_id] || 0) + 1; });
     d.profiles.forEach(function (p) { profById[p.id] = p; });
     d.inquiries.forEach(function (q) { if (q.renter_id) nLead[q.renter_id] = (nLead[q.renter_id] || 0) + 1; });
     var count = function (arr, f) { return arr.filter(f).length; };
-    var keepers = count(d.profiles, function (p) { return nList[p.id]; });
-    var stats = [
-      [count(d.inquiries, function (q) { return q.status === 'new'; }), 'New leads', 'leads'],
-      [count(d.listings, function (l) { return l.status === 'review'; }), 'Listings to review', 'listings'],
-      [count(d.listings, function (l) { return l.status === 'live'; }), 'Live listings', 'listings'],
-      [keepers, 'Keepers', 'people'],
-      [count(d.profiles, function (p) { return !nList[p.id] && p.role !== 'admin'; }), 'Renters', 'people'],
-      [count(d.contacts, function (m) { return m.status === 'new'; }), 'Open messages', 'messages'],
-    ];
-    var cur = tab();
-    var tabs = [['leads', 'Leads', d.inquiries.length], ['listings', 'Listings', d.listings.length], ['people', 'People', d.profiles.length], ['messages', 'Messages', d.contacts.length]];
+    var nReview = count(d.listings, function (l) { return l.status === 'review'; }), nNew = count(d.inquiries, function (q) { return q.status === 'new'; }), nOpen = count(d.contacts, function (m) { return m.status === 'new'; });
+    var cur = tab(), here = location.pathname;
+    var nav = [['today', 'grid', 'Today', nReview + nNew + nOpen, true], ['leads', 'users', 'Leads', nNew, nNew > 0], ['listings', 'building', 'Listings', nReview || d.listings.length, nReview > 0], ['people', 'user', 'People', d.profiles.length, false], ['messages', 'message', 'Messages', nOpen, nOpen > 0]];
+    var TITLE = { today: 'Today', leads: 'Leads', listings: 'Listings', people: 'People', messages: 'Messages' };
+    var SUB = { today: 'What the team needs to do, most pressing first.', leads: 'Every renter who wrote to a Keeper. Drag a card as it moves along.', listings: 'Every listing with its Keeper, status and plan.', people: 'Everyone who signed up.', messages: 'Messages from the contact page.' };
+    var tools = cur === 'today' ? '' : '<div class="adm-tools"><label class="adm-search">' + H.icon('search') + '<input type="search" data-adm-search placeholder="' + esc(t('Search this page')) + '" aria-label="' + esc(t('Search this page')) + '"></label>' +
+      (cur === 'leads' || cur === 'people' ? '<button type="button" class="btn btn-ghost btn-sm" data-adm-csv="' + cur + '">' + H.icon('external') + '<span>' + esc(t('Download as a sheet')) + '</span></button>' : '') + '</div>';
     host.innerHTML = '<div class="adm">' +
-      '<div class="adm-head"><div>' + (window.HostView ? HostView.back() : '') + '<p class="host-hi">ECStay</p><h1>' + esc(t('Admin')) + '</h1></div>' +
-        '<a class="btn btn-ghost btn-sm" href="/host" data-link>' + H.icon('user') + '<span>' + esc(t('My account')) + '</span></a></div>' +
-      '<ul class="adm-stats">' + stats.map(function (s) { return '<li><a href="' + esc(location.pathname) + '?tab=' + s[2] + '" data-link><b>' + s[0] + '</b><span>' + esc(t(s[1])) + '</span></a></li>'; }).join('') + '</ul>' +
-      '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + tabs.map(function (x) {
-        return '<a href="' + esc(location.pathname) + '?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + esc(t(x[1])) + '<i>' + x[2] + '</i></a>';
-      }).join('') + '</nav>' +
-      '<div class="adm-body">' + (cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
-    '</div>';
+      '<aside class="adm-nav"><p class="kh-brand">' + esc(t('ECStay admin')) + '</p>' +
+        '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + nav.map(function (x) {
+          return '<a href="' + esc(here) + '?tab=' + x[0] + '" data-link' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + H.icon(x[1]) + '<span>' + esc(t(x[2])) + '</span>' + (x[3] ? '<i class="' + (x[4] && x[3] ? 'hot' : '') + '">' + x[3] + '</i>' : '') + '</a>';
+        }).join('') + '</nav>' +
+        '<a class="btn btn-brass adm-review" href="/host/review" data-link>' + H.icon('check') + '<span>' + esc(nReview ? t('Review listings ({n})', { n: nReview }) : t('Review listings')) + '</span></a>' +
+        '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('Keeper home')) + '</a><span>' + esc((ECS.user && ECS.user.email) || '') + '</span></p></aside>' +
+      '<div class="adm-page"><header class="adm-head"><div><h1>' + esc(t(TITLE[cur])) + '</h1><p class="adm-sub">' + esc(t(SUB[cur])) + '</p></div>' + tools + '</header>' +
+        '<div class="adm-body">' + (cur === 'today' ? todayTab(d, listById, profById, nList) : cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
+      '</div></div>';
+    var hdr = document.querySelector('.site-header'); if (hdr) host.querySelector('.adm').style.setProperty('--kh-top', hdr.offsetHeight + 'px');
     if (!host._admBound) { host._admBound = true; bind(host); }
+  }
+
+  /* ---- Today: the team's work for the day, most pressing first ---- */
+  function todayTab(d, listById, profById, nList) {
+    var here = location.pathname, week = Date.now() - 7 * 864e5, in7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), now = today();
+    var count = function (arr, f) { return arr.filter(f).length; };
+    var person = function (p) { return (p && (p.full_name || p.email)) || t('(no name yet)'); };
+    var reach = function (mobile, email) {
+      return (mobile ? '<a class="adm-ic" href="tel:' + esc(mobile) + '" title="' + esc(t('Call') + ' ' + ECS.showMobile(mobile)) + '" aria-label="' + esc(t('Call') + ' ' + ECS.showMobile(mobile)) + '">' + H.icon('phone') + '</a>' +
+        '<a class="adm-ic" href="sms:' + esc(mobile) + '" title="' + esc(t('Text {m}', { m: ECS.showMobile(mobile) })) + '" aria-label="' + esc(t('Text {m}', { m: ECS.showMobile(mobile) })) + '">' + H.icon('message') + '</a>' : '') +
+        (email ? '<a class="adm-ic" href="mailto:' + esc(email) + '" title="' + esc(email) + '" aria-label="' + esc(t('Email') + ' ' + email) + '">' + H.icon('external') + '</a>' : '');
+    };
+    var row = function (pic, title, sub, right, flag) { return '<li class="aq"><span class="aq-pic">' + pic + '</span><div class="aq-b"><b>' + esc(title) + '</b><small>' + sub + '</small></div>' + (flag || '') + '<div class="aq-act">' + right + '</div></li>'; };
+    var card = function (title, n, body, empty, more) {
+      return '<section class="kcard"><div class="kcard-h"><h2>' + esc(t(title)) + (n ? ' <b class="count brass">' + n + '</b>' : '') + '</h2>' + (more || '') + '</div>' +
+        (body || '<div class="kcard-empty">' + H.icon('check') + '<p>' + esc(t(empty)) + '</p></div>') + '</section>';
+    };
+    var go = function (tabId, label) { return '<a class="kh-more" href="' + esc(here) + '?tab=' + tabId + '" data-adm-go data-link>' + esc(t(label)) + '</a>'; };
+
+    // 1. Listings waiting for review: we promise an answer within 1 day.
+    var rev = d.listings.filter(function (l) { return l.status === 'review'; }).sort(function (a, b) { return (a.submitted_at || a.updated_at) < (b.submitted_at || b.updated_at) ? -1 : 1; });
+    var revHtml = rev.map(function (l) {
+      var k = profById[l.owner_id] || {}, cover = l.photos && l.photos[0], at = l.submitted_at || l.updated_at, late = hoursSince(at) >= 24;
+      return row(cover ? '<img src="' + esc(cover.url || cover) + '" alt="" loading="lazy">' : H.icon('home'), l.name || t('Untitled listing'),
+        esc([person(k), l.area, t('waiting {time}', { time: since(at) })].filter(Boolean).join(' · ')),
+        reach(l.contact_mobile || k.mobile, k.email) + '<a class="btn btn-primary btn-sm" href="/host/review" data-link>' + esc(t('Review')) + '</a>',
+        late ? '<span class="aq-flag late">' + esc(t('Over 1 day')) + '</span>' : '<span class="aq-flag">' + esc(t('{n} hr left', { n: Math.max(1, Math.round(24 - hoursSince(at))) })) + '</span>');
+    }).join('');
+
+    // 2. New leads. On a sample listing there is no Keeper, so the team answers.
+    var fresh = d.inquiries.filter(function (q) { return q.status === 'new'; });
+    var leadHtml = fresh.slice(0, 5).map(function (q) {
+      var ours = !listById[q.listing_id];
+      return row(esc(String(q.renter_name || '?').trim().charAt(0).toUpperCase()), q.renter_name || t('Renter'),
+        esc([q.listing_name || q.listing_ref, t('{time} ago', { time: since(q.created_at) })].filter(Boolean).join(' · ')) + (q.message ? '<em>' + esc(q.message) + '</em>' : ''),
+        reach(q.renter_mobile, q.renter_email) + (ours ? '<a class="btn btn-primary btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Reply')) + '</a>' : '<a class="btn btn-ghost btn-sm" href="/messages/' + esc(q.id) + '" data-link>' + esc(t('Read')) + '</a>'),
+        ours ? '<span class="aq-flag late">' + esc(t('Team answers')) + '</span>' : '');
+    }).join('');
+
+    // 3. Contact-page messages still open.
+    var open = d.contacts.filter(function (m) { return m.status === 'new'; });
+    var openHtml = open.slice(0, 4).map(function (m) {
+      return row(H.icon('message'), m.name, esc([m.topic, t('{time} ago', { time: since(m.created_at) })].filter(Boolean).join(' · ')) + '<em>' + esc(m.message) + '</em>',
+        '<a class="btn btn-primary btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: your message to ECStay') + '">' + esc(t('Reply')) + '</a>');
+    }).join('');
+
+    // 4. Paid plans that end within 7 days, or have ended.
+    var plans = d.listings.filter(function (l) { return l.plan && l.plan_until && l.plan_until <= in7 && (l.status === 'live' || l.status === 'paused'); }).sort(function (a, b) { return a.plan_until < b.plan_until ? -1 : 1; });
+    var planHtml = plans.map(function (l) {
+      var k = profById[l.owner_id] || {}, ended = l.plan_until < now;
+      return row(H.icon('sparkle'), l.name || t('Untitled listing'), esc([person(k), l.plan.charAt(0).toUpperCase() + l.plan.slice(1), t(ended ? 'ended {date}' : 'ends {date}', { date: day(l.plan_until + 'T12:00:00') })].join(' · ')),
+        reach(l.contact_mobile || k.mobile, k.email) + '<a class="btn btn-ghost btn-sm" href="' + esc(here) + '?tab=listings" data-adm-go data-link>' + esc(t('Renew')) + '</a>', ended ? '<span class="aq-flag late">' + esc(t('Term ended')) + '</span>' : '');
+    }).join('');
+
+    // 5. Keepers who started a listing and stopped: a call often gets it finished.
+    var stuck = d.listings.filter(function (l) { return l.status === 'draft' && ECS.stepsDone(l) >= 2 && hoursSince(l.updated_at) >= 48; }).sort(function (a, b) { return ECS.stepsDone(b) - ECS.stepsDone(a); }).slice(0, 5);
+    var stuckHtml = stuck.map(function (l) {
+      var k = profById[l.owner_id] || {};
+      return row('<span class="aq-n">' + ECS.stepsDone(l) + '/6</span>', l.name || t('Untitled listing'), esc([person(k), t('last touched {time} ago', { time: since(l.updated_at) })].join(' · ')), reach(l.contact_mobile || k.mobile, k.email));
+    }).join('');
+    var changes = d.listings.filter(function (l) { return l.status === 'changes'; });
+    var chHtml = changes.map(function (l) {
+      var k = profById[l.owner_id] || {};
+      return row(H.icon('pencil'), l.name || t('Untitled listing'), esc([person(k), t('sent back {time} ago', { time: since(l.updated_at) })].join(' · ')) + (l.review_note ? '<em>' + esc(l.review_note) + '</em>' : ''), reach(l.contact_mobile || k.mobile, k.email));
+    }).join('');
+
+    var newest = d.profiles.slice().sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; }).slice(0, 5).map(function (p) {
+      var type = p.role === 'admin' ? 'Admin' : nList[p.id] ? 'Keeper' : 'Renter';
+      return row(esc(String(person(p)).charAt(0).toUpperCase()), person(p), esc([t(type), t('joined {date}', { date: day(p.created_at) })].join(' · ')), reach(p.mobile, p.email));
+    }).join('');
+
+    var tile = function (icon, n, label, tabId, tone, hint) {
+      return '<li><a class="kn" href="' + esc(here) + '?tab=' + tabId + '" data-link><span class="kn-ic ' + (tone || '') + '">' + H.icon(icon) + '</span><span class="kn-b"><b>' + n + '</b><span>' + esc(t(label)) + '</span>' + (hint ? '<small>' + esc(hint) + '</small>' : '') + '</span></a></li>';
+    };
+    var late = count(rev, function (l) { return hoursSince(l.submitted_at || l.updated_at) >= 24; });
+    return '<ul class="adm-stats kn-row">' +
+        tile('check', rev.length, 'Listings to review', 'listings', rev.length ? 'brass' : '', late ? t('{n} over 1 day', { n: late }) : '') +
+        tile('users', fresh.length, 'New leads', 'leads', fresh.length ? 'brass' : '', t('{n} this week', { n: count(d.inquiries, function (q) { return new Date(q.created_at).getTime() >= week; }) })) +
+        tile('home', count(d.listings, function (l) { return l.status === 'live'; }), 'Live listings', 'listings', 'green', t('{n} on a paid plan', { n: count(d.listings, function (l) { return l.status === 'live' && ECS.planOn(l); }) })) +
+        tile('user', d.profiles.length, 'People signed up', 'people', '', t('{n} this week', { n: count(d.profiles, function (p) { return new Date(p.created_at).getTime() >= week; }) })) +
+      '</ul>' +
+      '<div class="kh-cols adm-cols"><div class="kh-col">' +
+        card('Listings waiting for review', rev.length, revHtml && '<ul class="aq-list">' + revHtml + '</ul>', 'Nothing is waiting. Every listing sent to us has an answer.') +
+        card('New leads', fresh.length, leadHtml && '<ul class="aq-list">' + leadHtml + '</ul>', 'No new leads. Each one has been picked up.', d.inquiries.length ? go('leads', 'Open the board') : '') +
+        (openHtml ? card('Messages from the contact page', open.length, '<ul class="aq-list">' + openHtml + '</ul>', '', go('messages', 'See all')) : '') +
+      '</div><div class="kh-col">' +
+        (planHtml ? card('Plans ending soon', plans.length, '<ul class="aq-list">' + planHtml + '</ul>', '') : '') +
+        (chHtml ? card('Sent back, waiting on the Keeper', changes.length, '<ul class="aq-list">' + chHtml + '</ul>', '') : '') +
+        card('Keepers to nudge', stuck.length, stuckHtml && '<ul class="aq-list">' + stuckHtml + '</ul>', 'No listing has been left half done for more than 2 days.') +
+        card('Newest sign-ups', 0, '<ul class="aq-list">' + newest + '</ul>', '', go('people', 'See all')) +
+      '</div></div>';
+  }
+
+  // The current tab as a sheet (CSV) that opens in Excel or Google Sheets.
+  function download(kind) {
+    var nList = {}; data.listings.forEach(function (l) { nList[l.owner_id] = (nList[l.owner_id] || 0) + 1; });
+    var rows = kind === 'leads' ?
+      [['Name', 'Mobile', 'Email', 'Listing', 'Move-in', 'Stage', 'Date', 'Message', 'Team note']].concat(data.inquiries.map(function (q) { return [q.renter_name, q.renter_mobile, q.renter_email, q.listing_name || q.listing_ref, q.move_in, q.status, (q.created_at || '').slice(0, 10), q.message, q.admin_note]; })) :
+      [['Name', 'Type', 'Email', 'Mobile', 'Listings', 'Joined']].concat(data.profiles.map(function (p) { return [p.full_name, p.role === 'admin' ? 'Admin' : nList[p.id] ? 'Keeper' : 'Renter', p.email, p.mobile, nList[p.id] || 0, (p.created_at || '').slice(0, 10)]; }));
+    var csv = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = 'ecstay-' + kind + '-' + today() + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
   /* ---- Leads board ---- */
@@ -158,12 +266,25 @@
   function bind(host) {
     // Tabs and the number tiles: swap the body from the data already loaded, with no reload.
     host.addEventListener('click', function (e) {
-      var a = e.target.closest('.adm-tabs a, .adm-stats a'); if (!a || !data || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      var a = e.target.closest('.adm-tabs a, .adm-stats a, a[data-adm-go]'); if (!a || !data || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
       e.preventDefault(); e.stopPropagation();
       var to = a.getAttribute('href');
       if (to !== location.pathname + location.search) history.pushState(null, '', to);
-      paint(host, data);
+      paint(host, data); window.scrollTo(0, 0);
     }, true);
+    // Search: hides the cards and rows on this page that do not contain the words typed.
+    host.addEventListener('input', function (e) {
+      var box = e.target.closest('[data-adm-search]'); if (!box) return;
+      var words = box.value.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+      var items = host.querySelectorAll('.adm-body .lead, .adm-body tbody tr, .adm-body .msg');
+      Array.prototype.forEach.call(items, function (el) {
+        var txt = (el.textContent + ' ' + Array.prototype.map.call(el.querySelectorAll('textarea, a[href^="mailto:"]'), function (x) { return x.value || x.getAttribute('href'); }).join(' ')).toLowerCase();
+        var hit = words.every(function (w) { return txt.indexOf(w) >= 0; });
+        if (hit) { el.removeAttribute('data-hide'); shown++; } else el.setAttribute('data-hide', '');
+      });
+      var none = host.querySelector('.adm-none'); if (none) none.remove();
+      if (words.length && !shown && items.length) host.querySelector('.adm-body').insertAdjacentHTML('beforeend', '<p class="adm-none">' + esc(t('Nothing on this page matches.')) + '</p>');
+    });
 
     /* Drag a lead card onto another column. Typing in the note, picking a stage and tapping a link stay ordinary. */
     var dragId = null;
@@ -216,7 +337,8 @@
     });
     host.addEventListener('click', function (e) {
       var b;
-      if ((b = e.target.closest('[data-msg-done]'))) {
+      if ((b = e.target.closest('[data-adm-csv]'))) download(b.getAttribute('data-adm-csv'));
+      else if ((b = e.target.closest('[data-msg-done]'))) {
         var li = b.closest('.msg');
         ECS.setContact(li.getAttribute('data-id'), { status: li.classList.contains('is-done') ? 'new' : 'done' }).then(function () { return reload(host); }).catch(function (x) { H.toast(x.message); });
       } else if ((b = e.target.closest('[data-unpublish]'))) {
