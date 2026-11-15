@@ -2,40 +2,44 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/page?r=sitemap"
+    },
+    {
       "source": "/room/:id",
-      "destination": "/"
+      "destination": "/api/page?r=room&id=:id"
     },
     {
       "source": "/list",
-      "destination": "/"
+      "destination": "/api/page?r=list"
     },
     {
       "source": "/rooms",
-      "destination": "/"
+      "destination": "/api/page?r=rooms"
     },
     {
       "source": "/about",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=about"
     },
     {
       "source": "/help",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=help"
     },
     {
       "source": "/listing-standards",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=listing-standards"
     },
     {
       "source": "/privacy",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=privacy"
     },
     {
       "source": "/terms",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=terms"
     },
     {
       "source": "/contact",
-      "destination": "/"
+      "destination": "/api/page?r=doc&d=contact"
     },
     {
       "source": "/signin",
@@ -89,6 +93,15 @@
           "value": "strict-origin-when-cross-origin"
         }
       ]
+    },
+    {
+      "source": "/(signin|host|host/.*|messages|messages/.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     }
   ],
   "redirects": [
@@ -103,5 +116,11 @@
       "destination": "https://www.ecstay.ph/$1",
       "permanent": true
     }
-  ]
+  ],
+  "functions": {
+    "api/page.js": {
+      "includeFiles": "{index.html,assets/js/data.js,assets/js/pages.js}",
+      "maxDuration": 10
+    }
+  }
 }

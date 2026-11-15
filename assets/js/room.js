@@ -8,8 +8,6 @@
   R.destroy = function () {
     if (io) { io.disconnect(); io = null; }
     if (roomMap) { roomMap.destroy(); roomMap = null; }
-    var r = document.querySelector('meta[name="robots"]'); if (r) r.setAttribute('content', 'index, follow');
-    var c = document.querySelector('link[rel="canonical"]'); if (c) c.setAttribute('href', HAVN_CONFIG.siteUrl + '/');
   };
 
   function setMeta(title, desc, path, noindex) {
@@ -155,7 +153,7 @@
     } else start();
 
     var nearName = near[0].school.short;
-    setMeta(l.name + ' · ' + t(l.type) + ' near ' + nearName + ' · ECStay',
+    setMeta(l.name + ' · ' + t('{type} for rent in {area}, Davao City', { type: t(l.type), area: l.area }) + ' · ECStay',
       t(l.type) + ' in ' + l.area + ', Davao City. ' + H.peso(l.price) + ' a month. ' + l.desc,
       '/room/' + l.id, !!l.sample);
   };

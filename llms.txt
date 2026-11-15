@@ -1,25 +1,57 @@
 # ECStay
 
-> ECStay (Explore, Come, Stay; formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City, Philippines. Slogan: "Explore. Come. Stay." Mascot: Kapi the capybara.
+> ECStay (Explore, Come, Stay; formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms, private rooms and studios for rent in Davao City, Philippines. Website: https://www.ecstay.ph. Free for renters.
 
-Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities and its exact location on a map, plus the walking time to the nearest school or landmark. The site is in English and Tagalog. Note: the rooms listed now are samples with stock photos (each marked "Sample") while real boarding houses are being added.
+Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities, the house rules, the move-in costs and its exact spot on a map, plus the walking time to the nearest school or landmark. Renters search near their school, mall, hospital or office and filter by budget, room type, who can stay and amenities like aircon, own CR and Wi-Fi. The site is in English and Tagalog.
+
+ECStay calls the owners and managers who list their places Keepers. Every listing is reviewed against the listing standards before it goes live. Renters ask the Keeper through ECStay, visit the room, then pay the Keeper directly; ECStay does not take rent payments.
+
+Note: the rooms marked "Sample" are examples with stock photos, shown while real boarding houses are added. They are not for rent.
 
 ## Main pages
-- [Home](https://www.ecstay.ph/): search by school, mall or area; room types; popular places; questions and answers
-- [All rooms with map](https://www.ecstay.ph/rooms): every room, filter by budget, room type, who can stay, aircon, own CR and Wi-Fi
-- [Become a Keeper](https://www.ecstay.ph/list): for boarding house owners and landlords. ECStay calls the people who list their places Keepers.
+- [Home](https://www.ecstay.ph/): search by school, mall, hospital, office or area
+- [All rooms in Davao City](https://www.ecstay.ph/rooms): every room on a list and a map
+- [List your boarding house](https://www.ecstay.ph/list): for boarding house owners and landlords (Keepers)
+- [About ECStay](https://www.ecstay.ph/about)
+- [Help: questions and answers](https://www.ecstay.ph/help)
+- [Listing standards](https://www.ecstay.ph/listing-standards): what is checked before a listing goes live
+- [Contact](https://www.ecstay.ph/contact)
+- [Privacy Notice](https://www.ecstay.ph/privacy) and [Terms of Use](https://www.ecstay.ph/terms)
 
-## Search links
-- Near a school: https://www.ecstay.ph/rooms?near=addu (also um, um-matina, usep, spc, hcdc, ddc, upmin)
-- Near a landmark: https://www.ecstay.ph/rooms?near=gmall (also sm-lanang, abreeza, nccc-vp, felcris, sm-ecoland, citygate, spmc, ddh, cybergate, damosa, city-hall)
-- By area: https://www.ecstay.ph/rooms?area=Bajada (also Poblacion, Obrero, Matina, Ma-a, Mintal, Buhangin)
-- By room type: https://www.ecstay.ph/rooms?type=Bedspace (also Shared room, Private room, Studio)
+## Rooms near schools
+- [Ateneo de Davao University (AdDU)](https://www.ecstay.ph/rooms?near=addu)
+- [University of Mindanao, Main (UM)](https://www.ecstay.ph/rooms?near=um)
+- [University of Mindanao, Matina (UM Matina)](https://www.ecstay.ph/rooms?near=um-matina)
+- [University of Southeastern Philippines (USeP)](https://www.ecstay.ph/rooms?near=usep)
+- [San Pedro College (SPC)](https://www.ecstay.ph/rooms?near=spc)
+- [Holy Cross of Davao College (HCDC)](https://www.ecstay.ph/rooms?near=hcdc)
+- [Davao Doctors College (DDC)](https://www.ecstay.ph/rooms?near=ddc)
+- [UP Mindanao](https://www.ecstay.ph/rooms?near=upmin)
+
+## Rooms near malls, hospitals and offices
+- [Gaisano Mall of Davao (Gmall)](https://www.ecstay.ph/rooms?near=gmall)
+- [SM Lanang Premier](https://www.ecstay.ph/rooms?near=sm-lanang)
+- [Abreeza Mall](https://www.ecstay.ph/rooms?near=abreeza)
+- [NCCC Mall VP (Victoria Plaza)](https://www.ecstay.ph/rooms?near=nccc-vp)
+- [Felcris Centrale](https://www.ecstay.ph/rooms?near=felcris)
+- [SM City Davao (Ecoland)](https://www.ecstay.ph/rooms?near=sm-ecoland)
+- [Gaisano Grand Citygate](https://www.ecstay.ph/rooms?near=citygate)
+- [Southern Philippines Medical Center (SPMC)](https://www.ecstay.ph/rooms?near=spmc)
+- [Davao Doctors Hospital](https://www.ecstay.ph/rooms?near=ddh)
+- [Robinsons Cybergate Davao](https://www.ecstay.ph/rooms?near=cybergate)
+- [Damosa IT Park](https://www.ecstay.ph/rooms?near=damosa)
+- [Davao City Hall](https://www.ecstay.ph/rooms?near=city-hall)
+
+## Rooms by area and type
+- Areas: [Poblacion](https://www.ecstay.ph/rooms?area=Poblacion), [Bajada](https://www.ecstay.ph/rooms?area=Bajada), [Obrero](https://www.ecstay.ph/rooms?area=Obrero), [Matina](https://www.ecstay.ph/rooms?area=Matina), [Ma-a](https://www.ecstay.ph/rooms?area=Ma-a), [Mintal](https://www.ecstay.ph/rooms?area=Mintal), [Buhangin](https://www.ecstay.ph/rooms?area=Buhangin)
+- Types: [Bedspace](https://www.ecstay.ph/rooms?type=Bedspace), [Shared room](https://www.ecstay.ph/rooms?type=Shared%20room), [Private room](https://www.ecstay.ph/rooms?type=Private%20room), [Studio](https://www.ecstay.ph/rooms?type=Studio)
 - By budget: https://www.ecstay.ph/rooms?max=5000 (monthly price in pesos)
 
 ## Questions and answers
-- What is ECStay? ECStay is a website for finding boarding houses, bedspaces, shared rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.
-- Where in Davao can I find a room? Rooms are listed across Davao City, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.
-- What kinds of rooms are listed? Bedspaces, shared rooms, private rooms and studios. You can filter by monthly budget, female-only or male-only houses, aircon, own CR and Wi-Fi, and sort by price or distance.
-- How do I contact a Keeper (the landlord)? Open a room and tap Contact Keeper. ECStay writes the message for you, with the room, the price and your move-in month, then opens Messenger so you can send it.
-- How do I list my boarding house? Tap List your place and fill in the short form: your name, phone number, where your place is and the kinds of rooms you have. The ECStay team will get back to you.
-- Are the rooms on ECStay real? The rooms you see now are samples with stock photos, each marked Sample, while real boarding houses are being added.
+- What is ECStay? A website for finding boarding houses, bedspaces, shared rooms, private rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.
+- Where in Davao City are the rooms? Across the city, including Poblacion, Bajada, Obrero, Matina, Ma-a, Buhangin and Mintal. You can search near schools like AdDU, UM, USeP, SPC, HCDC, DDC and UP Mindanao, or near places like Gmall, SM Lanang, Abreeza, SPMC and Robinsons Cybergate.
+- How do I contact a Keeper (the landlord)? Open the room and tap Contact Keeper. Send your name, mobile number, your move-in month and a short message. The Keeper gets it by email and in their dashboard, and replies through ECStay.
+- How do I pay? You pay the Keeper directly, only after you have seen the room. ECStay does not take payments and will never ask you to pay by email or chat.
+- How do I list my boarding house? Go to https://www.ecstay.ph/list and sign in with Google or with a 6-digit code sent to your email. Add your place's pin on the map, room types and monthly prices, the deposit and advance, who can stay, amenities, house rules and photos. ECStay reviews every listing before it goes live.
+- Are the rooms verified? Every listing is reviewed against the listing standards (photos, price, location and details) before it goes live.
+- Are the rooms on ECStay real? Rooms marked "Sample" are examples with stock photos, shown while real boarding houses are added. They are not for rent.

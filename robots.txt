@@ -1,4 +1,6 @@
+# ECStay welcomes search engines and AI assistants (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot and others).
 User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: https://www.ecstay.ph/sitemap.xml

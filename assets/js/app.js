@@ -494,6 +494,33 @@
       '<span><strong>' + H.peso(l.price) + '</strong> ' + H.esc(t('/ month')) + ' · <em class="st-' + l.status + '">' + H.esc(H.statusLabel(l)) + '</em></span></span></a>';
   }
 
+  /* Canonical link and robots rule: the same as api/page.js sends, so Google reads one answer before and after the
+     app runs. A place, an area or one room type is its own page; budget, filters and sort are views of it. */
+  A.canon = function (path, noindex) {
+    var c = document.querySelector('link[rel="canonical"]'); if (c) c.setAttribute('href', HAVN_CONFIG.siteUrl + path);
+    var r = document.querySelector('meta[name="robots"]');
+    if (noindex && !r) { r = document.createElement('meta'); r.name = 'robots'; document.head.appendChild(r); }
+    if (r) r.setAttribute('content', noindex ? 'noindex, follow' : 'index, follow');
+  };
+  function browseMeta() {
+    var sc = placeSchool(S), ar = placeArea(S), path = '/rooms';
+    if (ar) path += '?area=' + encodeURIComponent(ar);
+    else if (sc) path += '?near=' + sc.id;
+    else if (S.types.length === 1) path += '?type=' + encodeURIComponent(S.types[0]);
+    A.canon(path, S.saved || !!S.bbox || !!S.q);
+  }
+
+  /* The browser tab and search result title: the words people search for (the same as api/page.js sends first). */
+  function docTitle(list) {
+    if (S.saved) return t('Saved');
+    if (areaMode(S)) return title(list);
+    var sc = placeSchool(S), ar = placeArea(S);
+    if (sc) return t(sc.kind ? 'Rooms for rent near {place}, Davao City' : 'Boarding houses near {place}, Davao City', { place: sc.short });
+    if (ar) return t('Rooms for rent in {area}, Davao City', { area: ar });
+    if (S.types.length === 1) return t('{type} for rent in Davao City', { type: t(S.types[0]) });
+    return t('Rooms for rent in Davao City: boarding houses and bedspaces');
+  }
+
   function title(list) {
     var n = list.length;
     if (S.saved) return n === 1 ? t('1 saved room') : t('{n} saved rooms', { n: n });
@@ -551,7 +578,8 @@
     }
     var rest = list.filter(function (l) { return fids.indexOf(l.id) === -1; });
     $('#results-title').textContent = title(list);
-    document.title = (S.saved ? t('Saved') : title(list)) + ' · ECStay';
+    document.title = docTitle(list) + ' · ECStay';
+    browseMeta();
     var sortSel = $('#sort');
     if (sortSel) sortSel.value = S.sort;
     if (!list.length) {
@@ -674,7 +702,7 @@
     document.body.classList.toggle('is-auth', kind === 'signin' || (kind === 'profile' && /[?&]welcome=1/.test(location.search)));
     renderHeader(); renderNav();
     var meta = function (title, desc, noindex) {
-      document.title = title + ' · ECStay';
+      document.title = /ECStay/.test(title) ? title : title + ' · ECStay';
       var d = document.querySelector('meta[name="description"]'); if (d && desc) d.setAttribute('content', desc);
       var c = document.querySelector('link[rel="canonical"]'); if (c) c.setAttribute('href', HAVN_CONFIG.siteUrl + location.pathname);
       var r = document.querySelector('meta[name="robots"]');
@@ -734,6 +762,7 @@
     renderHome();
     renderNav();
     document.title = 'ECStay · Boarding houses, bedspaces and rooms in Davao City';
+    A.canon('/', false);
     window.scrollTo(0, fromRoom ? homeScroll : 0);
   }
 
