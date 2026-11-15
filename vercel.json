@@ -93,14 +93,14 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [
         {
           "type": "host",
           "value": "(www\\.)?havnph\\.com"
         }
       ],
-      "destination": "https://www.ecstay.ph/:path*",
+      "destination": "https://www.ecstay.ph/$1",
       "permanent": true
     }
   ]
