@@ -311,7 +311,9 @@
     var h = manilaHour(), hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
     var title = d.tab === 'listings' ? t('Listings') : d.tab === 'messages' ? t('Messages') : d.tab === 'account' ? t('Plan and account') : first ? t(hello + ', {name}', { name: first }) : t(hello);
     var changes = d.ls.filter(function (l) { return l.status === 'changes'; }).length, review = d.ls.filter(function (l) { return l.status === 'review'; }).length;
-    var sum = d.tab !== 'overview' ? '' : !d.keeper ? t('Your messages and your details are here.') :
+    var fresh = d.rt.filter(function (th) { return th.waiting; }).length;
+    var sum = d.tab !== 'overview' ? '' : !d.keeper ? (fresh === 1 ? t('1 Keeper replied to you.') : fresh ? t('{n} Keepers replied to you.', { n: fresh }) :
+        d.rt.length ? t('Your rooms, your messages and your details are here.') : t('Find a room, save the ones you like, and message the Keeper.')) :
       d.waiting.length === 1 ? t('1 renter is waiting for your reply.') :
       d.waiting.length ? t('{n} renters are waiting for your reply.', { n: d.waiting.length }) :
       changes ? t('A listing needs a few changes before renters can see it.') :
@@ -489,12 +491,57 @@
   }
 
   /* ---- People with no listing: a short account page ---- */
+  /* The renter's account page: the rooms they asked about (with the room's photo and where the conversation
+   * stands), the rooms they saved, and their own details. One clear next step when there is nothing yet. */
   function renterHome() {
-    var d = dash;
-    return '<div class="kh-narrow"><section class="kh-sec"><h2>' + esc(t('Rooms you asked about')) + '</h2>' +
-      (d.rt.length ? '<ul class="km-list">' + d.rt.map(msgRow).join('') + '</ul>' : '<p class="kh-muted">' + esc(t('When you message a Keeper about a room, it shows here.')) + ' <a href="/rooms" data-link>' + esc(t('Find a room')) + '</a></p>') + '</section>' +
-      '<section class="kh-sec"><h2>' + esc(t('Your account')) + '</h2>' + linkRows(false) + '</section>' +
-      '<section class="kh-sec">' + emptyListings() + '</section>' +
+    var d = dash, name = d.p.full_name || d.user.name || '', saved = H.saved.ids().map(H.byId), fresh = d.rt.filter(function (th) { return th.waiting; }).length;
+    var tile = function (href, icon, tone, big, label, hint) {
+      return '<a class="kn rh-tile" href="' + esc(href) + '" data-link><span class="kn-ic ' + tone + '">' + H.icon(icon) + '</span><span class="kn-b"><b>' + big + '</b><span>' + esc(label) + '</span>' +
+        (hint ? '<small>' + esc(hint) + '</small>' : '') + '</span>' + H.icon('chev-right') + '</a>';
+    };
+    var asked = d.rt.slice(0, 4).map(function (th) {
+      var last = th.msgs[th.msgs.length - 1], mine = last.sender_role === th.role, r = th.room;
+      return '<li><a class="ra' + (th.waiting ? ' wait' : '') + '" href="/messages/' + esc(th.q.id) + '" data-link>' +
+        '<span class="ra-img">' + (r.photo ? '<img src="' + esc(H.photo(r.photo, 640)) + '" alt="" loading="lazy">' : H.icon('home')) + '</span>' +
+        '<span class="ra-b"><span class="ra-top"><b>' + esc(r.name) + '</b><time>' + esc(ago(last.created_at)) + '</time></span>' +
+          '<span class="ra-meta">' + esc([r.area, r.price ? t('from {p} a month', { p: H.peso(r.price) }) : ''].filter(Boolean).join(' · ')) + '</span>' +
+          '<span class="ra-snip">' + esc((mine ? t('You') + ': ' : '') + (last.body || '')) + '</span>' +
+          '<span class="ra-state ' + (th.waiting ? 'new' : '') + '"><i></i>' + esc(t(th.waiting ? 'The Keeper replied' : 'Waiting for the Keeper')) + '</span></span></a></li>';
+    }).join('');
+    var rooms = saved.slice(0, 3).map(function (r) {
+      return '<li><a class="rs" href="/room/' + esc(r.id) + '" data-link><span class="rs-img">' + (r.photos && r.photos[0] ? '<img src="' + esc(H.photo(r.photos[0], 640)) + '" alt="" loading="lazy">' : H.icon('home')) + '</span>' +
+        '<b>' + esc(r.name) + '</b><span>' + esc([r.price ? t('from {p} a month', { p: H.peso(r.price) }) : '', r.area].filter(Boolean).join(' · ')) + '</span></a></li>';
+    }).join('');
+    var row = function (href, icon, label, sub) {
+      return '<li><a href="' + esc(href) + '" data-link><span class="rh-ic">' + H.icon(icon) + '</span><div><b>' + esc(t(label)) + '</b><small>' + esc(t(sub)) + '</small></div>' + H.icon('chev-right') + '</a></li>';
+    };
+    return '<div class="rh">' +
+      '<div class="kn-row rh-tiles">' +
+        tile('/messages', 'message', fresh ? 'brass' : 'green', numf(d.rt.length), t('Rooms you asked about'), fresh ? (fresh === 1 ? t('1 new reply') : t('{n} new replies', { n: fresh })) : '') +
+        tile('/rooms?saved=1', 'heart', 'green', numf(saved.length), t('Saved rooms')) +
+        '<a class="kn rh-tile rh-find" href="/rooms" data-link><span class="kn-ic">' + H.icon('search') + '</span><span class="kn-b"><b>' + esc(t('Find a room')) + '</b><span>' + esc(t('Near your school or work')) + '</span></span>' + H.icon('arrow-right') + '</a>' +
+      '</div>' +
+      '<div class="kh-cols rh-cols"><div class="kh-col">' +
+        '<section class="kcard"><div class="kcard-h"><h2>' + esc(t('Rooms you asked about')) + (fresh ? ' <b class="count brass">' + fresh + '</b>' : '') + '</h2>' +
+          (d.rt.length ? '<a class="kh-more" href="/messages" data-link>' + esc(t('All messages')) + '</a>' : '') + '</div>' +
+          (asked ? '<ul class="ra-list">' + asked + '</ul>' :
+            '<div class="rh-empty"><span>' + H.icon('message') + '</span><p><b>' + esc(t('No messages yet.')) + '</b> ' + esc(t('When you ask a Keeper about a room, the conversation shows here.')) + '</p>' +
+              '<a class="btn btn-primary" href="/rooms" data-link>' + esc(t('Find a room')) + '</a></div>') +
+        '</section>' +
+        '<section class="kcard"><div class="kcard-h"><h2>' + esc(t('Saved rooms')) + '</h2>' +
+          (saved.length > 3 ? '<a class="kh-more" href="/rooms?saved=1" data-link>' + esc(t('See all {n}', { n: saved.length })) + '</a>' : '') + '</div>' +
+          (rooms ? '<ul class="rs-list">' + rooms + '</ul>' :
+            '<div class="rh-empty"><span>' + H.icon('heart') + '</span><p><b>' + esc(t('Nothing saved yet.')) + '</b> ' + esc(t('Tap the heart on a room to keep it here and compare later.')) + '</p></div>') +
+        '</section>' +
+      '</div><div class="kh-col">' +
+        '<section class="kcard rh-me"><span class="rh-av">' + esc(initials(name || '?')) + '</span><h2>' + esc(name || t('Your account')) + '</h2>' +
+          '<p>' + esc([ECS.showMobile(d.p.mobile || ''), d.user.email].filter(Boolean).join(' · ')) + '</p>' +
+          '<ul class="rh-links">' + row('/host/profile', 'user', 'Your details', 'Name and mobile number') + row('/messages', 'message', 'Messages', 'Every conversation in one inbox') + row('/help?from=keeper', 'info', 'Help', 'Answers and how to reach us') +
+            (ECS.mode === 'demo' ? row('/host/review', 'check', 'Review queue (try the reviewer side)', 'Demo only') : '') + '</ul>' +
+        '</section>' +
+        '<a class="rh-keeper" href="/host/new" data-link><span class="rh-ic">' + H.icon('home') + '</span><b>' + esc(t('Have a place to rent out?')) + '</b>' +
+          '<small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small><span class="btn btn-brass btn-sm">' + esc(t('Add my place')) + '</span></a>' +
+      '</div></div>' +
       (ECS.mode === 'demo' ? outboxHtml(d.out) : '') + '</div>';
   }
 

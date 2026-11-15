@@ -79,6 +79,7 @@
   H.saved = {
     has: function (id) { return saved.indexOf(id) !== -1; },
     count: function () { return saved.filter(H.byId).length; },
+    ids: function () { return saved.filter(H.byId); },
     toggle: function (id) {
       var i = saved.indexOf(id);
       if (i === -1) saved.push(id); else saved.splice(i, 1);
