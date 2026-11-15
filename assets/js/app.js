@@ -507,7 +507,22 @@
     if (ar) path += '?area=' + encodeURIComponent(ar);
     else if (sc) path += '?near=' + sc.id;
     else if (S.types.length === 1) path += '?type=' + encodeURIComponent(S.types[0]);
+    else if (budgetPage(S)) path += '?max=' + S.max;
     A.canon(path, S.saved || !!S.bbox || !!S.q);
+  }
+
+  /* Budgets people search for ("room for rent davao 3k"): their own pages. */
+  function budgetPage(s) { return !s.min && (s.max === 3000 || s.max === 5000); }
+  /* "Boarding houses near AdDU (Ateneo de Davao University)": the short name and the full name, as people search
+     both; a Davao City at the end when it fits. Same rule as api/page.js. */
+  function placeTitle(sc) {
+    var nm = sc.name.replace(/\s*\([a-z][^)]*\)/g, '');
+    var label = nm.indexOf(sc.short) !== -1 ? nm : sc.short + ' (' + nm.replace(/\s*\([^)]*\)/g, '') + ')';
+    var key = sc.kind ? 'Rooms for rent near {place}' : 'Boarding houses near {place}';
+    var en = (sc.kind ? 'Rooms for rent near ' : 'Boarding houses near ') + label;
+    if (en.length + 13 <= 62 && !/Davao City/.test(label)) return t(key + ', Davao City', { place: label });
+    if (en.length <= 62) return t(key, { place: label });
+    return t(key + ', Davao City', { place: sc.short });
   }
 
   /* The browser tab and search result title: the words people search for (the same as api/page.js sends first). */
@@ -515,9 +530,10 @@
     if (S.saved) return t('Saved');
     if (areaMode(S)) return title(list);
     var sc = placeSchool(S), ar = placeArea(S);
-    if (sc) return t(sc.kind ? 'Rooms for rent near {place}, Davao City' : 'Boarding houses near {place}, Davao City', { place: sc.short });
+    if (sc) return placeTitle(sc);
     if (ar) return t('Rooms for rent in {area}, Davao City', { area: ar });
     if (S.types.length === 1) return t('{type} for rent in Davao City', { type: t(S.types[0]) });
+    if (budgetPage(S)) return t('Rooms for rent in Davao City under {p} a month', { p: H.peso(S.max) });
     return t('Rooms for rent in Davao City: boarding houses and bedspaces');
   }
 
@@ -761,7 +777,7 @@
     renderHeader();
     renderHome();
     renderNav();
-    document.title = 'ECStay · Boarding houses, bedspaces and rooms in Davao City';
+    document.title = 'Boarding houses, bedspaces and rooms for rent in Davao City · ECStay';
     A.canon('/', false);
     window.scrollTo(0, fromRoom ? homeScroll : 0);
   }

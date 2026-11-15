@@ -104,6 +104,15 @@ function nearest(B, l, n) {
   return places(B).map((p) => ({ p, d: km(l, p) })).sort((a, b) => a.d - b.d).slice(0, n);
 }
 
+function placeTitle(p) {
+  const nm = p.name.replace(/\s*\([a-z][^)]*\)/g, '');
+  const label = nm.includes(p.short) ? nm : p.short + ' (' + nm.replace(/\s*\([^)]*\)/g, '') + ')';
+  const pre = p.kind === 'school' ? 'Boarding houses near ' : 'Rooms for rent near ';
+  if ((pre + label).length + 13 <= 62 && !/Davao City/.test(label)) return pre + label + ', Davao City';
+  if ((pre + label).length <= 62) return pre + label;
+  return pre + p.short + ', Davao City';
+}
+
 /* ---------- the page pieces ---------- */
 function crumbs(list) {
   return {
@@ -119,6 +128,7 @@ function placeLinks(B, skip) {
   return '<h2>Rooms near schools, malls, hospitals and offices</h2><ul>' +
     places(B).filter((p) => p.id !== skip).map((p) => '<li><a href="/rooms?near=' + p.id + '">Rooms near ' + esc(p.short) + ' (' + esc(p.name) + ')</a></li>').join('') + '</ul>' +
     '<h2>Rooms by area</h2><ul>' + B.areas.map((a) => '<li><a href="/rooms?area=' + encodeURIComponent(a) + '">Rooms in ' + esc(a) + ', Davao City</a></li>').join('') + '</ul>' +
+    '<h2>Rooms by monthly budget</h2><ul>' + [3000, 5000].map((b) => '<li><a href="/rooms?max=' + b + '">Rooms for rent in Davao City under ' + peso(b) + ' a month</a></li>').join('') + '</ul>' +
     '<h2>Rooms by type</h2><ul>' + B.types.map((t) => '<li><a href="/rooms?type=' + encodeURIComponent(t) + '">' + esc(cap(typeWord(t, true))) + ' for rent in Davao City</a></li>').join('') + '</ul>';
 }
 function card(B, l, place) {
@@ -147,6 +157,7 @@ async function roomsPage(B, q) {
   const place = !area && q.near ? placeById(B, q.near) : null;
   const types = (q.type || '').split(',').filter((t) => B.types.includes(t));
   const type = !place && !area && types.length === 1 ? types[0] : '';
+  const budget = !place && !area && !type && !q.min && (q.max === '3000' || q.max === '5000') ? Number(q.max) : 0;
   // Anything else in the address (budget, filters, map box, sort) is a view of one of these pages.
   const personal = q.saved === '1' || !!q.bbox || !!q.q;
   let list, h1, title, desc, url, crumb, about = null, intro;
@@ -154,7 +165,7 @@ async function roomsPage(B, q) {
     list = all.slice().sort((a, b) => km(a, place) - km(b, place)).filter((l) => km(l, place) <= 6);
     const isSchool = place.kind === 'school';
     h1 = (isSchool ? 'Boarding houses and bedspaces near ' : 'Rooms for rent near ') + place.name + ' (' + place.short + ')';
-    title = (isSchool ? 'Boarding houses near ' : 'Rooms for rent near ') + place.short + ', Davao City';
+    title = placeTitle(place);
     desc = 'Boarding houses, bedspaces and rooms for rent near ' + place.name + ' (' + place.short + ') in Davao City, nearest first, with photos, monthly prices, who can stay and the walking time.';
     intro = 'Rooms within about 6 km of ' + place.name + ', nearest first. Walking times are estimates from the map.';
     url = '/rooms?near=' + place.id;
@@ -178,6 +189,14 @@ async function roomsPage(B, q) {
     intro = cap(typeWord(type, true)) + ' listed on ECStay, in every part of Davao City.';
     url = '/rooms?type=' + encodeURIComponent(type);
     crumb = [['ECStay', '/'], ['Rooms', '/rooms'], [cap(typeWord(type, true)), url]];
+  } else if (budget) {
+    list = all.filter((l) => l.price <= budget).sort((a, b) => a.price - b.price);
+    h1 = 'Rooms for rent in Davao City for ' + peso(budget) + ' a month or less';
+    title = 'Rooms for rent in Davao City under ' + peso(budget) + ' a month';
+    desc = 'Cheap boarding houses, bedspaces and rooms for rent in Davao City for ' + peso(budget) + ' (' + budget / 1000 + 'k) a month or less, with photos, who can stay and the exact spot on the map.';
+    intro = 'Rooms with a monthly price of ' + peso(budget) + ' or less, cheapest first.';
+    url = '/rooms?max=' + budget;
+    crumb = [['ECStay', '/'], ['Rooms', '/rooms'], ['Under ' + peso(budget), url]];
   } else {
     list = all;
     h1 = 'Boarding houses, bedspaces and rooms for rent in Davao City';
@@ -308,6 +327,7 @@ function sitemap(B, all) {
     .concat(places(B).map((p) => ['/rooms?near=' + p.id, 'daily', '0.8']))
     .concat(B.areas.map((a) => ['/rooms?area=' + encodeURIComponent(a), 'weekly', '0.7']))
     .concat(B.types.map((t) => ['/rooms?type=' + encodeURIComponent(t), 'weekly', '0.7']))
+    .concat([['/rooms?max=3000', 'weekly', '0.7'], ['/rooms?max=5000', 'weekly', '0.7']])
     .concat([['/list', 'monthly', '0.6']])
     .concat(['about', 'help', 'listing-standards', 'privacy', 'terms', 'contact'].filter((n) => B.pages[n]).map((n) => ['/' + n, 'monthly', n === 'privacy' || n === 'terms' ? '0.3' : '0.5']));
   const rooms = all.filter((l) => !l.sample).map((l) => ['/room/' + l.id, 'weekly', '0.8', (l.published || '').slice(0, 10)]);

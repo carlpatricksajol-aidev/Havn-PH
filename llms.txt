@@ -45,7 +45,7 @@ Note: the rooms marked "Sample" are examples with stock photos, shown while real
 ## Rooms by area and type
 - Areas: [Poblacion](https://www.ecstay.ph/rooms?area=Poblacion), [Bajada](https://www.ecstay.ph/rooms?area=Bajada), [Obrero](https://www.ecstay.ph/rooms?area=Obrero), [Matina](https://www.ecstay.ph/rooms?area=Matina), [Ma-a](https://www.ecstay.ph/rooms?area=Ma-a), [Mintal](https://www.ecstay.ph/rooms?area=Mintal), [Buhangin](https://www.ecstay.ph/rooms?area=Buhangin)
 - Types: [Bedspace](https://www.ecstay.ph/rooms?type=Bedspace), [Shared room](https://www.ecstay.ph/rooms?type=Shared%20room), [Private room](https://www.ecstay.ph/rooms?type=Private%20room), [Studio](https://www.ecstay.ph/rooms?type=Studio)
-- By budget: https://www.ecstay.ph/rooms?max=5000 (monthly price in pesos)
+- By monthly budget: [under ₱3,000](https://www.ecstay.ph/rooms?max=3000), [under ₱5,000](https://www.ecstay.ph/rooms?max=5000)
 
 ## Questions and answers
 - What is ECStay? A website for finding boarding houses, bedspaces, shared rooms, private rooms and studios for rent in Davao City. Each room shows photos, the monthly price, who can stay and its exact spot on the map.
