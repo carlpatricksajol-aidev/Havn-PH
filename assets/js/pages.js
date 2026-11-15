@@ -337,6 +337,7 @@ window.ECS_PAGES = {
 <li>Privacy requests, such as seeing, correcting or deleting your data</li>
 <li>Partnerships</li>
 </ul>
+<p>Prefer to talk? Call or text us at <a href="tel:09955104274">0995 510 4274</a>, or message <a href="https://www.facebook.com/profile.php?id=61574262600669" rel="noopener">ECStay on Facebook</a>.</p>
 <p>Please do not send payment details or photos of your ID through this form. ECStay will never ask you for payment.</p>
 `,
   },
