@@ -27,7 +27,7 @@ window.HAVN_CONFIG = {
   // Set to true once Google sign-in is switched on in Supabase (Authentication > Providers > Google).
   // Set to true once sign-in by text is switched on (see supabase/README.md, "Sign-in by text").
   smsSignIn: false,
-  googleSignIn: false,  // the project's public "anon" key (safe to publish; row-level security protects the data)
+  googleSignIn: true,  // the project's public "anon" key (safe to publish; row-level security protects the data)
 };
 
 window.HAVN_SCHOOLS = [
