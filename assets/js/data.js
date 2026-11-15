@@ -22,8 +22,8 @@ window.HAVN_CONFIG = {
   landlordFormKey: '',
   // Landlord accounts, listings, renter messages and emails (see supabase/README.md). Both empty = accounts are
   // off and the site keeps the form above. Add ?demo=1 to any address to try the whole flow without them.
-  supabaseUrl: 'https://wzxftbwguliztfcfjbqo.supabase.co',      // e.g. 'https://abcdefghijkl.supabase.co'
-  supabaseAnonKey: 'sb_publishable_-ayRrpCY8rhUW23qsugebw_A_ck6K8F',
+  supabaseUrl: 'https://bbrigtzwdtpjfjylwqpm.supabase.co',      // e.g. 'https://abcdefghijkl.supabase.co'
+  supabaseAnonKey: 'sb_publishable_XtkfFJAYAuCmmmGR35v3dw_RyhfgDO5',
   // Set to true once Google sign-in is switched on in Supabase (Authentication > Providers > Google).
   // Set to true once sign-in by text is switched on (see supabase/README.md, "Sign-in by text").
   smsSignIn: false,
