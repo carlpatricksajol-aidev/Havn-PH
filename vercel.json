@@ -90,5 +90,18 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?havnph\\.com"
+        }
+      ],
+      "destination": "https://www.ecstay.ph/:path*",
+      "permanent": true
+    }
   ]
 }
