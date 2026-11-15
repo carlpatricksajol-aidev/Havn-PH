@@ -647,7 +647,8 @@
     return '<footer class="foot">' +
       '<div class="foot-in">' +
         '<nav class="foot-cols" aria-label="' + H.esc(t('Site')) + '">' +
-          '<div>' + a('/about', 'About') + a('/help', 'Help') + a('/contact', 'Contact') + '</div>' +
+          '<div>' + a('/about', 'About') + a('/help', 'Help') + a('/contact', 'Contact') +
+            (HAVN_CONFIG.facebook ? '<a href="' + H.esc(HAVN_CONFIG.facebook) + '" target="_blank" rel="noopener">Facebook</a>' : '') + '</div>' +
           '<div>' + a('/rooms', 'All rooms') + a('/rooms?saved=1', 'Saved rooms') + a('/help#stay-safe', 'Stay safe') + '</div>' +
           '<div>' + a('/list', 'Become a Keeper') + a('/listing-standards', 'Keeper standards') + (window.ECS && ECS.enabled() ? a('/signin?next=/host', 'Sign in') : '') + '</div>' +
           '<div>' + a('/privacy', 'Privacy Notice') + a('/terms', 'Terms of Use') + '</div>' +
