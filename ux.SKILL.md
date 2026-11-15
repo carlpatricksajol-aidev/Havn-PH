@@ -29,7 +29,7 @@ Havn is NOT Airbnb or a hotel booking site. It's a boarding house (bedspace / ro
 
 ## Page-by-Page UX Requirements
 
-### Landing Page (havnph.com)
+### Landing Page (ecstay.ph)
 - Hero: Clear headline + search bar (location or university name)
 - Trust signals: "Verified listings", "X boarding houses listed", "Serving UM, AdDU, USEP"
 - How it works: 3 steps max — Search → Browse → Contact
@@ -37,7 +37,7 @@ Havn is NOT Airbnb or a hotel booking site. It's a boarding house (bedspace / ro
 - For landlords CTA: separate but visible
 - No pop-ups on first load
 
-### Browse / Search Results Page (browse.havnph.com)
+### Browse / Search Results Page (browse.ecstay.ph)
 **Layout: Split view on desktop (map left, cards right), cards-only on mobile**
 
 #### Search Bar

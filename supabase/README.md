@@ -1,6 +1,6 @@
 # Switching on ECStay accounts
 
-Everything for landlord accounts is already built and tested in demo mode. To try it, open any page with `?demo=1`, for example `https://www.havnph.com/list?demo=1`. The demo covers sign-in, the listing editor, review, inquiries and the emails. To make it real, connect three services, then add two values to the site.
+Everything for landlord accounts is already built and tested in demo mode. To try it, open any page with `?demo=1`, for example `https://www.ecstay.ph/list?demo=1`. The demo covers sign-in, the listing editor, review, inquiries and the emails. To make it real, connect three services, then add two values to the site.
 
 | Service | What it does | Cost to start |
 |---|---|---|
@@ -18,7 +18,7 @@ Use **your own** Supabase organisation for this, not the company's.
 
 ## 2. Emails: Resend
 
-1. At resend.com, create an account and add your domain, for example `mail.ecstay.ph` or `mail.havnph.com`. Then add the DNS records Resend shows you at your domain registrar, and wait until the domain shows as **Verified**.
+1. At resend.com, create an account and add your domain, for example `mail.ecstay.ph` or `mail.ecstay.ph`. Then add the DNS records Resend shows you at your domain registrar, and wait until the domain shows as **Verified**.
 2. Create an API key.
 3. In Supabase, go to **Authentication > Emails > SMTP Settings** and turn on custom SMTP:
    - host `smtp.resend.com`, port `465`
@@ -28,12 +28,12 @@ Use **your own** Supabase organisation for this, not the company's.
    - **Emails > Templates > Magic Link**: subject `Your ECStay code: {{ .Token }}`, body: everything in `emails/dist/supabase-otp.html`. Do the same for **Confirm signup**.
    - **Sign In / Providers > Email**: set **Email OTP Expiration** to `600` (10 minutes, which is what the email says) and **Email OTP Length** to `6`.
    - **URL Configuration**:
-     - Site URL: `https://www.havnph.com`
-     - Redirect URLs: add `https://www.havnph.com/signin` and `https://havnph.com/signin`
+     - Site URL: `https://www.ecstay.ph`
+     - Redirect URLs: add `https://www.ecstay.ph/signin` and `https://ecstay.ph/signin`
 
 ## 3. Continue with Google
 
-1. Go to console.cloud.google.com, open **APIs & Services > OAuth consent screen**, and set up an external app named `ECStay`. Use your support email, and the links `https://www.havnph.com/privacy` and `https://www.havnph.com/terms`.
+1. Go to console.cloud.google.com, open **APIs & Services > OAuth consent screen**, and set up an external app named `ECStay`. Use your support email, and the links `https://www.ecstay.ph/privacy` and `https://www.ecstay.ph/terms`.
 2. Go to **Credentials > Create credentials > OAuth client ID** and choose **Web application**. Add this as an **authorised redirect URI**: `https://<your project ref>.supabase.co/auth/v1/callback`.
 3. In Supabase, go to **Authentication > Sign In / Providers > Google**, turn it on, and paste in the client ID and secret.
 
@@ -46,7 +46,7 @@ supabase link --project-ref <your project ref>
 supabase functions deploy notify --no-verify-jwt
 supabase secrets set RESEND_API_KEY=<key> EMAIL_FROM="ECStay <hello@your-domain>" \
   TEAM_EMAIL=<inbox that gets sample-listing inquiries and contact messages> \
-  NOTIFY_SECRET=<any long random text> SITE_URL=https://www.havnph.com
+  NOTIFY_SECRET=<any long random text> SITE_URL=https://www.ecstay.ph
 ```
 
 Then, in the SQL Editor (use the same NOTIFY_SECRET):
@@ -62,7 +62,7 @@ Draft reminders: turn on the `pg_cron` extension under **Database > Extensions**
 select cron.schedule('ecstay-draft-reminders', '0 2 * * *', 'select public.remind_drafts()');  -- 10:00 Manila
 ```
 
-The function reads the templates from `https://www.havnph.com/emails/dist/`, so to change an email, edit `emails/src` and run `node emails/build.mjs`, then deploy the site.
+The function reads the templates from `https://www.ecstay.ph/emails/dist/`, so to change an email, edit `emails/src` and run `node emails/build.mjs`, then deploy the site.
 
 ## 5. Make yourself the reviewer
 

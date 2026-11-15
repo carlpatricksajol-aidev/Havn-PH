@@ -47,11 +47,11 @@ const SANS = "'Hanken Grotesk', Helvetica, Arial, sans-serif";
 // The plain layout (sign-in code) uses the reader's own system font: nothing to download, the same in every mail app.
 const SYS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 // The picture behind the code: a brass plate on an evergreen front door (ECStay's two colours). The code is live text on the plate.
-export const DOOR_URL = 'https://www.havnph.com/assets/brand/door-plate.jpg';
+export const DOOR_URL = 'https://www.ecstay.ph/assets/brand/door-plate.jpg';
 export const BRASS = '#AD7D34';
-export const ICON_URL = 'https://www.havnph.com/assets/brand/apple-touch-icon.png';
+export const ICON_URL = 'https://www.ecstay.ph/assets/brand/apple-touch-icon.png';
 
-export const LOGO_URL = 'https://www.havnph.com/assets/brand/ecstay-email-logo.png';
+export const LOGO_URL = 'https://www.ecstay.ph/assets/brand/ecstay-email-logo.png';
 // Display size of the logo. Export the PNG at 2x (264 x 64) with a transparent background.
 // If the final file has a different shape, change LOGO_WIDTH so width / 32 matches its aspect ratio.
 export const LOGO_WIDTH = 132;

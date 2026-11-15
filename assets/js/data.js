@@ -8,7 +8,7 @@
  */
 
 window.HAVN_CONFIG = {
-  siteUrl: 'https://www.havnph.com',
+  siteUrl: 'https://www.ecstay.ph',
   // Facebook page username that renters message (m.me/<username>).
   messenger: 'havnph',
   // Number landlords can call or text, as you want it shown (e.g. '0917 123 4567').

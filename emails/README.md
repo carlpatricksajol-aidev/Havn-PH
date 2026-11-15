@@ -29,7 +29,7 @@ of `build.mjs` lists what each component takes.
 
 ## The templates
 
-Every template also needs `{{site_url}}` (`https://www.havnph.com`, no trailing slash): the header
+Every template also needs `{{site_url}}` (`https://www.ecstay.ph`, no trailing slash): the header
 logo and the footer links (help, privacy, terms) use it.
 
 | Template | When it's sent | Subject | Placeholders (besides `site_url`) |
@@ -52,8 +52,8 @@ What the values look like:
 | `area` | Bajada, near AdDU | |
 | `price` | ₱4,500 | lowest monthly price, with the peso sign; the email adds "From" and "/month" |
 | `photo_url` | https://.../cover.jpg | shown at 112 x 84. Send a 4:3 crop at 2x (224 x 168): some email apps stretch images instead of cropping them. A Supabase Storage image transform (`?width=224&height=168&resize=cover`) does this. |
-| `listing_url` | https://www.havnph.com/rooms/... | the public listing page |
-| `edit_url` | https://www.havnph.com/host/listings/.../edit | the landlord's edit page for that listing |
+| `listing_url` | https://www.ecstay.ph/rooms/... | the public listing page |
+| `edit_url` | https://www.ecstay.ph/host/listings/.../edit | the landlord's edit page for that listing |
 | `review_note` | Please add a photo of the shared CR. | line breaks are kept |
 | `renter_name` | Joshua Santos | |
 | `renter_mobile` | 0917 555 0142 | as the renter typed it, for display |
@@ -62,10 +62,10 @@ What the values look like:
 | `sms_url` | sms:+639175550142 | no `?body=`: iPhone and Android disagree on its syntax |
 | `tel_url` | tel:+639175550142 | |
 | `near` | AdDU | the landmark or area for the button label |
-| `search_url` | https://www.havnph.com/rooms?near=addu | search near that place |
+| `search_url` | https://www.ecstay.ph/rooms?near=addu | search near that place |
 | `steps_done` | 4 | how many of the 6 listing steps are done |
 | `code` | 482913 | |
-| `unsubscribe_url` | https://www.havnph.com/unsubscribe?t=... | one-click link that stops lifecycle emails (welcome tips, reminders). Also send it as the `List-Unsubscribe` header. |
+| `unsubscribe_url` | https://www.ecstay.ph/unsubscribe?t=... | one-click link that stops lifecycle emails (welcome tips, reminders). Also send it as the `List-Unsubscribe` header. |
 
 ## Sending with Resend
 
@@ -126,8 +126,8 @@ With images blocked the code sits on a plain brass-coloured block. Outlook on Wi
 5. **Authentication > Providers > Email** (or Sign In / Providers > Email): set **Email OTP Expiration**
    to `600` seconds. The email says "expires in 10 minutes"; Supabase's default is 3600 (one hour).
    Keep **Email OTP Length** at `6`.
-6. **Authentication > URL Configuration**: Site URL `https://www.havnph.com` with no trailing slash,
-   so the footer links come out as `https://www.havnph.com/help`.
+6. **Authentication > URL Configuration**: Site URL `https://www.ecstay.ph` with no trailing slash,
+   so the footer links come out as `https://www.ecstay.ph/help`.
 7. Supabase's built-in mail sender is only for testing (it sends to your team's addresses and
    is rate-limited). For real users, turn on **custom SMTP** (Authentication > SMTP Settings) with
    Resend's SMTP details from the Resend dashboard, using the same verified domain as the other emails.
@@ -138,7 +138,7 @@ Outlook-only parts go with them. Everything still reads fine; Outlook on Windows
 
 ## The logo
 
-The header loads `https://www.havnph.com/assets/brand/ecstay-email-logo.png` (alt text "ECStay",
+The header loads `https://www.ecstay.ph/assets/brand/ecstay-email-logo.png` (alt text "ECStay",
 shown at 132 x 32). The repo now has that file (`assets/brand/ecstay-email-logo.png`, 265 x 64,
 transparent: the mark plus the "ECStay" wordmark at 2x). It works in emails once it's deployed to
 that URL. If the logo changes shape, change `LOGO_WIDTH` in `build.mjs` so that width / 32 matches it,

@@ -4,11 +4,11 @@
 //
 // Secrets (supabase secrets set ...): RESEND_API_KEY, EMAIL_FROM (e.g. "ECStay <hello@mail.yourdomain.com>"),
 // TEAM_EMAIL (where sample-listing inquiries and contact messages go), NOTIFY_SECRET (same value as in Vault),
-// SITE_URL (e.g. https://www.havnph.com). SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
+// SITE_URL (e.g. https://www.ecstay.ph). SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const env = (k: string) => Deno.env.get(k) ?? '';
-const SITE = env('SITE_URL').replace(/\/$/, '') || 'https://www.havnph.com';
+const SITE = env('SITE_URL').replace(/\/$/, '') || 'https://www.ecstay.ph';
 const db = createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } });
 
 type Data = Record<string, string | number | null | undefined>;

@@ -6,7 +6,7 @@
 //   node emails/preview.mjs --dark          also take a dark-mode shot at 375px
 //   PREVIEW_DIR=C:\some\folder node emails/preview.mjs
 //
-// The real logo (https://www.havnph.com/assets/brand/ecstay-email-logo.png) isn't live yet, so ONLY
+// The real logo (https://www.ecstay.ph/assets/brand/ecstay-email-logo.png) isn't live yet, so ONLY
 // here it is swapped for the local repo copy (as a data URL) or, if that's missing, the site's mark
 // plus a serif "ECStay" wordmark.
 
@@ -32,7 +32,7 @@ const { chromium } = require(PLAYWRIGHT);
 function dataUrl(path, mime) {
   return existsSync(path) ? `data:${mime};base64,${readFileSync(path).toString('base64')}` : '';
 }
-const SITE = 'https://www.havnph.com';
+const SITE = 'https://www.ecstay.ph';
 const sample = {
   site_url: SITE,
   name: 'Maria',

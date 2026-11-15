@@ -1,6 +1,6 @@
 ---
 name: ecstay-design-system
-description: Apply ECStay's brand identity, colour palette, typography and design tokens when building any UI for the ECStay boarding house search site (havnph.com). Use this skill when building pages, components or layouts for ECStay, including listing cards, search filters, maps, landing pages and dashboards.
+description: Apply ECStay's brand identity, colour palette, typography and design tokens when building any UI for the ECStay boarding house search site (ecstay.ph). Use this skill when building pages, components or layouts for ECStay, including listing cards, search filters, maps, landing pages and dashboards.
 ---
 
 # ECStay Design System

@@ -1,6 +1,6 @@
 # ECStay (repo: Havn PH)
 
-ECStay (Explore, Come, Stay): boarding houses, bedspaces and rooms in Davao City. Live at www.havnph.com (Vercel deploys `main`).
+ECStay (Explore, Come, Stay): boarding houses, bedspaces and rooms in Davao City. Live at www.ecstay.ph (Vercel deploys `main`).
 
 Plain HTML, CSS and JavaScript. No build step.
 
@@ -29,7 +29,7 @@ Plain HTML, CSS and JavaScript. No build step.
 1. Put its photos in `assets/photos/` as `<name>-640.webp` and `<name>-1200.webp` (4:3, any number of photos).
 2. In `assets/js/data.js`, copy a listing and change it. For the exact pin, right-click the spot in Google Maps and copy the two numbers into `lat` and `lng`.
 3. Delete `sample: true` for real rooms. When no sample rooms are left, the "sample listings" notice disappears.
-4. Add the room's URL (`https://www.havnph.com/room/<id>`) to `sitemap.xml`.
+4. Add the room's URL (`https://www.ecstay.ph/room/<id>`) to `sitemap.xml`.
 
 ## Contact Landlord
 
@@ -37,7 +37,7 @@ The button opens Messenger (`m.me/<messenger>` from `HAVN_CONFIG` in `data.js`) 
 
 ## Landlords (List your place)
 
-`assets/js/landlord.js`: the "Do you own a boarding house?" pop-up (centered, page dimmed behind it; shows 15 seconds into a first visit, asks again after 14 days if closed or 90 days after "No, I'm looking for a room", never after someone sends the form) and the listing form. "List your place" links and **havnph.com/list** open the form directly; share that link with landlords.
+`assets/js/landlord.js`: the "Do you own a boarding house?" pop-up (centered, page dimmed behind it; shows 15 seconds into a first visit, asks again after 14 days if closed or 90 days after "No, I'm looking for a room", never after someone sends the form) and the listing form. "List your place" links and **ecstay.ph/list** open the form directly; share that link with landlords.
 
 Two settings in `HAVN_CONFIG` (`data.js`):
 

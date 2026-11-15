@@ -163,7 +163,7 @@ window.ECS_PAGES = {
     description: 'How ECStay collects, uses and protects personal data under the Philippine Data Privacy Act of 2012, for renters and Keepers in Davao City.',
     html: `
 <p><strong>Last updated: 11 November 2026</strong></p>
-<p>This notice explains what personal data ECStay collects, why, who we share it with, and how to use your rights under the Data Privacy Act of 2012 (Republic Act No. 10173). It covers the website at www.havnph.com and the emails we send.</p>
+<p>This notice explains what personal data ECStay collects, why, who we share it with, and how to use your rights under the Data Privacy Act of 2012 (Republic Act No. 10173). It covers the website at www.ecstay.ph and the emails we send.</p>
 
 <h2>Who we are</h2>
 <p>ECStay is a website for finding boarding houses and rooms for rent in Davao City, Philippines. We decide how and why the personal data described here is used, which makes us its personal information controller. For any privacy question or request, use our <a href="/contact">contact form</a>.</p>
@@ -245,7 +245,7 @@ window.ECS_PAGES = {
     description: 'The terms for using ECStay, a website for finding and listing boarding houses, bedspaces and rooms for rent in Davao City, Philippines.',
     html: `
 <p><strong>Last updated: 11 November 2026</strong></p>
-<p>These terms apply when you use ECStay at www.havnph.com. By using the site, you agree to them. If you do not agree, please do not use ECStay. Our <a href="/privacy">Privacy Notice</a> explains how we handle personal data.</p>
+<p>These terms apply when you use ECStay at www.ecstay.ph. By using the site, you agree to them. If you do not agree, please do not use ECStay. Our <a href="/privacy">Privacy Notice</a> explains how we handle personal data.</p>
 
 <h2>1. What ECStay is</h2>
 <p>ECStay is a listing platform. It helps renters find boarding houses and rooms in Davao City, and helps Keepers show their places. We do not own or manage any property listed, and we do not act as anyone's agent. We are not a party to any rental agreement. The agreement, the payment and the room are between the renter and the Keeper.</p>
