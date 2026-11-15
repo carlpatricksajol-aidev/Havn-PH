@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       if (m && env('TEAM_EMAIL')) {
         const r = await fetch('https://api.resend.com/emails', {
           method: 'POST', headers: { Authorization: `Bearer ${env('RESEND_API_KEY')}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: env('EMAIL_FROM'), to: [env('TEAM_EMAIL')], reply_to: m.email, subject: `[ECStay contact: ${m.topic}] ${m.name}`, text: `${m.name} <${m.email}>\nTopic: ${m.topic}\n\n${m.message}` }),
+          body: JSON.stringify({ from: env('EMAIL_FROM'), to: [env('TEAM_EMAIL')], ...(m.email ? { reply_to: m.email } : {}), subject: `[ECStay contact: ${m.topic}] ${m.name}`, text: `${m.name} <${m.email || m.mobile}>\nTopic: ${m.topic}\n\n${m.message}` }),
         });
         if (!r.ok) throw new Error(`resend ${r.status}`);
       }

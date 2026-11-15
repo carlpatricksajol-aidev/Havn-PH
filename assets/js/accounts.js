@@ -28,6 +28,7 @@
   // ?demo=1 always wins, so the whole flow can be shown without touching real accounts.
   ECS.mode = ss(DEMO_FLAG) === '1' ? 'demo' : C.supabaseUrl && C.supabaseAnonKey ? 'live' : 'off';
   ECS.google_on = ECS.mode === 'demo' || !!C.googleSignIn;
+  ECS.sms_on = ECS.mode === 'demo' || !!C.smsSignIn;   // sign in with a mobile number (a code by text)
   ECS.enabled = function () { return ECS.mode !== 'off'; };
   ECS.DEMO_CODE = '123456';
 
@@ -45,6 +46,10 @@
   };
   ECS.showMobile = function (d) { return /^09\d{9}$/.test(d) ? d.slice(0, 4) + ' ' + d.slice(4, 7) + ' ' + d.slice(7) : d || ''; };
   ECS.email = function (v) { v = String(v || '').trim().toLowerCase(); return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? v : ''; };
+  // What a person typed to sign in: an email, or (when texts are on) a mobile number as 09XXXXXXXXX. '' when it is neither.
+  ECS.loginId = function (v) { var e = ECS.email(v); if (e) return e; return ECS.sms_on && !/@/.test(String(v || '')) ? ECS.mobile(v) : ''; };
+  // How to name the signed-in person on screen: their email, or their mobile number when they have no email.
+  ECS.who = function (u) { return u ? u.email || ECS.showMobile(u.phone || '') : ''; };
 
   // Listing steps and what each needs; the editor and the dashboard both use this.
   ECS.STEPS = [
@@ -93,15 +98,16 @@
     function mail(d, to, template, data) { d.outbox.unshift({ id: uid(), to: to, template: template, data: data, at: now() }); }
     var listeners = [];
     function emit() { var u = me(); listeners.forEach(function (f) { f(u ? { user: u } : null); }); }
-    function signIn(email, name, avatar) {
-      var d = db(), u = null;
-      Object.keys(d.users).forEach(function (k) { if (d.users[k].email === email) u = d.users[k]; });
+    function signIn(id, name, avatar) {
+      // `id` is an email, or a mobile number (09XXXXXXXXX) for people who sign in by text.
+      var d = db(), u = null, phone = /@/.test(id) ? '' : id, email = phone ? '' : id;
+      Object.keys(d.users).forEach(function (k) { if (phone ? d.users[k].phone === phone : d.users[k].email === email) u = d.users[k]; });
       var isNew = !u;
       if (!u) {
-        u = { id: uid(), email: email, name: name || '', avatar: avatar || '' };
+        u = { id: uid(), email: email, phone: phone, name: name || '', avatar: avatar || '' };
         d.users[u.id] = u;
-        d.profiles[u.id] = { id: u.id, email: email, full_name: name || '', mobile: '', contact_pref: 'either', marketing_ok: true, role: 'host', created_at: now() };
-        mail(d, email, 'welcome', { name: name || email.split('@')[0] });
+        d.profiles[u.id] = { id: u.id, email: email || null, full_name: name || '', mobile: phone, contact_pref: 'either', marketing_ok: true, role: 'host', created_at: now() };
+        if (email) mail(d, email, 'welcome', { name: name || email.split('@')[0] });
       }
       save(d); H.store.set(DEMO_SESSION, u.id); emit();
       return { user: u, isNew: isNew };
@@ -133,7 +139,7 @@
       },
       sendCode: function (email) { return Promise.resolve({ sent: true, demo: true }); },
       verifyCode: function (email, code) {
-        if (String(code).replace(/\D/g, '') !== ECS.DEMO_CODE) return fail(t('That code is not right. Check the email and try again.'));
+        if (String(code).replace(/\D/g, '') !== ECS.DEMO_CODE) return fail(t(/@/.test(email) ? 'That code is not right. Check the email and try again.' : 'That code is not right. Check the text and try again.'));
         return Promise.resolve(signIn(email, ''));
       },
       signOut: function () { H.store.set(DEMO_SESSION, null); emit(); return Promise.resolve(); },
@@ -321,7 +327,7 @@
     }
     function shape(u) {
       var m = u.user_metadata || {};
-      return { id: u.id, email: u.email, name: m.full_name || m.name || '', avatar: m.avatar_url || m.picture || '' };
+      return { id: u.id, email: u.email || '', phone: ECS.mobile(u.phone), name: m.full_name || m.name || '', avatar: m.avatar_url || m.picture || '' };
     }
     function check(r) { if (r.error) throw new Error(friendly(r.error)); return r.data; }
     function friendly(e) {
@@ -330,6 +336,7 @@
       if (/rate limit|too many/i.test(m)) return t('Too many tries. Please wait a minute and try again.');
       if (/expired|invalid.*(otp|token)|token.*(expired|invalid)/i.test(m)) return t('That code is not right or has expired. Ask for a new one.');
       if (/network|fetch/i.test(m)) return t('No connection. Check your internet and try again.');
+      if (/sms|phone|hook/i.test(m)) return t('We could not send the text. Please try again, or use your email.');
       return t('Something went wrong. Please try again.');
     }
     function uidNow() { return client().then(function (c) { return c.auth.getUser(); }).then(function (r) { if (!r.data || !r.data.user) throw new Error(t('Please sign in first.')); return r.data.user.id; }); }
@@ -341,11 +348,14 @@
           return c.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: C.siteUrl + '/signin?next=' + encodeURIComponent(next || '/host') } });
         }).then(check);
       },
-      sendCode: function (email) {
-        return client().then(function (c) { return c.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }); }).then(check).then(function () { return { sent: true }; });
+      // `id` is an email, or a mobile number (09XXXXXXXXX): then the code goes out by text.
+      sendCode: function (id) {
+        var to = /@/.test(id) ? { email: id } : { phone: '+63' + id.slice(1) };
+        return client().then(function (c) { return c.auth.signInWithOtp(Object.assign(to, { options: { shouldCreateUser: true } })); }).then(check).then(function () { return { sent: true }; });
       },
-      verifyCode: function (email, code) {
-        return client().then(function (c) { return c.auth.verifyOtp({ email: email, token: String(code).replace(/\D/g, ''), type: 'email' }); })
+      verifyCode: function (id, code) {
+        var who = /@/.test(id) ? { email: id, type: 'email' } : { phone: '+63' + id.slice(1), type: 'sms' };
+        return client().then(function (c) { return c.auth.verifyOtp(Object.assign(who, { token: String(code).replace(/\D/g, '') })); })
           .then(check).then(function (d) { return { user: shape(d.user) }; });
       },
       signOut: function () { return client().then(function (c) { return c.auth.signOut(); }); },

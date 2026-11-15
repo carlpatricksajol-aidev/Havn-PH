@@ -67,7 +67,7 @@
         '<nav class="adm-tabs" aria-label="' + esc(t('Admin')) + '">' + nav.map(function (x) {
           return '<a href="' + esc(here) + '?tab=' + x[0] + '" data-link title="' + esc(t(x[2])) + '"' + (x[0] === cur ? ' aria-current="page"' : '') + '>' + H.icon(x[1]) + '<span>' + esc(t(x[2])) + '</span>' + (x[3] ? '<i class="' + (x[4] && x[3] ? 'hot' : '') + '">' + x[3] + '</i>' : '') + '</a>';
         }).join('') + '</nav>' +
-        '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('My own Keeper home')) + '</a><span>' + esc((ECS.user && ECS.user.email) || '') + '</span></p></aside>' +
+        '<p class="kh-nav-foot"><a href="/host" data-link>' + esc(t('My own Keeper home')) + '</a><span>' + esc(ECS.who(ECS.user)) + '</span></p></aside>' +
       '<div class="adm-page"><header class="adm-head"><div><h1>' + esc(t(TITLE[cur])) + '</h1><p class="adm-sub">' + esc(t(SUB[cur])) + '</p></div>' + tools + '</header>' +
         '<div class="adm-body">' + (cur === 'today' ? todayTab(d, listById, profById, nList) : cur === 'review' ? review(d, profById) : cur === 'insights' ? insights(d) : cur === 'leads' ? leads(d, listById, profById) : cur === 'listings' ? listings(d, profById) : cur === 'people' ? people(d, nList, nLead) : messages(d)) + '</div>' +
       '</div></div>';
@@ -116,7 +116,8 @@
     var open = d.contacts.filter(function (m) { return m.status === 'new'; });
     var openHtml = open.slice(0, 4).map(function (m) {
       return row(H.icon('message'), m.name, esc([m.topic, t('{time} ago', { time: since(m.created_at) })].filter(Boolean).join(' · ')) + '<em>' + esc(m.message) + '</em>',
-        '<a class="btn btn-primary btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: your message to ECStay') + '">' + esc(t('Reply')) + '</a>');
+        m.email ? '<a class="btn btn-primary btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: your message to ECStay') + '">' + esc(t('Reply')) + '</a>'
+          : '<a class="btn btn-primary btn-sm" href="tel:' + esc(m.mobile || '') + '">' + esc(t('Call')) + '</a>');
     }).join('');
 
     // 4. Paid plans that end within 7 days, or have ended.
@@ -330,7 +331,7 @@
         var type = p.role === 'admin' ? 'Admin' : nList[p.id] ? 'Keeper' : 'Renter';
         var act = [nList[p.id] ? t('{n} listings', { n: nList[p.id] }) : '', nLead[p.id] ? t('{n} messages sent', { n: nLead[p.id] }) : ''].filter(Boolean).join(' · ');
         return '<tr><td><b>' + esc(p.full_name || t('(no name yet)')) + '</b></td><td><span class="pill ty-' + type.toLowerCase() + '">' + esc(t(type)) + '</span></td>' +
-          '<td><a href="mailto:' + esc(p.email) + '">' + esc(p.email || '') + '</a></td><td>' + (p.mobile ? '<a href="tel:' + esc(p.mobile) + '">' + esc(ECS.showMobile(p.mobile)) + '</a>' : '') + '</td>' +
+          '<td>' + (p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a>' : '') + '</td><td>' + (p.mobile ? '<a href="tel:' + esc(p.mobile) + '">' + esc(ECS.showMobile(p.mobile)) + '</a>' : '') + '</td>' +
           '<td>' + esc(act || t('Signed up')) + '</td><td>' + esc(day(p.created_at)) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -340,7 +341,8 @@
     if (!d.contacts.length) return '<p class="host-empty-line">' + esc(t('No messages from the contact page yet.')) + '</p>';
     return '<ul class="msgs">' + d.contacts.map(function (m) {
       return '<li class="msg' + (m.status === 'done' ? ' is-done' : '') + '" data-id="' + esc(m.id) + '"><header><b>' + esc(m.name) + '</b><span class="pill">' + esc(m.topic) + '</span><time>' + esc(day(m.created_at)) + '</time></header>' +
-        '<p>' + esc(m.message) + '</p><div class="msg-act"><a class="btn btn-primary btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: your message to ECStay') + '">' + esc(t('Reply to {email}', { email: m.email })) + '</a>' +
+        '<p>' + esc(m.message) + '</p><div class="msg-act">' + (m.email ? '<a class="btn btn-primary btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: your message to ECStay') + '">' + esc(t('Reply to {email}', { email: m.email })) + '</a>'
+          : '<a class="btn btn-primary btn-sm" href="tel:' + esc(m.mobile || '') + '">' + esc(t('Call {mobile}', { mobile: ECS.showMobile(m.mobile || '') })) + '</a>') +
         '<button type="button" class="btn btn-ghost btn-sm" data-msg-done>' + esc(t(m.status === 'done' ? 'Reopen' : 'Mark done')) + '</button></div></li>';
     }).join('') + '</ul>';
   }

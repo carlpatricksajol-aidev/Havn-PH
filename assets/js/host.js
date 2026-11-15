@@ -147,9 +147,11 @@
         (ECS.google_on ? '<button type="button" class="btn btn-google btn-block" data-google>' + GOOGLE_G + '<span>' + esc(t('Continue with Google')) + '</span></button>' +
         '<div class="auth-or"><span>' + esc(t('or')) + '</span></div>' : '') +
         '<form class="auth-form" novalidate>' +
-          '<label class="field"><span class="vh">' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="' + esc(t('Email address')) + '" value="' + esc(email) + '" required></label>' +
+          (ECS.sms_on
+            ? '<label class="field"><span class="vh">' + esc(t('Email or mobile number')) + '</span><input type="text" name="email" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' + esc(t('Email or mobile number')) + '" value="' + esc(/@/.test(email) ? email : ECS.showMobile(email)) + '" required></label>'
+            : '<label class="field"><span class="vh">' + esc(t('Email address')) + '</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="' + esc(t('Email address')) + '" value="' + esc(email) + '" required></label>') +
           '<p class="field-err" role="alert" hidden></p>' +
-          '<button type="submit" class="btn btn-primary btn-block">' + esc(t('Continue with email')) + '</button>' +
+          '<button type="submit" class="btn btn-primary btn-block">' + esc(t(ECS.sms_on ? 'Continue' : 'Continue with email')) + '</button>' +
         '</form>' + legal;
       var f = $('form', card), e = $('.field-err', card), input = $('input', f);
       if ($('[data-google]', card)) $('[data-google]', card).addEventListener('click', function () {
@@ -158,8 +160,8 @@
       });
       f.addEventListener('submit', function (ev) {
         ev.preventDefault();
-        var v = ECS.email(input.value);
-        if (!v) { input.setAttribute('aria-invalid', 'true'); err(e, t('Please enter a valid email address.')); input.focus(); return; }
+        var v = ECS.loginId(input.value);
+        if (!v) { input.setAttribute('aria-invalid', 'true'); err(e, t(ECS.sms_on ? 'Please enter a valid email address, or a mobile number like 0917 123 4567.' : 'Please enter a valid email address.')); input.focus(); return; }
         input.removeAttribute('aria-invalid'); err(e, '');
         var b = $('button[type=submit]', f); busy(b, true, t('Sending'));
         ECS.sendCode(v).then(function () { email = v; stepCode(); }).catch(function (x) { busy(b, false); err(e, x.message); });
@@ -168,10 +170,12 @@
     }
 
     function stepCode() {
+      var byText = !/@/.test(email);   // `email` holds what they signed in with: an email, or a mobile number
       card.innerHTML =
-        '<button type="button" class="auth-back" data-back-email>' + H.icon('arrow-left') + '<span>' + esc(t('Use a different email')) + '</span></button>' +
-        '<h1>' + esc(t('Check your email')) + '</h1>' +
-        '<p class="auth-sub">' + t('We sent a 6-digit code to {email}. It expires in 10 minutes.', { email: '<b>' + esc(email) + '</b>' }) + '</p>' +
+        '<button type="button" class="auth-back" data-back-email>' + H.icon('arrow-left') + '<span>' + esc(t(ECS.sms_on ? 'Use a different email or number' : 'Use a different email')) + '</span></button>' +
+        '<h1>' + esc(t(byText ? 'Check your phone' : 'Check your email')) + '</h1>' +
+        '<p class="auth-sub">' + (byText ? t('We texted a 6-digit code to {mobile}. It expires in 10 minutes.', { mobile: '<b>' + esc(ECS.showMobile(email)) + '</b>' })
+          : t('We sent a 6-digit code to {email}. It expires in 10 minutes.', { email: '<b>' + esc(email) + '</b>' })) + '</p>' +
         (ECS.mode === 'demo' ? '<p class="auth-demo">' + esc(t('Demo mode: the code is {code}.', { code: ECS.DEMO_CODE })) + '</p>' : '') +
         '<form class="auth-form" novalidate>' +
           '<fieldset class="otp"><legend class="vh">' + esc(t('6-digit code')) + '</legend>' +
@@ -324,7 +328,7 @@
       '<div class="host-wrap kh' + (d.keeper ? '' : ' kh-solo') + (H.store.get('ecs-nav-min', false) ? ' nav-min' : '') + '">' +
         (d.keeper ? '<aside class="kh-nav">' + HV.navToggle() + '<p class="kh-brand">' + esc(t('Keeper home')) + '</p>' +
           '<div class="kh-tabs" role="tablist" aria-label="' + esc(t('Keeper home')) + '">' + item('overview', 'home', 'Home') + item('listings', 'building', 'Listings', d.ls.length) + item('messages', 'message', 'Messages', d.waiting.length, d.waiting.length > 0) + item('account', 'user', 'Plan and account') + '</div>' +
-          add + '<p class="kh-nav-foot"><a href="/help?from=keeper" data-link>' + esc(t('Help')) + '</a><span>' + esc(d.user.email || '') + '</span></p></aside>' : '') +
+          add + '<p class="kh-nav-foot"><a href="/help?from=keeper" data-link>' + esc(t('Help')) + '</a><span>' + esc(ECS.who(d.user)) + '</span></p></aside>' : '') +
         '<div class="kh-page' + (d.keeper && d.tab === 'messages' ? ' kh-full' : '') + '" role="tabpanel">' +
           '<header class="kh-head"><div><h1>' + esc(title) + '</h1>' + (sum ? '<p class="kh-sum">' + esc(sum) + '</p>' : '') + '</div>' + (d.keeper ? add : '') + '</header>' +
           body +
@@ -562,8 +566,8 @@
               : HV.back('account') + '<h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
               '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +
-              (welcome ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +
-              '<label class="field"><span>' + esc(t('Mobile number')) + '</span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" value="' + esc(ECS.showMobile(p.mobile || '')) + '" required></label>' +
+              (welcome || !(p.email || user.email) ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +
+              '<label class="field"><span>' + esc(t('Mobile number')) + '</span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" value="' + esc(ECS.showMobile(p.mobile || user.phone || '')) + '" required></label>' +
               '<fieldset class="field"><legend>' + esc(t('How should renters and our team reach you?')) + '</legend><div class="chip-wrap">' +
                 chip('radio', 'contact_pref', 'text', t('Text me'), p.contact_pref === 'text') + chip('radio', 'contact_pref', 'call', t('Call me'), p.contact_pref === 'call') + chip('radio', 'contact_pref', 'either', t('Either'), !p.contact_pref || p.contact_pref === 'either') +
               '</div></fieldset>' +
@@ -571,7 +575,7 @@
               '<p class="field-err" role="alert" hidden></p>' +
               '<button type="submit" class="btn btn-primary ' + (welcome ? 'btn-block' : 'btn-lg') + '">' + esc(t(welcome ? 'Continue' : 'Save')) + '</button>' +
             '</form>' +
-            (welcome ? '<p class="auth-legal">' + esc(t('Signed in as {email}', { email: p.email || user.email || '' })) + '</p></div>' : '') +
+            (welcome ? '<p class="auth-legal">' + esc(t('Signed in as {email}', { email: p.email || ECS.who(user) })) + '</p></div>' : '') +
             (welcome ? '' : '<section class="host-sec"><h2>' + esc(t('Account')) + '</h2>' +
               '<button type="button" class="btn btn-ghost" data-signout>' + esc(t('Sign out')) + '</button>' +
               '<p class="host-muted">' + t('To delete your account and listings, {link}. We\'ll confirm by email.', { link: '<a href="/contact?topic=privacy" data-link>' + esc(t('send us a request')) + '</a>' }) + '</p></section>') +
@@ -1132,7 +1136,7 @@
           if (id === 'free') { go(start ? '/host/new' : '/host'); return; }
           var name = id.charAt(0).toUpperCase() + id.slice(1);
           b.disabled = true;
-          ECS.sendContact({ name: (p.full_name || user.name || 'Keeper').slice(0, 80), email: user.email, topic: 'partner',
+          ECS.sendContact({ name: (p.full_name || user.name || 'Keeper').slice(0, 80), email: user.email || null, mobile: ECS.mobile(p.mobile || user.phone) || null, topic: 'partner',
             message: 'Plan request: ' + name + ', ' + term + ' months (' + H.peso(PLAN_PRICES[id][term]) + '). Sent from the plans page' + (p.mobile ? '. Mobile: ' + p.mobile : '') + '.' })
             .then(function () {
               H.toast(t('Got it. We will message you about the {plan} plan.', { plan: t(name) }));

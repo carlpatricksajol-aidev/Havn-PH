@@ -91,3 +91,16 @@ Once it's on:
 3. As the admin, approve it at `/host/review`. You get the "is now live" email, and the listing appears on `/rooms`.
 4. In a private window, open the listing and send an inquiry. The landlord gets "New inquiry", the renter gets a copy if they gave an email, and the message shows on the dashboard.
 5. Send the contact form. TEAM_EMAIL receives it.
+
+## 7. Sign-in by text (mobile number)
+
+People without an email can sign in with a Philippine mobile number: they get a 6-digit code by text. The texts go out through Semaphore (semaphore.co), which charges per text.
+
+1. Run `supabase/migrations/20261119000000_phone_signin.sql` in the SQL Editor.
+2. Deploy the function: `supabase functions deploy sms --no-verify-jwt`.
+3. In Supabase, **Authentication > Sign In / Providers > Phone**: turn it on, OTP length `6`, expiry `600` seconds.
+4. **Authentication > Hooks > Send SMS hook**: turn it on, type HTTPS, URL `https://<your project ref>.supabase.co/functions/v1/sms`, and generate a secret.
+5. Set the function's secrets: `supabase secrets set SEND_SMS_HOOK_SECRET=<the hook secret> SEMAPHORE_API_KEY=<key>` and, once Semaphore has approved a sender name, `SEMAPHORE_SENDER=<name>`.
+6. In `assets/js/data.js`, set `smsSignIn: true`, then deploy.
+
+The function only sends to Philippine mobile numbers. Supabase limits texts to one per number per minute and 30 per hour for the whole site (**Authentication > Rate Limits**); raise the hourly limit when sign-ups grow.

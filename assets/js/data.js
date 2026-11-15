@@ -25,6 +25,8 @@ window.HAVN_CONFIG = {
   supabaseUrl: 'https://wzxftbwguliztfcfjbqo.supabase.co',      // e.g. 'https://abcdefghijkl.supabase.co'
   supabaseAnonKey: 'sb_publishable_-ayRrpCY8rhUW23qsugebw_A_ck6K8F',
   // Set to true once Google sign-in is switched on in Supabase (Authentication > Providers > Google).
+  // Set to true once sign-in by text is switched on (see supabase/README.md, "Sign-in by text").
+  smsSignIn: false,
   googleSignIn: false,  // the project's public "anon" key (safe to publish; row-level security protects the data)
 };
 
