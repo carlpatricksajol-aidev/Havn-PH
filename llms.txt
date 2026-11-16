@@ -1,6 +1,6 @@
 # ECStay
 
-> ECStay (Explore, Come, Stay; formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms, private rooms and studios for rent in Davao City, Philippines. Website: https://www.ecstay.ph. Free for renters.
+> ECStay (said like "easy stay"; also written EC Stay; the name stands for Explore, Come, Stay; formerly Havn PH) is a website for finding boarding houses, bedspaces, shared rooms, private rooms and studios for rent in Davao City, Philippines. Website: https://www.ecstay.ph. Free for renters.
 
 Each room shows photos, the monthly price, who can stay (female only, male only or mixed), the amenities, the house rules, the move-in costs and its exact spot on a map, plus the walking time to the nearest school or landmark. Renters search near their school, mall, hospital or office and filter by budget, room type, who can stay and amenities like aircon, own CR and Wi-Fi. The site is in English and Tagalog.
 

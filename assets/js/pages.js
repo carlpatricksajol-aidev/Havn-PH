@@ -5,7 +5,7 @@ window.ECS_PAGES = {
     title: 'About ECStay',
     description: 'ECStay helps students and young workers find boarding houses, bedspaces and rooms for rent in Davao City, by school, budget and room type.',
     html: `
-<p>ECStay is a website for finding a place to rent in Davao City: boarding houses, bedspaces, shared rooms, private rooms and studios. The name stands for Explore, Come, Stay.</p>
+<p>ECStay is a website for finding a place to rent in Davao City: boarding houses, bedspaces, shared rooms, private rooms and studios. The name stands for Explore, Come, Stay, and you say it like “easy stay”.</p>
 <p>Finding a room usually means asking around and walking from gate to gate. On ECStay you see the room, the price and the exact spot before you go.</p>
 
 <h2>Who it is for</h2>
