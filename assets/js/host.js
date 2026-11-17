@@ -484,6 +484,7 @@
       r('/help?from=keeper', 'Help', 'Answers and how to reach us') +
       (d.p.role === 'admin' && App.desk() ? r(App.desk(), 'Admin') : '') +
       (d.p.role === 'admin' || ECS.mode === 'demo' ? r('/host/review', ECS.mode === 'demo' ? 'Review queue (try the reviewer side)' : 'Review listings') : '') +
+      '<li><button type="button" class="kh-out" data-signout><div><b>' + esc(t('Log out')) + '</b></div>' + H.icon('logout') + '</button></li>' +
       '</ul>';
   }
   function tabAccount() {
@@ -537,7 +538,8 @@
         '<section class="kcard rh-me"><span class="rh-av">' + esc(initials(name || '?')) + '</span><h2>' + esc(name || t('Your account')) + '</h2>' +
           '<p>' + esc([ECS.showMobile(d.p.mobile || ''), d.user.email].filter(Boolean).join(' · ')) + '</p>' +
           '<ul class="rh-links">' + row('/host/profile', 'user', 'Your details', 'Name and mobile number') + row('/messages', 'message', 'Messages', 'Every conversation in one inbox') + row('/help?from=keeper', 'info', 'Help', 'Answers and how to reach us') +
-            (ECS.mode === 'demo' ? row('/host/review', 'check', 'Review queue (try the reviewer side)', 'Demo only') : '') + '</ul>' +
+            (ECS.mode === 'demo' ? row('/host/review', 'check', 'Review queue (try the reviewer side)', 'Demo only') : '') +
+            '<li><button type="button" class="rh-out" data-signout><span class="rh-ic">' + H.icon('logout') + '</span><div><b>' + esc(t('Log out')) + '</b></div></button></li>' + '</ul>' +
         '</section>' +
         '<a class="rh-keeper" href="/host/new" data-link><span class="rh-ic">' + H.icon('home') + '</span><b>' + esc(t('Have a place to rent out?')) + '</b>' +
           '<small>' + esc(t('Become a Keeper: add your boarding house in about 10 minutes.')) + '</small><span class="btn btn-brass btn-sm">' + esc(t('Add my place')) + '</span></a>' +
@@ -643,7 +645,7 @@
             '</form>' +
             (welcome ? '<p class="auth-legal">' + esc(t('Signed in as {email}', { email: p.email || ECS.who(user) })) + '</p></div>' : '') +
             (welcome ? '' : '<section class="host-sec"><h2>' + esc(t('Account')) + '</h2>' +
-              '<button type="button" class="btn btn-ghost" data-signout>' + esc(t('Sign out')) + '</button>' +
+              '<button type="button" class="btn btn-ghost" data-signout>' + H.icon('logout') + '<span>' + esc(t('Log out')) + '</span></button>' +
               '<p class="host-muted">' + t('To delete your account and listings, {link}. We\'ll confirm by email.', { link: '<a href="/contact?topic=privacy" data-link>' + esc(t('send us a request')) + '</a>' }) + '</p></section>') +
           '</div>';
         var f = $('form', host), e = $('.field-err', f);
@@ -663,8 +665,6 @@
             .then(function () { if (welcome) go(next); else { busy(b, false); H.toast(t('Saved')); } })
             .catch(function (x) { busy(b, false); err(e, x.message); });
         });
-        var so = $('[data-signout]', host);
-        if (so) so.addEventListener('click', function () { ECS.signOut().then(function () { H.toast(t('Signed out')); go('/'); }); });
       });
     });
   };

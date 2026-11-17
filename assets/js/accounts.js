@@ -143,6 +143,7 @@
         return Promise.resolve(signIn(email, ''));
       },
       signOut: function () { H.store.set(DEMO_SESSION, null); emit(); return Promise.resolve(); },
+      verify: function () { return Promise.resolve(true); },
       profile: function () { var u = me(); return u ? Promise.resolve(db().profiles[u.id]) : fail(t('Please sign in first.')); },
       saveProfile: function (p) {
         var u = me(); if (!u) return fail(t('Please sign in first.'));
@@ -366,6 +367,18 @@
           .then(check).then(function (d) { return { user: shape(d.user) }; });
       },
       signOut: function () { return client().then(function (c) { return c.auth.signOut(); }); },
+      // The browser keeps a sign-in for a while on its own. Ask the server: if the account (or its profile) was removed
+      // or banned, log out here. A network problem never logs anyone out.
+      verify: function () {
+        return client().then(function (c) {
+          var gone = function () { return c.auth.signOut({ scope: 'local' }).then(function () { return false; }, function () { return false; }); };
+          return c.auth.getUser().then(function (r) {
+            var e = r.error;
+            if (e) return e.status === 401 || e.status === 403 || /not[_ ]?found|banned|does not exist/i.test((e.code || '') + ' ' + (e.message || '')) ? gone() : true;
+            return c.from('profiles').select('id').eq('id', r.data.user.id).maybeSingle().then(function (p) { return !p.error && !p.data ? gone() : true; });
+          });
+        });
+      },
       profile: function () {
         return Promise.all([client(), uidNow()]).then(function (a) { return a[0].from('profiles').select('*').eq('id', a[1]).single(); }).then(check);
       },
@@ -588,8 +601,12 @@
   ECS.onChange(function (s) { ECS.user = s && s.user; if (!ECS.user) H.store.set('ecs-keeper', false); document.dispatchEvent(new CustomEvent('ecs:auth')); });
   function withRole() {
     if (!ECS.user || ECS.mode !== 'live') return;
-    ECS.profile().then(function (p) { if (ECS.user && p) { ECS.user.role = p.role; document.dispatchEvent(new CustomEvent('ecs:auth')); } }).catch(function () {});
+    ECS.profile().then(function (p) { if (ECS.user && p) { ECS.user.role = p.role; if (p.full_name) ECS.user.name = p.full_name; document.dispatchEvent(new CustomEvent('ecs:auth')); } }).catch(function () {});
   }
-  ECS.session().then(function (s) { ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); withRole(); }).catch(function () {});
+  ECS.session().then(function (s) {
+    ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); withRole();
+    // A removed account is logged out on its next visit (and sent home from the account pages).
+    if (s) ECS.verify().then(function (ok) { if (!ok && /^\/(host|messages)/.test(location.pathname)) location.replace('/'); }).catch(function () {});
+  }).catch(function () {});
   ECS.onChange(function () { setTimeout(withRole, 0); });
 })();

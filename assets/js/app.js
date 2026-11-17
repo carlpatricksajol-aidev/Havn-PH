@@ -185,9 +185,23 @@
       var here = location.pathname + location.search;
       return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
     }
+    var u = ECS.user, nm = String(u.name || '').trim(), who = ECS.who(u), admin = u.role === 'admin' && A.desk();
+    var item = function (href, icon, label) { return '<a href="' + H.esc(href) + '" data-link>' + H.icon(icon) + '<span>' + H.esc(t(label)) + '</span></a>'; };
     return saved + '<a class="hdr-link list-link msg-link' + (/^\/messages/.test(location.pathname) ? ' on' : '') + '" href="/messages" data-link>' + H.icon('message') + '<span>' + H.esc(t('Messages')) + '</span></a>' +
-      (ECS.user.role === 'admin' && A.desk() ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
-      '<a class="hdr-link list-link' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" href="/host" data-link>' + H.icon('user') + '<span>' + H.esc(t('Account')) + '</span></a>';
+      (admin ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+      // Account menu, at every width: a button that opens a short list, with Log out at the end.
+      '<div class="acct">' +
+        '<button type="button" class="acct-btn' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" aria-expanded="false" aria-controls="acct-menu" aria-label="' + H.esc(t('Account menu')) + '" data-acct>' +
+          '<span class="acct-av" aria-hidden="true">' + H.esc((nm || who || '?').charAt(0).toUpperCase()) + '</span>' +
+          '<span class="acct-lbl">' + H.esc(t('Account')) + '</span>' + H.icon('chev-down', 'acct-chev') +
+        '</button>' +
+        '<div class="acct-menu" id="acct-menu" hidden>' +
+          '<p class="acct-who">' + (nm ? '<b>' + H.esc(nm) + '</b>' : '') + '<small>' + H.esc(who) + '</small></p>' +
+          item('/host', 'user', 'Your account') + item('/messages', 'message', 'Messages') + item('/rooms?saved=1', 'heart', 'Saved rooms') +
+          item('/host/profile', 'pencil', 'Your details') + (admin ? item(A.desk(), 'grid', 'Admin') : '') +
+          '<button type="button" class="acct-out" data-signout>' + H.icon('logout') + '<span>' + H.esc(t('Log out')) + '</span></button>' +
+        '</div>' +
+      '</div>';
   }
   function needSignIn() { return window.ECS && ECS.enabled() && !ECS.user; }
 
@@ -418,6 +432,27 @@
     if (tab === 'saved') { S.saved = !S.saved || mode === 'map' ? true : false; S.bbox = null; setMode('list'); apply(false); window.scrollTo(0, 0); return; }
     if (S.saved) { S.saved = false; apply(false); }
     setMode(tab);
+  });
+
+  /* The account menu (a disclosure: the button shows or hides the list). Closes on Escape, a click outside or a choice. */
+  function acctClose(focus) {
+    var m = $('#acct-menu'), b = $('[data-acct]');
+    if (!m || m.hidden) return;
+    m.hidden = true; if (b) { b.setAttribute('aria-expanded', 'false'); if (focus) b.focus(); }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-acct]');
+    if (b) { var m = $('#acct-menu'), open = m.hidden; m.hidden = !open; b.setAttribute('aria-expanded', String(open)); return; }
+    if (!e.target.closest('#acct-menu') || e.target.closest('a')) acctClose(false);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') acctClose(true); });
+  // Log out, from the menu or any account page.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-signout]');
+    if (!b || !window.ECS) return;
+    e.preventDefault(); acctClose(false); b.disabled = true;
+    ECS.signOut().then(function () { H.toast(t('You are logged out.')); A.go('/'); })
+      .catch(function () { b.disabled = false; H.toast(t('Something went wrong. Please try again.')); });
   });
 
   function setMode(m) {
