@@ -23,6 +23,10 @@
     "subject": "New inquiry for {{listing_name}}",
     "preheader": "{{renter_name}} is looking to move in {{move_in}}. Reply by text or call."
   },
+  "new-inquiry-free": {
+    "subject": "New inquiry for {{listing_name}}",
+    "preheader": "{{renter_name}} is looking to move in {{move_in}}. Reply in your ECStay inbox."
+  },
   "sign-in-code": {
     "subject": "{{code}} is your ECStay sign-in code",
     "preheader": "It works once and expires in 10 minutes."

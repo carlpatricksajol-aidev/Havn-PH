@@ -72,11 +72,20 @@ Deno.serve(async (req) => {
     } else if (event === 'inquiry') {
       const { data: q } = await db.from('inquiries').select('*').eq('id', data.inquiry_id).single();
       if (!q) throw new Error('inquiry not found');
-      let to = env('TEAM_EMAIL'), area = 'Davao';
-      if (q.listing_id) { const { l, p } = await listingWithOwner(q.listing_id); to = p?.email || to; area = l.area || area; }
+      // A renter's number and email reach the Keeper at once only while the listing's paid plan runs (the same rule as
+      // keeper_inquiries() in the database). On Free, the email sends the Keeper to their inbox, where the number
+      // shows once they reply. Sample-listing inquiries go to the team with everything.
+      let to = env('TEAM_EMAIL'), area = 'Davao', full = true;
+      if (q.listing_id) {
+        const { l, p } = await listingWithOwner(q.listing_id);
+        to = p?.email || to; area = l.area || area;
+        const today = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10); // Manila date
+        full = !!(l.plan && l.plan_until && l.plan_until >= today);
+      }
       const d = { listing_name: q.listing_name, renter_name: q.renter_name, renter_mobile: mobile(q.renter_mobile), move_in: q.move_in || 'Not sure yet',
-        message: q.message || '', sms_url: `sms:${q.renter_mobile}`, tel_url: `tel:${q.renter_mobile}` };
-      await send(to, 'new-inquiry', d, q.renter_email || undefined);
+        message: q.message || '', sms_url: `sms:${q.renter_mobile}`, tel_url: `tel:${q.renter_mobile}`, inbox_url: `${SITE}/messages` };
+      if (full) await send(to, 'new-inquiry', d, q.renter_email || undefined);
+      else await send(to, 'new-inquiry-free', { listing_name: d.listing_name, renter_name: d.renter_name, move_in: d.move_in, message: d.message, inbox_url: d.inbox_url });
       if (q.renter_email) await send(q.renter_email, 'inquiry-sent', { ...d, near: area, search_url: `${SITE}/rooms` });
     } else if (event === 'contact') {
       const { data: m } = await db.from('contact_messages').select('*').eq('id', data.message_id).single();
