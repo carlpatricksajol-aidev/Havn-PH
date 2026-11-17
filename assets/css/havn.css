@@ -643,6 +643,9 @@ fieldset.field { border: 0; padding: 0; min-width: 0; }
 .field select:focus, .field textarea:focus, .field input:focus { outline: 0; border-color: var(--blue); box-shadow: var(--ring); }
 .field [aria-invalid="true"] { border-color: var(--red); }
 .field .err { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--red); }
+/* Two short fields on one row (first and last name); stacked on narrow phones. */
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 400px) { .field-pair { grid-template-columns: 1fr; gap: 0; } }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
 /* Radio / checkbox chips inside forms */
@@ -1474,7 +1477,7 @@ body.is-auth .page-in { display: flex; flex-direction: column; }
 .auth-logo { padding: 8px 18px 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, .9); box-shadow: 0 6px 20px -10px rgba(23, 34, 29, .35); }
 .auth-card { box-shadow: 0 1px 2px rgba(23, 34, 29, .05), 0 30px 70px -24px rgba(23, 34, 29, .45); }
 .auth-details { max-width: 480px; }
-.auth-details .host-form .field:first-child { margin-top: 18px; }
+.auth-details .host-form .field:first-child, .auth-details .host-form > .field-pair:first-child .field { margin-top: 18px; }
 .auth-details .host-form .btn { margin-top: 18px; min-height: 52px; }
 .auth-details .check { font-size: 14px; }
 

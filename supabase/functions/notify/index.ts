@@ -18,6 +18,8 @@ const fill = (tpl: string, d: Data, html: boolean) => tpl.replace(/\{\{\s*([a-z_
 const peso = (n: number) => '₱' + Number(n).toLocaleString('en-PH');
 const mobile = (m: string) => (/^09\d{9}$/.test(m) ? `${m.slice(0, 4)} ${m.slice(4, 7)} ${m.slice(7)}` : m);
 const first = (name?: string | null) => (name || '').trim().split(/\s+/)[0] || 'there';
+// A person's first name: what they typed as their first name, else the first word of their full name.
+const firstOf = (p: any) => (p?.first_name || '').trim() || first(p?.full_name);
 const priceFrom = (rooms: { price: number }[] = []) => Math.min(...rooms.map((r) => r.price).filter(Boolean));
 
 let subjects: Record<string, { subject: string; preheader: string }> | null = null;
@@ -56,19 +58,20 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST' || req.headers.get('X-Notify-Secret') !== env('NOTIFY_SECRET')) return new Response('no', { status: 401 });
   const { event, data } = await req.json();
   try {
-    if (event === 'welcome') {
+    if (event === 'welcome' || event === 'welcome-renter') {
+      // welcome = a Keeper starting their first listing; welcome-renter = a renter who just finished their details.
       const { data: p } = await db.from('profiles').select('*').eq('id', data.profile_id).single();
-      if (p?.email) await send(p.email, 'welcome', { name: first(p.full_name), unsubscribe_url: `${SITE}/host/profile` });
+      if (p?.email) await send(p.email, event, { name: firstOf(p), unsubscribe_url: `${SITE}/host/profile` });
     } else if (event === 'listing-review' || event === 'listing-live' || event === 'listing-changes') {
       const { l, p } = await listingWithOwner(data.listing_id);
-      const base = { name: first(p?.full_name), listing_name: l.name };
+      const base = { name: firstOf(p), listing_name: l.name };
       if (event === 'listing-review') await send(p.email, 'listing-submitted', { ...base, area: l.area, price: peso(priceFrom(l.rooms)), photo_url: l.photos?.[0]?.url ?? '' });
       if (event === 'listing-live') await send(p.email, 'listing-live', { ...base, listing_url: `${SITE}/room/${l.id}` });
       if (event === 'listing-changes') await send(p.email, 'listing-needs-changes', { ...base, review_note: l.review_note ?? '', edit_url: `${SITE}/host/edit/${l.id}` });
       if (event === 'listing-review' && env('TEAM_EMAIL')) await send(env('TEAM_EMAIL'), 'listing-submitted', { ...base, name: 'team', area: l.area, price: peso(priceFrom(l.rooms)), photo_url: l.photos?.[0]?.url ?? '' });
     } else if (event === 'finish-your-listing') {
       const { l, p } = await listingWithOwner(data.listing_id);
-      if (p?.marketing_ok) await send(p.email, 'finish-your-listing', { name: first(p.full_name), steps_done: STEPS_DONE(l), edit_url: `${SITE}/host/edit/${l.id}`, unsubscribe_url: `${SITE}/host/profile` });
+      if (p?.marketing_ok) await send(p.email, 'finish-your-listing', { name: firstOf(p), steps_done: STEPS_DONE(l), edit_url: `${SITE}/host/edit/${l.id}`, unsubscribe_url: `${SITE}/host/profile` });
     } else if (event === 'inquiry') {
       const { data: q } = await db.from('inquiries').select('*').eq('id', data.inquiry_id).single();
       if (!q) throw new Error('inquiry not found');

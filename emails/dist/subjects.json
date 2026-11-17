@@ -33,6 +33,10 @@
   },
   "welcome": {
     "subject": "Welcome to ECStay, {{name}}",
-    "preheader": "Your account is ready. Here’s how listing your boarding house works."
+    "preheader": "Here’s how listing your boarding house on ECStay works."
+  },
+  "welcome-renter": {
+    "subject": "Welcome to ECStay, {{name}}",
+    "preheader": "Your account is ready. Here’s how finding a room on ECStay works."
   }
 }

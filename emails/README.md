@@ -35,7 +35,8 @@ logo and the footer links (help, privacy, terms) use it.
 | Template | When it's sent | Subject | Placeholders (besides `site_url`) |
 |---|---|---|---|
 | `sign-in-code` | Someone asks for an email code to sign in. In production Supabase sends `supabase-otp.html` instead (see below). | `{{code}}` is your ECStay sign-in code | `code` |
-| `welcome` | After a landlord's first sign-in. Lifecycle email: has an unsubscribe link. | Welcome to ECStay, `{{name}}` | `name`, `unsubscribe_url` |
+| `welcome` | A Keeper starts their first listing (once). Lifecycle email: has an unsubscribe link. | Welcome to ECStay, `{{name}}` | `name`, `unsubscribe_url` |
+| `welcome-renter` | A renter finishes "A few details first" (once). | Welcome to ECStay, `{{name}}` | `name` |
 | `listing-submitted` | A landlord sends a listing for review. | We got your listing: `{{listing_name}}` | `name`, `listing_name`, `area`, `price`, `photo_url` |
 | `listing-live` | A reviewer approves the listing. | `{{listing_name}}` is now live on ECStay | `name`, `listing_name`, `listing_url` |
 | `listing-needs-changes` | A reviewer sends the listing back with a note. | A few changes before `{{listing_name}}` goes live | `name`, `listing_name`, `review_note`, `edit_url` |

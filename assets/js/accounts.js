@@ -107,7 +107,7 @@
         u = { id: uid(), email: email, phone: phone, name: name || '', avatar: avatar || '' };
         d.users[u.id] = u;
         d.profiles[u.id] = { id: u.id, email: email || null, full_name: name || '', mobile: phone, contact_pref: 'either', marketing_ok: true, role: 'host', created_at: now() };
-        if (email) mail(d, email, 'welcome', { name: name || email.split('@')[0] });
+        // No welcome yet: a renter gets one when their details are done, a Keeper when they start a listing.
       }
       save(d); H.store.set(DEMO_SESSION, u.id); emit();
       return { user: u, isNew: isNew };
@@ -146,9 +146,12 @@
       profile: function () { var u = me(); return u ? Promise.resolve(db().profiles[u.id]) : fail(t('Please sign in first.')); },
       saveProfile: function (p) {
         var u = me(); if (!u) return fail(t('Please sign in first.'));
-        var d = db(), cur = d.profiles[u.id];
-        ['full_name', 'mobile', 'contact_pref', 'marketing_ok'].forEach(function (k) { if (k in p) cur[k] = p[k]; });
+        var d = db(), cur = d.profiles[u.id], was = !!(cur.full_name && cur.mobile);
+        ['first_name', 'last_name', 'full_name', 'mobile', 'contact_pref', 'marketing_ok', 'joined_as'].forEach(function (k) { if (k in p) cur[k] = p[k]; });
         if (p.full_name) d.users[u.id].name = p.full_name;
+        if (!was && cur.full_name && cur.mobile && cur.email && !cur.welcomed_renter_at && (cur.joined_as || 'renter') === 'renter' && !ownIds(d, u).length) {
+          cur.welcomed_renter_at = now(); mail(d, cur.email, 'welcome-renter', { name: cur.first_name || cur.full_name.split(' ')[0] });
+        }
         save(d); return Promise.resolve(cur);
       },
       myListings: function () {
@@ -163,7 +166,11 @@
         var u = me(); if (!u) return fail(t('Please sign in first.'));
         var d = db(), cur = l.id ? d.listings[l.id] : null;
         if (cur && cur.owner_id !== u.id) return fail(t('That listing was not found.'));
-        if (!cur) { cur = { id: uid(), owner_id: u.id, status: 'draft', created_at: now() }; d.listings[cur.id] = cur; }
+        if (!cur) {
+          cur = { id: uid(), owner_id: u.id, status: 'draft', created_at: now() }; d.listings[cur.id] = cur;
+          var pr = d.profiles[u.id];   // their first listing: the Keeper welcome, once
+          if (pr && pr.email && !pr.welcomed_keeper_at) { pr.welcomed_keeper_at = now(); mail(d, pr.email, 'welcome', { name: pr.first_name || (pr.full_name || '').split(' ')[0] }); }
+        }
         var changed = false;
         CONTENT.concat(['confirmed']).forEach(function (k) { if (k in l && JSON.stringify(cur[k]) !== JSON.stringify(l[k])) { cur[k] = l[k]; if (k !== 'confirmed') changed = true; } });
         // Edits to a listing that is live (or paused) go back to review, as on the real service.
@@ -363,7 +370,7 @@
         return Promise.all([client(), uidNow()]).then(function (a) { return a[0].from('profiles').select('*').eq('id', a[1]).single(); }).then(check);
       },
       saveProfile: function (p) {
-        var row = {}; ['full_name', 'mobile', 'contact_pref', 'marketing_ok'].forEach(function (k) { if (k in p) row[k] = p[k]; });
+        var row = {}; ['first_name', 'last_name', 'full_name', 'mobile', 'contact_pref', 'marketing_ok', 'joined_as'].forEach(function (k) { if (k in p) row[k] = p[k]; });
         return Promise.all([client(), uidNow()]).then(function (a) { return a[0].from('profiles').update(row).eq('id', a[1]).select().single(); }).then(check);
       },
       myListings: function () {

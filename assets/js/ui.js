@@ -221,4 +221,28 @@
   document.addEventListener('load', function (e) {
     if (e.target.tagName === 'IMG') e.target.classList.add('ok');
   }, true);
+  /* Mobile numbers format themselves as they are typed, in every phone field: 0917 123 4567 (or +63 917 123 4567).
+   * The caret stays after the same digit, so fixing a number in the middle works too. */
+  H.fmtMobile = function (v) {
+    var plus = /^\s*\+/.test(v), d = String(v).replace(/\D/g, '');
+    var g = function (a, b) { return [d.slice(0, a), d.slice(a, b), d.slice(b)].filter(Boolean).join(' '); };
+    if (plus && /^63/.test(d)) { d = d.slice(0, 12); return '+' + [d.slice(0, 2), d.slice(2, 5), d.slice(5, 8), d.slice(8)].filter(Boolean).join(' '); }
+    if (plus) return '+' + d.slice(0, 15);
+    if (/^63/.test(d)) { d = d.slice(0, 12); return [d.slice(0, 2), d.slice(2, 5), d.slice(5, 8), d.slice(8)].filter(Boolean).join(' '); }
+    if (/^0/.test(d)) { d = d.slice(0, 11); return g(4, 7); }
+    if (/^9/.test(d)) { d = d.slice(0, 10); return g(3, 6); }
+    return d.slice(0, 13);
+  };
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || el.tagName !== 'INPUT' || el.type !== 'tel') return;
+    var v = el.value, pos = el.selectionStart == null ? v.length : el.selectionStart;
+    var atEnd = pos >= v.length, before = v.slice(0, pos).replace(/\D/g, '').length;
+    var out = H.fmtMobile(v);
+    if (out === v) return;
+    el.value = out;
+    var at = out.length;
+    if (!atEnd) { at = 0; for (var n = 0; at < out.length && n < before; at++) if (/\d/.test(out.charAt(at))) n++; }
+    try { el.setSelectionRange(at, at); } catch (x) {}
+  });
 })();

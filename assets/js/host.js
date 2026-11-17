@@ -553,7 +553,7 @@
           '<button type="button" class="btn btn-ghost btn-sm" data-email="' + esc(m.id) + '">' + esc(t('Open')) + '</button></li>';
       }).join('') + '</ul>' : '<p class="kh-muted">' + esc(t('None yet.')) + '</p>') + '</section>';
   }
-  var EMAIL_NAMES = { 'welcome': 'Welcome to ECStay', 'listing-submitted': 'We got your listing', 'listing-live': 'Your listing is live', 'listing-needs-changes': 'A few changes needed', 'new-inquiry': 'New inquiry for your listing', 'inquiry-sent': 'Your message was sent (to the renter)', 'finish-your-listing': 'Finish your listing', 'sign-in-code': 'Your sign-in code' };
+  var EMAIL_NAMES = { 'welcome': 'Welcome to ECStay (Keeper)', 'welcome-renter': 'Welcome to ECStay (renter)', 'listing-submitted': 'We got your listing', 'listing-live': 'Your listing is live', 'listing-needs-changes': 'A few changes needed', 'new-inquiry': 'New inquiry for your listing', 'inquiry-sent': 'Your message was sent (to the renter)', 'finish-your-listing': 'Finish your listing', 'sign-in-code': 'Your sign-in code' };
 
   // Fill a template from /emails/dist with sample-shaped data and open it in a new tab.
   HV.openEmail = function (m) {
@@ -602,23 +602,42 @@
   }
 
   /* ================= /host/profile ================= */
+  // First and last name for the form: as saved, else a best guess from the one-line name (Google gives one line).
+  // "Juan Dela Cruz" -> Juan / Dela Cruz. They can correct it before saving.
+  var NAME_PARTICLES = /^(de|del|dela|delos|de\.|los|la|san|sta\.?|santa|van|von|da|di)$/i;
+  function splitName(p, user) {
+    if (p.first_name || p.last_name) return [p.first_name || '', p.last_name || ''];
+    var w = String(p.full_name || user.name || '').trim().split(/\s+/).filter(Boolean);
+    if (w.length < 2) return [w[0] || '', ''];
+    var i = w.length - 1;
+    while (i > 1 && NAME_PARTICLES.test(w[i - 1])) i--;
+    return [w.slice(0, i).join(' '), w.slice(i).join(' ')];
+  }
   HV.profile = function (host) {
     needUser(host, function (user) {
       var welcome = /[?&]welcome=1/.test(location.search), next = nextParam();
       ECS.profile().then(function (p) {
         p = p || {};
+        // Keeper or renter: on first sign-in, by where they were going (listing a place, or the Keeper home);
+        // later, by whether they have listings. It picks the wording and the welcome email.
+        var keeper = welcome ? /^\/(host|list)(\/|\?|$)/.test(next) && !/^\/host\/profile/.test(next)
+          : !!(H.store.get('ecs-keeper', false) || p.joined_as === 'keeper');
+        var nm = splitName(p, user);
         host.innerHTML = HV.demoBar() +
           (welcome ? '<div class="auth">' + authBg() + '<a href="/" class="auth-logo" data-link data-home aria-label="ECStay, home"><img src="/assets/brand/ecstay-mark.svg" width="54" height="36" alt=""><span class="logo-word">ECStay</span></a>' + '<div class="auth-card auth-details">' : '<div class="host-wrap host-narrow">') +
             (welcome ? '<h1>' + esc(t('A few details first')) + '</h1><p class="auth-sub">' + esc(t('So Keepers and our team can reach you. Your mobile number is never shown publicly.')) + '</p>'
               : HV.back('account') + '<h1>' + esc(t('Your details')) + '</h1>') +
             '<form class="host-form" novalidate>' +
-              '<label class="field"><span>' + esc(t('Your name')) + '</span><input name="full_name" autocomplete="name" value="' + esc(p.full_name || user.name || '') + '" required></label>' +
+              '<div class="field-pair">' +
+                '<label class="field"><span>' + esc(t('First name')) + '</span><input name="first_name" autocomplete="given-name" autocapitalize="words" maxlength="40" value="' + esc(nm[0]) + '" required></label>' +
+                '<label class="field"><span>' + esc(t('Last name')) + '</span><input name="last_name" autocomplete="family-name" autocapitalize="words" maxlength="40" value="' + esc(nm[1]) + '" required></label>' +
+              '</div>' +
               (welcome || !(p.email || user.email) ? '' : '<label class="field"><span>' + esc(t('Email')) + '</span><input value="' + esc(p.email || user.email || '') + '" disabled></label>') +
-              '<label class="field"><span>' + esc(t('Mobile number')) + '</span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" value="' + esc(ECS.showMobile(p.mobile || user.phone || '')) + '" required></label>' +
-              '<fieldset class="field"><legend>' + esc(t('How should renters and our team reach you?')) + '</legend><div class="chip-wrap">' +
+              '<label class="field"><span>' + esc(t('Mobile number')) + '</span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="0917 123 4567" value="' + esc(ECS.showMobile(p.mobile || user.phone || '')) + '" required></label>' +
+              '<fieldset class="field"><legend>' + esc(t(keeper ? 'How should renters and our team reach you?' : 'How should Keepers and our team reach you?')) + '</legend><div class="chip-wrap">' +
                 chip('radio', 'contact_pref', 'text', t('Text me'), p.contact_pref === 'text') + chip('radio', 'contact_pref', 'call', t('Call me'), p.contact_pref === 'call') + chip('radio', 'contact_pref', 'either', t('Either'), !p.contact_pref || p.contact_pref === 'either') +
               '</div></fieldset>' +
-              '<label class="check"><input type="checkbox" name="marketing_ok"' + (p.marketing_ok !== false ? ' checked' : '') + '><span>' + esc(t('Send me tips and reminders about my listings by email. I can turn this off anytime.')) + '</span></label>' +
+              (keeper ? '<label class="check"><input type="checkbox" name="marketing_ok"' + (p.marketing_ok !== false ? ' checked' : '') + '><span>' + esc(t('Send me tips and reminders about my listings by email. I can turn this off anytime.')) + '</span></label>' : '') +
               '<p class="field-err" role="alert" hidden></p>' +
               '<button type="submit" class="btn btn-primary ' + (welcome ? 'btn-block' : 'btn-lg') + '">' + esc(t(welcome ? 'Continue' : 'Save')) + '</button>' +
             '</form>' +
@@ -630,12 +649,17 @@
         var f = $('form', host), e = $('.field-err', f);
         f.addEventListener('submit', function (ev) {
           ev.preventDefault();
-          var name = f.full_name.value.trim(), mob = ECS.mobile(f.mobile.value);
-          if (name.length < 2) { err(e, t('Please enter your name.')); f.full_name.focus(); return; }
+          var tidy = function (v) { return v.trim().replace(/\s+/g, ' '); };
+          var first = tidy(f.first_name.value), last = tidy(f.last_name.value), mob = ECS.mobile(f.mobile.value);
+          if (!first) { err(e, t('Please enter your first name.')); f.first_name.focus(); return; }
+          if (!last) { err(e, t('Please enter your last name.')); f.last_name.focus(); return; }
           if (!mob) { err(e, t('Please enter a mobile number like 0917 123 4567.')); f.mobile.focus(); return; }
           err(e, '');
           var b = $('button[type=submit]', f); busy(b, true, t('Saving'));
-          ECS.saveProfile({ full_name: name, mobile: mob, contact_pref: (f.querySelector('[name=contact_pref]:checked') || {}).value || 'either', marketing_ok: f.marketing_ok.checked })
+          var row = { first_name: first, last_name: last, full_name: (first + ' ' + last).slice(0, 80), mobile: mob, contact_pref: (f.querySelector('[name=contact_pref]:checked') || {}).value || 'either' };
+          if (f.marketing_ok) row.marketing_ok = f.marketing_ok.checked;
+          if (welcome && !p.joined_as) row.joined_as = keeper ? 'keeper' : 'renter';
+          ECS.saveProfile(row)
             .then(function () { if (welcome) go(next); else { busy(b, false); H.toast(t('Saved')); } })
             .catch(function (x) { busy(b, false); err(e, x.message); });
         });
