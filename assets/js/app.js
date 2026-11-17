@@ -89,8 +89,7 @@
   }
 
   /* Paid plans. A listing carries plan: 'basic' | 'verified' | 'premium'. ?plans=demo puts plans on a few sample rooms to preview the look. */
-  var PLAN_DEMO = { 'roxas-avenue-house': 'premium', 'recto-annex': 'premium', 'maa-road-rooms': 'premium', 'casa-bajada': 'premium',
-    'obrero-house-14': 'verified', 'santa-ana-ladies-dorm': 'verified', 'mintal-garden-boarding': 'verified', 'matina-stayhouse': 'basic' };
+  var PLAN_DEMO = { 'casa-bajada': 'premium', 'maharlika-residences': 'verified', 'matina-stayhouse': 'basic' };
   try {
     if (/[?&]plans=demo/.test(location.search)) sessionStorage.setItem('ecs-plans', 'demo');
     if (/[?&]plans=off/.test(location.search)) sessionStorage.removeItem('ecs-plans');
