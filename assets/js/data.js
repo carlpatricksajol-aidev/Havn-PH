@@ -84,65 +84,7 @@ window.HAVN_AMENITIES = {
   meals: { label: 'Meal plan available', icon: 'soup' },
 };
 
-/* Every listing below is a SAMPLE (stock photos, pins on real streets) so the
- * site can be reviewed before real rooms are added. Three are kept for the dry run (17 Nov 2026);
- * the other nine are in git history (commit before this one). */
-window.HAVN_LISTINGS = [
-  {
-    id: 'maharlika-residences',
-    sample: true,
-    name: 'Maharlika Residences',
-    type: 'Private room',
-    gender: 'female',
-    area: 'Poblacion',
-    street: 'E. Jacinto St.',
-    lat: 7.07470, lng: 125.61160,
-    price: 8500,
-    status: 'available', slots: 2,
-    size: 14, bath: 'own',
-    bills: 'Water included · electricity sub-metered',
-    amenities: ['wifi', 'aircon', 'own-cr', 'shower', 'desk', 'laundry', 'guard', 'cctv'],
-    rules: { curfew: '11:00 PM', visitors: 'Lobby only, until 8 PM', cooking: 'Rice cooker allowed in the room' },
-    desc: 'A quiet ladies-only house a short walk from Ateneo de Davao. Three floors, a rooftop study lounge, fiber Wi-Fi, and a house manager who lives on site.',
-    host: { name: 'Tita Marisol', since: 2020 },
-    photos: ['r-e01d08dd', 's-56af3e05', 'r-73d53165', 'u-5fefe8c9'],
-  },
-  {
-    id: 'matina-stayhouse',
-    sample: true,
-    name: 'Matina Stayhouse',
-    type: 'Bedspace',
-    gender: 'mixed',
-    area: 'Matina',
-    street: 'Cannes St.',
-    lat: 7.06590, lng: 125.59380,
-    price: 3800,
-    status: 'few', slots: 1,
-    size: 6, bath: 'shared',
-    bills: 'Water and electricity included',
-    amenities: ['wifi', 'aircon', 'shared-cr', 'kitchen', 'lockers', 'water', 'laundry', 'cctv'],
-    rules: { curfew: '10:00 PM', visitors: 'Not allowed upstairs', cooking: 'Shared kitchen on each floor' },
-    desc: 'Four beds per room with personal lockers and a study nook, a few minutes from UM Matina. Separate floors for men and women.',
-    host: { name: 'Ate Lyn', since: 2022 },
-    photos: ['r-46550766', 'r-5bdb6cad', 'r-62de96e3', 'u-9f1947ee'],
-  },
-  {
-    id: 'casa-bajada',
-    sample: true,
-    name: 'Casa Bajada',
-    type: 'Studio',
-    gender: 'mixed',
-    area: 'Bajada',
-    street: 'J.P. Laurel Ave.',
-    lat: 7.08990, lng: 125.61050,
-    price: 12000,
-    status: 'available', slots: 1,
-    size: 22, bath: 'own',
-    bills: 'Electricity and water sub-metered',
-    amenities: ['wifi', 'aircon', 'own-cr', 'shower', 'kitchen', 'fridge', 'parking', 'cctv'],
-    rules: { curfew: null, visitors: 'Allowed until 10 PM', cooking: 'Own kitchenette' },
-    desc: 'Studio units in a converted family home. Each unit has its own kitchenette and a small balcony over an inner garden. Suits young professionals.',
-    host: { name: 'Engr. Paulo', since: 2023 },
-    photos: ['r-a7ecbd80', 'r-69add83d', 's-6f60f253', 's-da357e55'],
-  },
-];
+/* Built-in rooms (none now). Since 17 Nov 2026 the sample rooms are database listings with sample = true,
+ * owned by a real Keeper account, so messages, emails and plans work end to end; the Sample badge and the
+ * sample notice still show. The old built-in sample rooms are in git history. */
+window.HAVN_LISTINGS = [];

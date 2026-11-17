@@ -89,7 +89,7 @@
   }
 
   /* Paid plans. A listing carries plan: 'basic' | 'verified' | 'premium'. ?plans=demo puts plans on a few sample rooms to preview the look. */
-  var PLAN_DEMO = { 'casa-bajada': 'premium', 'maharlika-residences': 'verified', 'matina-stayhouse': 'basic' };
+  var PLAN_DEMO = {}; // the sample rooms are database listings now: give them plans from the admin side
   try {
     if (/[?&]plans=demo/.test(location.search)) sessionStorage.setItem('ecs-plans', 'demo');
     if (/[?&]plans=off/.test(location.search)) sessionStorage.removeItem('ecs-plans');
@@ -594,6 +594,7 @@
     var rest = list.filter(function (l) { return fids.indexOf(l.id) === -1; });
     $('#results-title').textContent = title(list);
     document.title = docTitle(list) + ' · ECStay';
+    var slot = $('#sample-slot'); if (slot) slot.innerHTML = sampleNote(); // samples can arrive from the database after the page is drawn
     browseMeta();
     var sortSel = $('#sort');
     if (sortSel) sortSel.value = S.sort;
@@ -800,7 +801,7 @@
     host.innerHTML =
       '<div class="browse ' + (mode === 'map' ? 'mode-map' : 'mode-list') + '">' +
         '<section class="results" aria-labelledby="results-title">' +
-          sampleNote() +
+          '<div id="sample-slot">' + sampleNote() + '</div>' +
           '<div id="featured"></div><div id="featured-pin" class="featured-pin"></div>' +
           '<div class="results-head"><h1 id="results-title"></h1>' +
             '<div class="sort"><label for="sort">' + H.esc(t('Sort')) + '</label><select id="sort">' +

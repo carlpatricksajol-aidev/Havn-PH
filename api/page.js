@@ -80,7 +80,7 @@ function toSite(r) {
   const first = rooms[0] || {}, rules = r.rules || {}, bills = r.bills || {};
   const curfew = rules.curfew ? (rules.curfew === '00:00' ? '12:00 AM' : (parseInt(rules.curfew, 10) - 12) + ':00 PM') : '';
   return {
-    id: r.id, live: true, name: r.name, type: first.type || 'Private room', rooms, gender: r.gender || 'mixed', area: r.area || '',
+    id: r.id, live: true, sample: !!r.sample, name: r.name, type: first.type || 'Private room', rooms, gender: r.gender || 'mixed', area: r.area || '',
     lat: r.lat, lng: r.lng, price: first.price || 0, status: 'available', amenities: r.amenities || [],
     bills: 'Electricity: ' + (BILL[bills.electric] || 'ask the Keeper') + ' · Water: ' + (BILL[bills.water] || 'ask the Keeper'),
     advance: r.advance_months, deposit: r.deposit_months,

@@ -535,7 +535,7 @@
     var first = rooms[0] || {}, rules = r.rules || {}, bills = r.bills || {};
     var curfew = rules.curfew ? (rules.curfew === '00:00' ? '12:00 AM' : (parseInt(rules.curfew, 10) - 12) + ':00 PM') : '';
     return {
-      id: r.id, dbId: r.id, live: true, plan: r.plan || null, name: r.name, type: first.type || 'Private room', rooms: rooms, gender: r.gender || 'mixed',
+      id: r.id, dbId: r.id, live: true, sample: !!r.sample, plan: r.plan || null, name: r.name, type: first.type || 'Private room', rooms: rooms, gender: r.gender || 'mixed',
       area: r.area || '', street: '', lat: r.lat, lng: r.lng, price: first.price || 0,
       status: 'available', slots: rooms.reduce(function (n, x) { return n + (x.count || 0); }, 0), size: null,
       bath: (r.amenities || []).indexOf('own-cr') >= 0 ? 'own' : 'shared',
