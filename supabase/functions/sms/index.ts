@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
   const form = new URLSearchParams({
     apikey: env('SEMAPHORE_API_KEY'), number: '0' + phone.slice(2), code: otp,
-    message: 'Your ECStay code is {otp}. It expires in 10 minutes. Do not share it with anyone.',
+    message: 'ECStay: Your sign-in code is {otp}. It expires in 10 minutes. Do not share it with anyone.',
   });
   if (env('SEMAPHORE_SENDER')) form.set('sendername', env('SEMAPHORE_SENDER'));
   try {
