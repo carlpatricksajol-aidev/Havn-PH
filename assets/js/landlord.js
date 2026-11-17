@@ -30,12 +30,28 @@
 
   /* ---------------- The pop-up: centered, page dimmed behind it ---------------- */
   function due() {
-    if (H.store.get(SENT_KEY, false)) return false;
+    if (keeper || H.store.get(SENT_KEY, false) || H.store.get('ecs-keeper', false)) return false;
     return Date.now() > H.store.get(ASK_KEY, 0);
   }
+  // Someone signed in who already has a listing (a Keeper), or an admin, never gets the pop-up.
+  // Everyone else (renters included, since every account starts the same) still can.
+  var keeper = false, keeperFor = '';
+  function checkKeeper() {
+    var E = window.ECS, u = E && E.user;
+    if (!u) { keeper = false; keeperFor = ''; return; }
+    if (u.role === 'admin' || H.store.get('ecs-keeper', false)) { keeper = true; closeAsk(0, true); return; }
+    if (keeperFor === u.id || !E.myListings) return;
+    keeperFor = u.id;
+    E.myListings().then(function (ls) {
+      if (E.user && E.user.id === u.id && ls && ls.length) { keeper = true; closeAsk(0, true); }
+    }).catch(function () {});
+  }
+  document.addEventListener('ecs:auth', checkKeeper);
+  // Never on the Keeper side, sign-in or messages: those people are busy, or already Keepers.
+  function onKeeperSide() { return /^\/(host|list|signin|messages)(\/|$)/.test(location.pathname); }
   function rest(days) { H.store.set(ASK_KEY, Date.now() + days * 864e5); }
   function canShow() {
-    if (document.querySelector('.dlg-wrap, .viewer')) return false;
+    if (onKeeperSide() || document.querySelector('.dlg-wrap, .viewer')) return false;
     var a = document.activeElement;
     return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); // never interrupt someone typing
   }
@@ -110,6 +126,7 @@
     if (!keepFocus && opener && opener.focus) opener.focus({ preventScroll: true });
   }
   L.startAsk = function () {
+    checkKeeper();
     if (!due()) return;
     // Fetch the photo early so the pop-up never opens on a grey box.
     setTimeout(function () { if (due()) new Image().src = ASK_PHOTO; }, Math.max(0, ASK_DELAY - 6000));
