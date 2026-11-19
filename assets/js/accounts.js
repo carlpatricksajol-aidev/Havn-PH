@@ -145,6 +145,7 @@
       },
       signOut: function () { H.store.set(DEMO_SESSION, null); emit(); return Promise.resolve(); },
       verify: function () { return Promise.resolve(true); },
+      adminDesk: function () { return Promise.resolve(''); },
       profile: function () { var u = me(); return u ? Promise.resolve(db().profiles[u.id]) : fail(t('Please sign in first.')); },
       saveProfile: function (p) {
         var u = me(); if (!u) return fail(t('Please sign in first.'));
@@ -368,6 +369,8 @@
           .then(check).then(function (d) { return { user: shape(d.user) }; });
       },
       signOut: function () { return client().then(function (c) { return c.auth.signOut(); }); },
+      // The admin workspace's private address: the database gives it to admins only.
+      adminDesk: function () { return client().then(function (c) { return c.rpc('admin_desk'); }).then(check); },
       // The browser keeps a sign-in for a while on its own. Ask the server: if the account (or its profile) was removed
       // or banned, log out here. A network problem never logs anyone out.
       verify: function () {
@@ -602,7 +605,13 @@
   ECS.onChange(function (s) { ECS.user = s && s.user; if (!ECS.user) H.store.set('ecs-keeper', false); document.dispatchEvent(new CustomEvent('ecs:auth')); });
   function withRole() {
     if (!ECS.user || ECS.mode !== 'live') return;
-    ECS.profile().then(function (p) { if (ECS.user && p) { ECS.user.role = p.role; if (p.full_name) ECS.user.name = p.full_name; document.dispatchEvent(new CustomEvent('ecs:auth')); } }).catch(function () {});
+    ECS.profile().then(function (p) {
+      if (!ECS.user || !p) return;
+      ECS.user.role = p.role; if (p.full_name) ECS.user.name = p.full_name;
+      document.dispatchEvent(new CustomEvent('ecs:auth'));
+      // An admin on a device that does not know the admin address yet: ask for it, so the Admin link shows.
+      if (p.role === 'admin' && window.App && App.setDesk && !App.desk()) ECS.adminDesk().then(function (path) { App.setDesk(path); }).catch(function () {});
+    }).catch(function () {});
   }
   ECS.session().then(function (s) {
     ECS.user = s && s.user; document.dispatchEvent(new CustomEvent('ecs:auth')); withRole();

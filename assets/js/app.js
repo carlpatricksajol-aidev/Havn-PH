@@ -188,7 +188,7 @@
     var u = ECS.user, nm = String(u.name || '').trim(), who = ECS.who(u), admin = u.role === 'admin' && A.desk();
     var item = function (href, icon, label, extra) { return '<a href="' + H.esc(href) + '" data-link' + (extra || '') + '>' + H.icon(icon) + '<span>' + H.esc(t(label)) + '</span></a>'; };
     // Signed in, Saved and Messages live in the Account menu only (Carl 20 Nov); the saved count moves there too.
-    return (admin ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+    return '' +
       // Account menu, at every width: a button that opens a short list, with Log out at the end.
       '<div class="acct">' +
         '<button type="button" class="acct-btn' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" aria-expanded="false" aria-controls="acct-menu" aria-label="' + H.esc(t('Account menu')) + '" data-acct>' +
@@ -197,9 +197,10 @@
         '</button>' +
         '<div class="acct-menu" id="acct-menu" hidden>' +
           '<p class="acct-who">' + (nm ? '<b>' + H.esc(nm) + '</b>' : '') + '<small>' + H.esc(who) + '</small></p>' +
+          (admin ? item(A.desk(), 'grid', 'Admin') : '') +
           item('/host', 'user', 'Your account') + item('/messages', 'message', 'Messages') +
           item('/rooms?saved=1', 'heart', 'Saved rooms', ' class="acct-saved"').replace('</span></a>', '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>') +
-          item('/host/profile', 'pencil', 'Your details') + (admin ? item(A.desk(), 'grid', 'Admin') : '') +
+          item('/host/profile', 'pencil', 'Your details') +
           '<button type="button" class="acct-out" data-signout>' + H.icon('logout') + '<span>' + H.esc(t('Log out')) + '</span></button>' +
         '</div>' +
       '</div>';
@@ -1049,6 +1050,17 @@
   A.desk = function () {
     if (deskPath === null) { try { deskPath = localStorage.getItem('ecs-desk') || ''; } catch (e) { deskPath = ''; } }
     return deskPath;
+  };
+  // An admin who signs in on a new device gets the address from the database (accounts.js asks; only admins are
+  // answered). It is kept only if it matches the fingerprint, then the header is drawn again with the Admin link.
+  A.setDesk = function (path) {
+    if (!path || path === A.desk() || !(window.crypto && crypto.subtle && window.TextEncoder)) return;
+    crypto.subtle.digest('SHA-256', new TextEncoder().encode(path)).then(function (buf) {
+      var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      if (hex !== DESK) return;
+      deskPath = path; try { localStorage.setItem('ecs-desk', path); } catch (e) {}
+      document.dispatchEvent(new CustomEvent('ecs:auth'));
+    }, function () {});
   };
   function deskOrMissing() {
     var path = location.pathname;
