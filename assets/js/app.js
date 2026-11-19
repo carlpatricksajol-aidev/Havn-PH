@@ -490,7 +490,7 @@
       return cardShell(l, saved, href, school, '<a class="slides" href="' + href + '" data-link tabindex="-1" aria-hidden="true">' + img + '</a>', '', opts.featured);
     }
     var imgs = l.photos.map(function (p, k) {
-      return '<img src="' + H.photo(p, 640) + '" srcset="' + H.photo(p, 640) + ' 640w, ' + H.photo(p, 1200) + ' 1200w" sizes="(min-width: 1440px) 300px, (min-width: 1024px) 26vw, (min-width: 640px) 46vw, 94vw" width="640" height="480" alt="" ' +
+      return '<img src="' + H.photo(p, 640) + '" srcset="' + H.photo(p, 640) + ' 640w, ' + H.photo(p, 1200) + ' 1200w" sizes="(min-width: 1680px) 300px, (min-width: 1024px) 24vw, (min-width: 640px) 46vw, 94vw" width="640" height="480" alt="" ' +
         (eager && k === 0 ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async">';
     }).join('');
     return cardShell(l, saved, href, school,
@@ -502,8 +502,22 @@
 
   var STAR_ICON = '<svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2 6.2 20.4l1.3-6.5L2.6 9.4l6.6-.8z"/></svg>';
   var VER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="m9 12 2.2 2.2L15 10"/></svg>';
+  /* What a room is and where, in a few words: "Bedspace in Matina". A house with several room types: "Rooms in Matina". */
+  function roomKinds(l) {
+    var seen = {}, out = [];
+    (l.rooms && l.rooms.length ? l.rooms : [{ type: l.type }]).forEach(function (r) { if (r.type && !seen[r.type]) { seen[r.type] = 1; out.push(r.type); } });
+    return out.length ? out : [l.type];
+  }
+  A.cardTitle = function (l) {
+    var kinds = roomKinds(l), area = (l.area || '').trim();
+    if (kinds.length > 1) return area ? t('Rooms in {area}', { area: area }) : l.name;
+    return area ? t('{type} in {area}', { type: t(kinds[0]), area: area }) : t(kinds[0]);
+  };
   function cardShell(l, saved, href, school, media, slidesAttr, featured) {
     var bath = l.bath === 'own' ? t('Own CR') : t('Shared CR');
+    var kinds = roomKinds(l), title = A.cardTitle(l);
+    var from = (l.rooms || []).some(function (r) { return r.price && r.price !== l.price; });
+    var meta = (kinds.length > 1 ? kinds.map(function (k) { return t(k); }).join(', ') + ' · ' : '') + H.genderLabel(l.gender) + ' · ' + bath;
     var verified = l.plan === 'verified' || l.plan === 'premium';
     var overBy = featured && S.max && l.price > S.max ? l.price - S.max : 0;
     return '<article class="card' + (l.status === 'full' ? ' is-full' : '') + '" data-id="' + l.id + '">' +
@@ -512,11 +526,12 @@
         '<button type="button" class="heart" data-save="' + l.id + '" aria-pressed="' + saved + '" aria-label="' + H.esc(saved ? t('Remove from saved') : t('Save this room')) + '">' + H.icon('heart') + '</button>' +
       '</div>' +
       '<a class="card-body" href="' + href + '" data-link>' +
-        '<h2 class="card-title"><span>' + H.esc(l.name) + '</span>' + (featured ? '<span class="tag tag-feat">' + H.esc(t('Featured')) + '</span>' : l.sample ? '<span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h2>' +
+        '<h2 class="card-title"><span>' + H.esc(title) + '</span>' + (featured ? '<span class="tag tag-feat">' + H.esc(t('Featured')) + '</span>' : l.sample ? '<span class="tag">' + H.esc(t('Sample')) + '</span>' : '') + '</h2>' +
+        (title !== l.name ? '<p class="card-name">' + H.esc(l.name) + '</p>' : '') +
         (verified ? '<p class="card-ver">' + VER_ICON + '<span>' + H.esc(t('Verified Keeper')) + '</span></p>' : '') +
         '<p class="card-near">' + H.icon('walk') + '<span>' + H.esc(H.nearText(l, school)) + '</span></p>' +
-        '<p class="card-meta">' + H.esc(t(l.type) + ' · ' + H.genderLabel(l.gender) + ' · ' + bath) + '</p>' +
-        '<p class="card-price"><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
+        '<p class="card-meta">' + H.esc(meta) + '</p>' +
+        '<p class="card-price">' + (from ? '<small>' + H.esc(t('From')) + '</small> ' : '') + '<b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
         (overBy ? '<p class="card-over">' + H.esc(t('{amt} over your budget', { amt: H.peso(overBy) })) + '</p>' : '') +
       '</a>' +
     '</article>';
@@ -525,7 +540,7 @@
   function miniHtml(l) {
     return '<a class="mini" href="/room/' + l.id + '" data-link>' +
       '<img src="' + H.photo(l.photos[0], 640) + '" width="640" height="480" alt="">' +
-      '<span class="mini-b"><b>' + H.esc(l.name) + '</b>' +
+      '<span class="mini-b"><b>' + H.esc(A.cardTitle(l)) + '</b>' +
       '<span>' + H.esc(H.nearText(l, placeSchool(S) && placeSchool(S).id)) + '</span>' +
       '<span><strong>' + H.peso(l.price) + '</strong> ' + H.esc(t('/ month')) + ' · <em class="st-' + l.status + '">' + H.esc(H.statusLabel(l)) + '</em></span></span></a>';
   }

@@ -29,7 +29,7 @@
       'Who can stay': 'Sino ang puwede', 'Anyone': 'Kahit sino', 'Amenities': 'Mga amenity', 'Only rooms available now': 'Bakante lang ngayon',
       'Clear all': 'Alisin lahat', 'Show {n} rooms': 'Ipakita ang {n} kwarto', 'Show 1 room': 'Ipakita ang 1 kwarto', 'Close': 'Isara',
       'Back to results': 'Bumalik sa listahan', 'See all {n} photos': 'Tingnan lahat ng {n} litrato', 'Photo {i} of {n}': 'Litrato {i} sa {n}',
-      '{type} in {area}': '{type} sa {area}', 'What\'s included': 'Ano ang kasama', 'House rules': 'Patakaran sa bahay',
+      '{type} in {area}': '{type} sa {area}', 'Rooms in {area}': 'Mga kwarto sa {area}', 'From': 'Mula', 'What\'s included': 'Ano ang kasama', 'House rules': 'Patakaran sa bahay',
       'Curfew': 'Curfew', 'No curfew': 'Walang curfew', 'Visitors': 'Bisita', 'Cooking': 'Pagluluto',
       'Where you will live': 'Saan ka titira', 'Open in Google Maps': 'Buksan sa Google Maps', 'Distance to schools': 'Layo sa mga school',
       'Keeper': 'Keeper', 'Renting out since {year}': 'Nagpapaupa mula {year}', 'About this room': 'Tungkol sa kwartong ito',

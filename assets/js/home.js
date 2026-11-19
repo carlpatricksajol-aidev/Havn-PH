@@ -60,19 +60,9 @@
     HV.tabs(api, 'tabs-band');
   }
 
-  /* Three plain facts about how ECStay works (each one true of every listing), in one slim row. */
-  function facts() {
-    var f = function (icon, title, text) { return '<li>' + ic(icon, 'hf-ic') + '<div><b>' + H.esc(t(title)) + '</b><span>' + H.esc(t(text)) + '</span></div></li>'; };
-    return '<ul class="h-facts" aria-label="' + H.esc(t('How ECStay works')) + '">' +
-      f('walk', 'Walking time, in minutes', 'Every room shows how far it is on foot from your school, mall or office.') +
-      f('pin', 'The exact spot on the map', 'See where the place really is before you go.') +
-      f('shield', 'See the room first, then pay', 'ECStay is free for renters. You pay the Keeper directly, only after you see the room.') +
-    '</ul>';
-  }
-
   function rowHtml(api, r, idx, list, few) {
     return '<section class="hrow' + (few ? ' few' : '') + '" aria-labelledby="row-' + idx + '">' +
-      '<div class="h-head">' + ic(r.icon, 'h-ic') + '<h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
+      '<div class="h-head"><h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
         '<a class="hrow-all" href="' + api.url(r.s) + '" data-link>' + H.esc(t('See all')) + H.icon('arrow-right') + '</a>' +
       '</div>' +
       '<div class="hrow-body">' +
@@ -132,7 +122,7 @@
 
   HV.render = function (host, api) {
     host.innerHTML = '<div class="home">' + top(api) +
-      '<div class="home-wrap">' + facts() +
+      '<div class="home-wrap">' +
         '<div class="h-rows">' + api.sampleNote + rooms(api) + '</div>' +
       '</div>' +
       closing(api) + api.footScene +
