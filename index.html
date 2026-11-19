@@ -30,6 +30,26 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..700&family=Plus+Jakarta+Sans:wght@800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap">
   <script>document.documentElement.className += ' js';</script>
+  <!-- Intro on a full load of the home page: a brass ring draws around the ECStay mark, then the page rises in (CSS,
+       about 1.2 s). Any click, key or scroll skips it. Not for "reduce motion", search engines or automated browsers. -->
+  <script>(function () {
+    try {
+      var d = document.documentElement;
+      if (location.pathname !== '/' || navigator.webdriver || /bot|crawl|spider|lighthouse|slurp|preview/i.test(navigator.userAgent) ||
+          (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      d.classList.add('intro');
+      // The page rises in on a signal from here (0.85 s), not on its own timer: the home view is drawn by JS a
+      // moment after load, and a CSS delay would count from then.
+      var reveal = setTimeout(function () { d.classList.add('intro-reveal'); }, 850);
+      var skip = function () { clearTimeout(reveal); d.classList.add('intro-skip', 'intro-reveal'); off(); };
+      var off = function () { ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (e) { removeEventListener(e, skip, true); }); };
+      ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (e) { addEventListener(e, skip, true); });
+      setTimeout(function () {
+        off(); d.classList.remove('intro', 'intro-skip', 'intro-reveal');
+        var s = document.querySelector('.intro-screen'); if (s) s.remove();
+      }, 2400);
+    } catch (e) {}
+  })();</script>
   <link rel="stylesheet" href="/assets/css/havn.css">
   <!-- three.js for Kapi, the 3D capybara on the home page (loaded only there, after the page is ready). -->
   <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
@@ -50,6 +70,13 @@
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "@id": "https://www.ecstay.ph/#site", "name": "ECStay", "alternateName": ["EC Stay", "ECStay Davao"], "url": "https://www.ecstay.ph/", "inLanguage": ["en", "tl"], "publisher": {"@id": "https://www.ecstay.ph/#org"}, "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": "https://www.ecstay.ph/rooms?q={search_term_string}"}, "query-input": "required name=search_term_string"}}</script>
 </head>
 <body>
+  <div class="intro-screen" aria-hidden="true">
+    <div class="intro-mark">
+      <svg class="intro-ring" viewBox="0 0 120 120" focusable="false"><circle cx="60" cy="60" r="56" pathLength="1"/></svg>
+      <img src="/assets/brand/ecstay-mark.svg" width="66" height="44" alt="">
+    </div>
+    <span class="intro-word logo-word">ECStay</span>
+  </div>
   <!-- Icons: most are from Lucide (https://lucide.dev), ISC License.
        Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT).
        All other copyright (c) for Lucide are held by Lucide Contributors 2022. -->

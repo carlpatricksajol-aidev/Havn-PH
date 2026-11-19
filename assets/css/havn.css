@@ -57,6 +57,8 @@
   --hdr-h: 166px;
   --nav-h: calc(64px + env(safe-area-inset-bottom));
   --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);        /* strong ease-out: entrances */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);    /* strong ease-in-out: on-screen movement */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -454,6 +456,28 @@ img.ok { opacity: 1 !important; }
 .capy canvas { opacity: 0; transition: opacity .35s; }
 .capy.live canvas { opacity: 1; }
 .capy.live .capy-still { opacity: 0 !important; } /* beats the global img.ok fade-in rule */
+/* Home intro (index.html adds html.intro on a full load of "/"): a brass ring draws once around the mark, the word
+   rises, the screen fades into the page, then the header, search, tabs and Kapi rise in one after another. */
+.intro-screen { display: none; }
+html.intro .intro-screen { position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 16px; background: var(--page); animation: intro-out .3s var(--ease-out) .85s both; }
+html.intro.intro-skip .intro-screen { animation: intro-out .15s var(--ease-out) both; }
+.intro-mark { position: relative; display: grid; place-items: center; width: 148px; height: 148px; }
+.intro-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.intro-ring circle { fill: none; stroke: var(--brass); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: intro-ring .7s var(--ease-in-out) both; }
+.intro-mark img { width: 82px; height: auto; animation: intro-pop .35s var(--ease-out) .12s both; }
+.intro-word { font-size: 34px; animation: intro-rise .35s var(--ease-out) .3s both; }
+/* Hidden under the intro screen until the signal (html.intro-reveal), then they rise in one after another. */
+html.intro .site-header .hdr, html.intro .top-search, html.intro .top .tabs-band, html.intro .top .capy { opacity: 0; }
+html.intro.intro-reveal .site-header .hdr, html.intro.intro-reveal .top-search, html.intro.intro-reveal .top .tabs-band, html.intro.intro-reveal .top .capy { opacity: 1; animation: intro-in .45s var(--ease-out) both; }
+html.intro.intro-reveal .top-search { animation-delay: .06s; }
+html.intro.intro-reveal .top .tabs-band { animation-delay: .12s; }
+html.intro.intro-reveal .top .capy { animation-delay: .18s; }
+html.intro.intro-skip .site-header .hdr, html.intro.intro-skip .top-search, html.intro.intro-skip .top .tabs-band, html.intro.intro-skip .top .capy { animation: intro-in .2s var(--ease-out) both; }
+@keyframes intro-ring { to { stroke-dashoffset: 0; } }
+@keyframes intro-pop { from { opacity: 0; transform: scale(.92); } }
+@keyframes intro-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes intro-out { to { opacity: 0; visibility: hidden; } }
+@keyframes intro-in { from { opacity: 0; transform: translateY(10px); } }
 /* The painted Kapi: a slow breath, and a hop when tapped. */
 .capy-still { transform-origin: 50% 100%; animation: capy-breathe 4.8s ease-in-out infinite; }
 .capy.hop .capy-still { animation: capy-hop .62s var(--ease) 1; }
