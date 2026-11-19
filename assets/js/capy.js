@@ -6,7 +6,7 @@
  *          waves, then talks with open hands, looks at the pointer and waves now and then (and when a place is picked)
  *   jump   in the bottom scene: happy hops, with a wave now and then
  * With "reduce motion" on, Kapi stands still. Model (19 Nov 2026) made for ECStay with Higgsfield from the painted
- * Kapi (kapi.webp): Meshy 7 mesh, Meshy rig, clips Idle_02 / Wave_One_Hand / Talk_with_Hands_Open / Casual_Walk
+ * Kapi (kapi.webp): Meshy 7 mesh, Meshy rig, clips Idle_02 / Talk_with_Hands_Open / Casual_Walk plus a side wave made for his short arms
  * moved onto one skeleton and turned to face front (named Idle, Wave, Talk, Walk). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -27,7 +27,7 @@ function loadKapi() {
 
 // Camera framing per mode, in model units (Kapi is 1 tall, feet at 0).
 const FRAMES = {
-  stand: { y: 0.62, h: 1.5, turn: 0.45, head: 0.5, tilt: 0, face: 0 },
+  stand: { y: 0.62, h: 1.5, turn: 0.4, head: 0.35, tilt: 0, face: 0 },
   peek: { y: 0.58, h: 1.3, turn: 0.08, head: 0.18, tilt: 0, face: 0 },
   jump: { y: 0.66, h: 1.55, turn: 0.25, head: 0.35, tilt: 0, face: 0 },
   // host: a wide box from the front door to the right edge; Kapi ends up at `at` (share of the box width from the left).
@@ -85,7 +85,7 @@ export function mount(el) {
   const WALK = { from: 0.95, speed: 0.4, yaw: -Math.PI / 2 + 0.55, turn: 0.5 };
   let enter = null; // { phase: 'wait' | 'walk' | 'turn' | 'done', t }
   const clock = new THREE.Clock();
-  const extra = new THREE.Quaternion(), euler = new THREE.Euler();
+  const extra = new THREE.Quaternion(), euler = new THREE.Euler(), hq = new THREE.Quaternion(), tq = new THREE.Quaternion();
 
   function size() {
     const w = el.clientWidth || 1, h = el.clientHeight || 1;
@@ -233,9 +233,13 @@ export function mount(el) {
       look.y += (ty - look.y) * Math.min(1, dt * 4);
       root.rotation.y = F.face + look.x * F.turn;
       if (head) {
+        // Left-right about the vertical, up-down about the side axis, in the scene's own axes (whichever way the
+        // rig's head bone points; turning it about its own axes twisted the head on the 19 Nov model).
         euler.set(-look.y * 0.25 * (F.head / 0.5), look.x * F.head, 0, 'YXZ');
         extra.setFromEuler(euler);
-        head.quaternion.multiply(extra);
+        head.getWorldQuaternion(hq);                       // where the animation put the head this frame
+        tq.copy(hq).invert().multiply(extra).multiply(hq); // the same turn, expressed in the head's own space
+        head.quaternion.multiply(tq);
       }
       // In the scene, hop every couple of seconds; elsewhere when tapped.
       if (mode === 'jump' && hop === 0 && t - lastHop > 1.9) { hop = 1; lastHop = t; }
