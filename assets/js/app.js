@@ -186,9 +186,9 @@
       return /^\/signin/.test(location.pathname) ? '' : '<a class="signin-link" href="/signin?next=' + encodeURIComponent(/^\/(list)?$/.test(location.pathname) ? (location.pathname === '/list' ? '/host/new' : '/') : here) + '" data-link>' + H.esc(t('Sign in')) + '</a>';
     }
     var u = ECS.user, nm = String(u.name || '').trim(), who = ECS.who(u), admin = u.role === 'admin' && A.desk();
-    var item = function (href, icon, label) { return '<a href="' + H.esc(href) + '" data-link>' + H.icon(icon) + '<span>' + H.esc(t(label)) + '</span></a>'; };
-    return saved + '<a class="hdr-link list-link msg-link' + (/^\/messages/.test(location.pathname) ? ' on' : '') + '" href="/messages" data-link>' + H.icon('message') + '<span>' + H.esc(t('Messages')) + '</span></a>' +
-      (admin ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
+    var item = function (href, icon, label, extra) { return '<a href="' + H.esc(href) + '" data-link' + (extra || '') + '>' + H.icon(icon) + '<span>' + H.esc(t(label)) + '</span></a>'; };
+    // Signed in, Saved and Messages live in the Account menu only (Carl 20 Nov); the saved count moves there too.
+    return (admin ? '<a class="hdr-link list-link' + (location.pathname === A.desk() ? ' on' : '') + '" href="' + H.esc(A.desk()) + '" data-link>' + H.icon('grid') + '<span>' + H.esc(t('Admin')) + '</span></a>' : '') +
       // Account menu, at every width: a button that opens a short list, with Log out at the end.
       '<div class="acct">' +
         '<button type="button" class="acct-btn' + (/^\/host/.test(location.pathname) ? ' on' : '') + '" aria-expanded="false" aria-controls="acct-menu" aria-label="' + H.esc(t('Account menu')) + '" data-acct>' +
@@ -197,7 +197,8 @@
         '</button>' +
         '<div class="acct-menu" id="acct-menu" hidden>' +
           '<p class="acct-who">' + (nm ? '<b>' + H.esc(nm) + '</b>' : '') + '<small>' + H.esc(who) + '</small></p>' +
-          item('/host', 'user', 'Your account') + item('/messages', 'message', 'Messages') + item('/rooms?saved=1', 'heart', 'Saved rooms') +
+          item('/host', 'user', 'Your account') + item('/messages', 'message', 'Messages') +
+          item('/rooms?saved=1', 'heart', 'Saved rooms', ' class="acct-saved"').replace('</span></a>', '</span>' + (savedN ? '<b class="count">' + savedN + '</b>' : '') + '</a>') +
           item('/host/profile', 'pencil', 'Your details') + (admin ? item(A.desk(), 'grid', 'Admin') : '') +
           '<button type="button" class="acct-out" data-signout>' + H.icon('logout') + '<span>' + H.esc(t('Log out')) + '</span></button>' +
         '</div>' +
@@ -1116,7 +1117,7 @@
       if (b.classList.contains('heart')) b.setAttribute('aria-label', on ? t('Remove from saved') : t('Save this room'));
       var lab = b.querySelector('[data-save-label]'); if (lab) lab.textContent = on ? t('Saved') : t('Save');
     });
-    var hdrCount = $('.saved-link');
+    var hdrCount = $('.saved-link') || $('.acct-saved');
     if (hdrCount) {
       var n = H.saved.count();
       var c = $('.count', hdrCount);
