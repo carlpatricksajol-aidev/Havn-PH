@@ -1,4 +1,4 @@
-/* ECStay — home page: room-type tabs + search (with Kapi the capybara), popular places,
+/* ECStay — home page (v2, 20 Nov 2026): the evergreen door-panel hero (headline, search, Kapi in the doorway), three facts,
  * rows of rooms, and the closing cards + place links (the questions live in llms.txt). Line icons from the sprite in index.html. */
 (function () {
   var HV = (window.HomeView = {});
@@ -36,23 +36,42 @@
     ];
   }
 
+  /* The first screen: an evergreen "door" panel (the brand's deep colour, with brass as the accent): the brand line,
+   * the keyword headline, one line on what the site does, the search, a few well-known places, and Kapi standing in
+   * an arched doorway (the door in the logo). */
+  var HERO_PLACES = ['gmall', 'sm-lanang', 'abreeza', 'addu', 'um', 'usep'];
   function top(api) {
-    return '<section class="top" aria-labelledby="top-t"><div class="top-in">' +
-      '<div class="top-greet">' +
+    var near = HERO_PLACES.map(function (id) { return H.school(id); }).filter(Boolean);
+    return '<section class="top hero" aria-labelledby="top-t"><div class="top-in">' +
+      '<div class="top-copy">' +
+        '<p class="hero-eyebrow">' + H.esc(t('Explore. Come. Stay.')) + '</p>' +
         '<h1 id="top-t">' + H.esc(t('Boarding houses, bedspaces and rooms for rent in Davao City')) + '</h1></div>' +
+      '<p class="hero-sub">' + H.esc(t('Find a place near your school or work, with the walking time, the monthly price and the exact spot on the map.')) + '</p>' +
+      '<div class="hero-stage" aria-hidden="true"><span class="hero-arch"></span>' +
+        '<div class="capy" data-capy>' +
+          '<span class="capy-bubble">' + H.esc(t('Hi! Looking for a room?')) + '</span>' +
+          '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" fetchpriority="low">' +
+        '</div></div>' +
       '<div class="top-search">' + api.searchHtml + '</div>' +
-      HV.tabs(api, 'tabs-band') +
-      '<div class="capy" data-capy aria-hidden="true">' +
-        '<span class="capy-bubble">' + H.esc(t('Hi! Looking for a room?')) + '</span>' +
-        '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" fetchpriority="low">' +
-      '</div>' +
-    '</div></section>';
+      (near.length ? '<p class="hero-near"><span>' + H.esc(t('Rooms near')) + '</span>' + near.map(function (p) {
+        return '<a href="' + api.url({ place: 'school:' + p.id }) + '" data-link>' + H.esc(p.short) + '</a>';
+      }).join('') + '</p>' : '') +
+    '</div></section>' +
+    HV.tabs(api, 'tabs-band');
   }
 
-  function row(api, r, idx) {
-    var list = api.list(r.s);
-    if (list.length < 2) return '';
-    return '<section class="hrow" aria-labelledby="row-' + idx + '">' +
+  /* Three plain facts about how ECStay works (each one true of every listing), in one slim row. */
+  function facts() {
+    var f = function (icon, title, text) { return '<li>' + ic(icon, 'hf-ic') + '<div><b>' + H.esc(t(title)) + '</b><span>' + H.esc(t(text)) + '</span></div></li>'; };
+    return '<ul class="h-facts" aria-label="' + H.esc(t('How ECStay works')) + '">' +
+      f('walk', 'Walking time, in minutes', 'Every room shows how far it is on foot from your school, mall or office.') +
+      f('pin', 'The exact spot on the map', 'See where the place really is before you go.') +
+      f('shield', 'See the room first, then pay', 'ECStay is free for renters. You pay the Keeper directly, only after you see the room.') +
+    '</ul>';
+  }
+
+  function rowHtml(api, r, idx, list, few) {
+    return '<section class="hrow' + (few ? ' few' : '') + '" aria-labelledby="row-' + idx + '">' +
       '<div class="h-head">' + ic(r.icon, 'h-ic') + '<h2 id="row-' + idx + '">' + H.esc(r.title) + '</h2>' +
         '<a class="hrow-all" href="' + api.url(r.s) + '" data-link>' + H.esc(t('See all')) + H.icon('arrow-right') + '</a>' +
       '</div>' +
@@ -63,27 +82,46 @@
     '</div></section>';
   }
 
+  /* The rooms. With only a handful listed, one row shows them all once (several rows would repeat the same rooms).
+   * With many, themed rows; a row is left out when every room in it was already shown above it. With none yet,
+   * a short note instead of an empty page. */
+  function rooms(api) {
+    var all = api.list({});
+    if (!all.length) {
+      return '<section class="h-empty">' + ic('home', 'h-ic') + '<div><h2>' + H.esc(t('The first boarding houses are being added')) + '</h2>' +
+        '<p>' + H.esc(t('We review every listing before it goes live. Have a place to rent out? You can list it now.')) + '</p></div>' +
+        '<a class="btn btn-primary" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a></section>';
+    }
+    if (all.length <= 8) return rowHtml(api, { icon: 'home', title: t('Rooms in Davao City'), s: {} }, 0, all, true);
+    var seen = {};
+    return rows().map(function (r, i) {
+      var list = api.list(r.s);
+      if (list.length < 2) return '';
+      var shown = list.slice(0, 8), fresh = shown.filter(function (l) { return !seen[l.id]; }).length;
+      if (!fresh) return '';
+      shown.forEach(function (l) { seen[l.id] = true; });
+      return rowHtml(api, r, i, list, false);
+    }).join('');
+  }
+
   function kapiStill() {
     return '<img class="capy-still" src="/assets/capy/kapi.webp" width="360" height="360" alt="" loading="lazy">';
   }
 
-  /* Closing section, in brand colors only: one card for renters (with Kapi), one for Keepers, then a plain
-   * list of "Rooms near ..." links (the pattern rental sites end their home pages with; also crawlable). */
+  /* The close: one band for Keepers (Kapi at an evergreen door: "Open your door."), then a plain list of
+   * "Rooms near ..." links (the pattern rental sites end their home pages with; also crawlable). */
   function closing(api) {
     var places = HAVN_SCHOOLS.concat(window.HAVN_LANDMARKS || []);
-    return '<section class="end" aria-label="' + H.esc(t('Get started')) + '">' +
-      '<div class="end-cards">' +
-        '<div class="end-card end-rent">' +
-          '<div class="end-copy"><h2>' + H.esc(t('Looking for a room?')) + '</h2>' +
-            '<p>' + H.esc(t('Search near your school or work, compare prices, and see the exact spot on the map.')) + '</p>' +
-            '<a class="btn btn-primary btn-lg" href="/rooms" data-link>' + H.esc(t('Find a room')) + '</a></div>' +
-          '<div class="capy end-kapi" data-capy="stand" aria-hidden="true">' + kapiStill() + '</div>' +
-        '</div>' +
-        '<div class="end-card end-keep">' +
-          '<div class="end-copy"><h2>' + H.esc(t('Have a place to rent out?')) + '</h2>' +
-            '<p>' + H.esc(t('Become a Keeper and open your door to students and young workers in Davao.')) + '</p>' +
-            '<a class="btn btn-light btn-lg" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a></div>' +
-        '</div>' +
+    var pt = function (text) { return '<li>' + H.icon('check') + '<span>' + H.esc(t(text)) + '</span></li>'; };
+    return '<section class="end" aria-label="' + H.esc(t('For Keepers')) + '">' +
+      '<div class="end-door">' +
+        '<div class="end-copy"><p class="hero-eyebrow">' + H.esc(t('For Keepers')) + '</p>' +
+          '<h2>' + H.esc(t('Have a place to rent out?')) + ' <em>' + H.esc(t('Open your door.')) + '</em></h2>' +
+          '<p>' + H.esc(t('Become a Keeper and open your door to students and young workers in Davao.')) + '</p>' +
+          '<ul class="end-points">' + pt('Free to list') + pt('About 10 minutes') + pt('We review every listing') + '</ul>' +
+          '<a class="btn btn-primary btn-lg" href="/list" data-link>' + H.esc(t('Become a Keeper')) + '</a></div>' +
+        '<div class="end-stage" aria-hidden="true"><span class="hero-arch door"></span>' +
+          '<div class="capy end-kapi" data-capy="stand">' + kapiStill() + '</div></div>' +
       '</div>' +
       '<nav class="end-links" aria-labelledby="end-links-t"><h2 id="end-links-t">' + H.esc(t('Browse rooms by place')) + '</h2><ul>' +
         places.map(function (p) {
@@ -94,8 +132,8 @@
 
   HV.render = function (host, api) {
     host.innerHTML = '<div class="home">' + top(api) +
-      '<div class="home-wrap">' +
-        '<div class="h-rows">' + api.sampleNote + rows().map(function (r, i) { return row(api, r, i); }).join('') + '</div>' +
+      '<div class="home-wrap">' + facts() +
+        '<div class="h-rows">' + api.sampleNote + rooms(api) + '</div>' +
       '</div>' +
       closing(api) + api.footScene +
     '</div>';
