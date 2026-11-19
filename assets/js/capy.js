@@ -6,7 +6,8 @@
  *          waves, then talks with open hands, looks at the pointer and waves now and then (and when a place is picked)
  *   jump   in the bottom scene: happy hops, with a wave now and then
  * With "reduce motion" on, Kapi stands still. Model (19 Nov 2026) made for ECStay with Higgsfield from the painted
- * Kapi (kapi.webp): Meshy 7 mesh, Meshy rig, clips Idle_02 / Talk_with_Hands_Open / Casual_Walk plus a side wave made for his short arms
+ * Kapi (kapi.webp): Meshy 7 mesh and rig; since 20 Nov his moves are hand-made in code from his own pose (breathing idle,
+ * side wave, talk, waddle), because motion-capture clips for human bodies looked wrong on him
  * moved onto one skeleton and turned to face front (named Idle, Wave, Talk, Walk). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -27,7 +28,7 @@ function loadKapi() {
 
 // Camera framing per mode, in model units (Kapi is 1 tall, feet at 0).
 const FRAMES = {
-  stand: { y: 0.62, h: 1.5, turn: 0.4, head: 0.35, tilt: 0, face: 0 },
+  stand: { y: 0.62, h: 1.5, turn: 0.28, head: 0.3, tilt: 0, face: 0 },
   peek: { y: 0.58, h: 1.3, turn: 0.08, head: 0.18, tilt: 0, face: 0 },
   jump: { y: 0.66, h: 1.55, turn: 0.25, head: 0.35, tilt: 0, face: 0 },
   // host: a wide box from the front door to the right edge; Kapi ends up at `at` (share of the box width from the left).
