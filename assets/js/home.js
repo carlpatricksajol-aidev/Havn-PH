@@ -103,30 +103,19 @@
     startCapy(host);
   };
 
-  /* Kapi the capybara: still pictures first, then the moving 3D Kapi when the browser can draw it.
-   * The one at the top starts when the page is idle; the others when they come near the screen. */
+  /* Kapi the capybara: the painted picture (since 19 Nov 2026 it replaces the 3D model, which looked rougher; that code
+   * is still in capy.js). He breathes, says hello once soon after the page opens, and hops with a hello when tapped.
+   * With "reduce motion" on he stands still and only the hello shows. */
   function startCapy(host) {
-    var els = host.querySelectorAll('[data-capy]');
-    if (!els.length) return;
-    // The 3D model is about 1 MB: skip it on data saver or slow connections (the pictures stay).
-    var net = navigator.connection;
-    if (net && (net.saveData || /(^|-)2g|3g/.test(net.effectiveType || ''))) return;
-    var c = document.createElement('canvas');
-    var ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')));
-    if (!ok) return;
-    var mod = null;
-    var mount = function (el) {
-      mod = mod || import('/assets/js/capy.js');
-      mod.then(function (m) { m.mount(el); }).catch(function () { /* the still picture stays */ });
-    };
-    var first = els[0];
-    if ('requestIdleCallback' in window) requestIdleCallback(function () { mount(first); }, { timeout: 1500 }); else setTimeout(function () { mount(first); }, 400);
-    var rest = Array.prototype.slice.call(els, 1);
-    if (!window.IntersectionObserver) { rest.forEach(mount); return; }
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); mount(e.target); } });
-    }, { rootMargin: '400px 0px' });
-    rest.forEach(function (el) { io.observe(el); });
+    Array.prototype.forEach.call(host.querySelectorAll('[data-capy]'), function (el, i) {
+      var hello = function () {
+        el.classList.add('talk'); clearTimeout(el.__talkT);
+        el.__talkT = setTimeout(function () { el.classList.remove('talk'); }, 2600);
+      };
+      el.addEventListener('click', function () { el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); hello(); });
+      el.addEventListener('animationend', function (e) { if (e.animationName === 'capy-hop') el.classList.remove('hop'); });
+      if (i === 0) setTimeout(hello, 1200);
+    });
   }
 
   /* Row arrows: scroll a page of cards; disabled at either end, hidden when everything fits. */

@@ -281,6 +281,7 @@
       // Conversations about the Keeper's own listings (admins see the team's leads in the admin workspace instead).
       d.kt = (r[2] || []).filter(function (th) { return th.role === 'keeper' && (ECS.mode !== 'live' || byId[th.q.listing_id]); });
       d.rt = (r[2] || []).filter(function (th) { return th.role === 'renter'; });
+      d.threads = r[2] || [];   // handed to the Messages tab, so it does not load (and spin) a second time
       d.waiting = d.kt.filter(function (th) { return th.waiting; });
       // Numbers per listing: views and saves by day (last 30 days), renters who wrote in that time, renters waiting.
       d.days = dayKeys(30); d.series = d.days.map(function () { return 0; }); d.per = {}; d.views = 0; d.saves = 0;
@@ -337,7 +338,7 @@
         '</div>' +
       '</div>';
     bindDash($('.kh', d.host));
-    if (d.keeper && d.tab === 'messages' && window.MsgView) { MsgView.render($('.kh-inbox', d.host), d.open || null, true); d.open = null; }
+    if (d.keeper && d.tab === 'messages' && window.MsgView) { MsgView.render($('.kh-inbox', d.host), d.open || null, true, d.threads); d.open = null; }
   }
 
   /* ---- Home: three questions, each in its own card. Who is waiting for me? Where are my listings at?
@@ -690,8 +691,22 @@
     });
   };
 
+  /* A field marks itself (red or green) when it is left. When that happens because a button or chip is being pressed,
+   * the mark waits until the press is over: a red message appearing first would move the button away from the
+   * pointer, and the click would be lost. */
+  var ptrDown = false, ptrLater = null;
+  document.addEventListener('pointerdown', function () { ptrDown = true; }, true);
+  document.addEventListener('pointerup', function () { ptrDown = false; if (ptrLater) { var fn = ptrLater; ptrLater = null; setTimeout(fn, 0); } }, true);
+  document.addEventListener('pointercancel', function () { ptrDown = false; ptrLater = null; }, true);
+  function afterPress(fn) { if (ptrDown) ptrLater = fn; else fn(); }
+
   function openEditor(host, l, prefill) {
-    var steps = ECS.STEPS, cur = 0, saveT = 0, pending = {}, picker = null, saving = null;
+    var steps = ECS.STEPS, cur = 0, saveT = 0, pending = {}, picker = null, saving = null, seen = {}, visited = {};
+    // Each room type has its own advance, deposit and move-in month (since 19 Nov 2026). Older listings had one set
+    // for the whole place: it is copied into each room here, and saved the next time the rooms change.
+    l.rooms = (l.rooms || []).map(function (r) {
+      return Object.assign({ advance: l.advance_months != null ? l.advance_months : null, deposit: l.deposit_months != null ? l.deposit_months : null, from: l.available_from || null }, r);
+    });
     var want = new URLSearchParams(location.search).get('step');
     steps.forEach(function (s, i) { if (s.id === want) cur = i; });
     if (!want) { for (var i = 0; i < steps.length; i++) { if (!steps[i].done(l)) { cur = i; break; } } }
@@ -741,8 +756,10 @@
     function paintNav() {
       var nav = $('.ed-nav', host); if (!nav) return;
       nav.innerHTML = steps.map(function (s, i) {
-        return '<li><button type="button" data-step="' + i + '"' + (i === cur ? ' aria-current="step"' : '') + ' class="' + (s.done(l) ? 'is-done' : '') + '">' +
-          '<span class="ed-n">' + (s.done(l) ? H.icon('check') : i + 1) + '</span><span>' + esc(t(s.label)) + '</span></button></li>';
+        var todo = !s.done(l) && visited[s.id] && i !== cur;
+        return '<li><button type="button" data-step="' + i + '"' + (i === cur ? ' aria-current="step"' : '') + ' class="' + (s.done(l) ? 'is-done' : todo ? 'is-todo' : '') + '">' +
+          '<span class="ed-n">' + (s.done(l) ? H.icon('check') : todo ? '!' : i + 1) + '</span><span>' + esc(t(s.label)) + '</span>' +
+          (todo ? '<span class="vh">' + esc(t('(not finished)')) + '</span>' : '') + '</button></li>';
       }).join('');
       $('.ed-title', host).textContent = l.name || t('New listing');
       $('.ed-prog i', host).style.width = Math.round(ECS.stepsDone(l) / steps.length * 100) + '%';
@@ -759,12 +776,12 @@
         '<p class="ed-live-n">' + esc(t('This fills in as you go. Renters see it only after we approve the listing.')) + '</p>';
       var nx = $('[data-next]', host);
       nx.textContent = cur < steps.length - 1 ? t('Save and continue') : (l.status === 'live' || l.status === 'paused' || l.status === 'review' ? t('Save changes') : t('Send for review'));
-      nx.disabled = cur === steps.length - 1 && !ECS.ready(l);
       $('[data-prev]', host).textContent = cur > 0 ? t('Back') : t('Close');
     }
     function show(i) {
       if (picker) { picker.destroy(); picker = null; }
-      cur = i;
+      if (steps[cur]) visited[steps[cur].id] = true;
+      cur = i; seen = {};
       history.replaceState(null, '', '/host/edit/' + l.id + '?step=' + steps[i].id);
       // A fresh form per step, so one step's listeners never act on another step's fields.
       var old = $('.ed-form', host), f = old.cloneNode(false);
@@ -772,15 +789,120 @@
       f.innerHTML = '<p class="ed-step">' + esc(t('Step {n} of {m}', { n: i + 1, m: steps.length })) + '</p>' + FORMS[steps[i].id]();
       f.onsubmit = function (e) { e.preventDefault(); };
       BIND[steps[i].id] && BIND[steps[i].id](f);
+      // A field shows if it is right or wrong once the Keeper has been in it (or tried to continue).
+      f.addEventListener('focusout', function (e) { var el = e.target.closest('[data-f]'); if (el) { seen[fkey(el)] = true; afterPress(mark); } });
+      f.addEventListener('change', function (e) { var el = e.target.closest('[data-f]'); if (el) seen[fkey(el)] = true; mark(); });
+      f.addEventListener('input', function () { mark(); });
+      $$('textarea', f).forEach(grow);
       paintNav();
       window.scrollTo(0, 0);
       var first = f.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea'); if (first && window.innerWidth >= 1024) first.focus({ preventScroll: true });
     }
     function validate(show) {
       var s = steps[cur]; if (s.done(l)) return true;
-      if (show) { var e = $('.ed-form .field-err', host); if (e) err(e, t(HINT[s.id])); }
+      if (!show) return false;
+      var bad = mark(true), e = $('.ed-form > .field-err', host);
+      if (e) err(e, !bad.length ? t(HINT[s.id]) : bad.length === 1 ? t('One thing still needs your attention. It is marked in red.') : t('{n} things still need your attention. They are marked in red.', { n: bad.length }));
+      if (bad[0]) {
+        bad[0].scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+        var x = bad[0].querySelector('input:not([type=hidden]):not([type=file]), textarea, select');
+        if (x) setTimeout(function () { x.focus({ preventScroll: true }); }, 380);
+      }
       return false;
     }
+    // Which field a mark belongs to (room fields are per room type).
+    function fkey(el) { var r = el.closest('.ed-room'); return (r ? r.getAttribute('data-type') + ':' : '') + el.getAttribute('data-f'); }
+    function roomOf(type) { return (l.rooms || []).filter(function (x) { return x.type === type; })[0] || {}; }
+    // Red with the reason when a field is missing or wrong, a green check when it is fine. `all` marks every field
+    // (after a try to continue); otherwise only the fields the Keeper has been in. Returns the wrong ones.
+    function mark(all) {
+      var f = $('.ed-form', host), bad = [];
+      if (!f || !CHECKS[steps[cur].id]) return bad;
+      CHECKS[steps[cur].id]().forEach(function (c) {
+        var el = f.querySelector(c[0]); if (!el) return;
+        var k = fkey(el); if (all) seen[k] = true;
+        var on = !!seen[k], ok = !!c[1](), m = el.querySelector(':scope > .f-msg');
+        el.classList.toggle('is-bad', on && !ok); el.classList.toggle('is-ok', on && ok);
+        if (on && !ok) {
+          if (!m) { m = document.createElement('p'); m.className = 'f-msg'; el.appendChild(m); }
+          m.innerHTML = H.icon('info') + '<span>' + esc(typeof c[2] === 'function' ? c[2]() : t(c[2])) + '</span>';
+          bad.push(el);
+        } else if (m) m.remove();
+        $$('input:not([type=checkbox]):not([type=radio]), textarea, select', el).forEach(function (x) { if (on && !ok) x.setAttribute('aria-invalid', 'true'); else x.removeAttribute('aria-invalid'); });
+      });
+      var e = $('.ed-form > .field-err', host);
+      if (e && !e.hidden && !f.querySelector('.is-bad') && steps[cur].done(l)) err(e, '');
+      return bad;
+    }
+    // A text box that grows with what is typed (no dragging, no scroll inside it).
+    function grow(ta) {
+      var fit = function () { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
+      ta.addEventListener('input', fit); requestAnimationFrame(fit);
+    }
+    var TYPE_HELP = {
+      'Bedspace': 'One bed in a room shared with others. Priced per person.',
+      'Shared room': 'A room for 2 or more people who share it. Priced per room.',
+      'Private room': 'A room for one person or a couple. Priced per room.',
+      'Studio': 'A small unit with its own CR and kitchen area. Priced per unit.',
+    };
+    function months(n, what) { return n === 1 ? t('1 month ' + what) : t('{n} months ' + what, { n: n }); }
+    // What a renter pays to move in, as the room page shows it.
+    function moveIn(r) {
+      if (!(r.price >= 500) || r.advance == null || r.deposit == null) return '';
+      var n = r.advance + r.deposit;
+      if (!n) return t('No advance or deposit: renters pay only the monthly rent.');
+      return t('To move in, a renter pays {total}: {parts}.', { total: H.peso(r.price * n), parts: [r.advance ? months(r.advance, 'advance') : '', r.deposit ? months(r.deposit, 'deposit') : ''].filter(Boolean).join(' + ') });
+    }
+    function roomCard(r) {
+      var bed = r.type === 'Bedspace', studio = r.type === 'Studio';
+      var terms = [['', 'Choose'], [0, 'None'], [1, '1 month'], [2, '2 months'], [3, '3 months']];
+      var sel = function (k, val) { return '<select data-k="' + k + '">' + terms.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] !== '' && val != null && String(val) === String(o[0]) ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select>'; };
+      return '<section class="ed-room" data-type="' + esc(r.type) + '">' +
+        '<div class="ed-room-h"><h3>' + esc(t(r.type)) + '</h3><button type="button" class="ed-room-x" data-remove-type="' + esc(r.type) + '">' + H.icon('trash') + '<span>' + esc(t('Remove')) + '</span></button></div>' +
+        '<div class="ed-grid">' +
+          '<label class="field" data-f="price"><span>' + esc(t(bed ? 'Price per person a month (₱)' : studio ? 'Price per unit a month (₱)' : 'Price per room a month (₱)')) + '</span><input type="number" inputmode="numeric" min="500" step="50" data-k="price" value="' + (r.price || '') + '" placeholder="' + (bed ? '2500' : '6000') + '"></label>' +
+          '<label class="field" data-f="count"><span>' + esc(t(bed ? 'Beds available' : studio ? 'Units available' : 'Rooms available')) + '</span><input type="number" inputmode="numeric" min="1" max="200" data-k="count" value="' + (r.count || '') + '" placeholder="1"></label>' +
+          '<label class="field" data-f="advance"><span>' + esc(t('Advance')) + '</span>' + sel('advance', r.advance) + '</label>' +
+          '<label class="field" data-f="deposit"><span>' + esc(t('Deposit')) + '</span>' + sel('deposit', r.deposit) + '</label>' +
+          '<label class="field ed-wide" data-f="from"><span>' + esc(t('Available from')) + '</span><select data-k="from">' + monthsAhead(13).map(function (m, i) { return '<option value="' + m.v + '"' + (r.from === m.v || (i === 0 && (!r.from || r.from < m.v)) ? ' selected' : '') + '>' + esc(m.l) + '</option>'; }).join('') + '</select></label>' +
+        '</div><p class="ed-room-sum" data-sum>' + esc(moveIn(r)) + '</p></section>';
+    }
+    // What each step needs, field by field: [the field, is it right?, what to tell the Keeper when it is not].
+    var CHECKS = {
+      place: function () { return [
+        ['[data-f=name]', function () { return (l.name || '').trim().length >= 4; }, 'Add the name of your place (at least 4 letters).'],
+        ['[data-f=place_type]', function () { return !!l.place_type; }, 'Pick the type of place.'],
+        ['[data-f=gender]', function () { return !!l.gender; }, 'Pick who can stay.'],
+        ['[data-f=description]', function () { return (l.description || '').trim().length >= 40; }, function () { return t('Write {n} more characters (at least 40), so renters can picture the place.', { n: 40 - (l.description || '').trim().length }); }],
+      ]; },
+      location: function () { return [
+        ['[data-f=area]', function () { return !!(l.area || '').trim(); }, 'Add the area or barangay.'],
+        ['[data-f=address]', function () { return !!(l.address || '').trim(); }, 'Add the street address.'],
+        ['[data-f=pin]', function () { return typeof l.lat === 'number' && typeof l.lng === 'number'; }, 'Tap the map on your house to place the pin.'],
+      ]; },
+      rooms: function () {
+        var c = [['[data-f=types]', function () { return (l.rooms || []).length > 0; }, 'Pick at least one kind of room you rent out.']];
+        (l.rooms || []).forEach(function (r) {
+          var at = '.ed-room[data-type="' + r.type + '"] ';
+          c.push([at + '[data-f=price]', function () { return roomOf(r.type).price >= 500; }, 'Add the monthly price (at least ₱500).'],
+            [at + '[data-f=count]', function () { return roomOf(r.type).count >= 1; }, 'How many are available? At least 1.'],
+            [at + '[data-f=advance]', function () { return roomOf(r.type).advance != null; }, 'Choose the advance, or None.'],
+            [at + '[data-f=deposit]', function () { return roomOf(r.type).deposit != null; }, 'Choose the deposit, or None.']);
+        });
+        return c;
+      },
+      amenities: function () { return [
+        ['[data-f=amenities]', function () { return (l.amenities || []).length >= 1; }, 'Pick at least one thing renters get.'],
+        ['[data-f=visitors]', function () { return !!(l.rules && l.rules.visitors); }, 'Say whether visitors are allowed.'],
+      ]; },
+      photos: function () { return [
+        ['[data-f=photos]', function () { return (l.photos || []).length >= 5; }, function () { var n = 5 - (l.photos || []).length; return n === 1 ? t('Add 1 more photo (at least 5).') : t('Add {n} more photos (at least 5).', { n: n }); }],
+      ]; },
+      contact: function () { return [
+        ['[data-f=mobile]', function () { return !!ECS.mobile(l.contact_mobile); }, 'Add a mobile number like 0917 123 4567.'],
+        ['[data-f=confirmed]', function () { return !!l.confirmed; }, 'Tick the box to confirm.'],
+      ]; },
+    };
     var HINT = {
       place: 'Add a name, the type of place, who can stay, and a description of at least 40 characters.',
       location: 'Add the area and street, then tap the map to place the pin on the house.',
@@ -795,49 +917,46 @@
     var FORMS = {
       place: function () {
         return '<h1>' + esc(t('Tell us about your place')) + '</h1>' +
-          '<label class="field"><span>' + esc(t('Listing name')) + ' <small>' + esc(t('what renters see first, e.g. Bajada Ladies\' Boarding House')) + '</small></span><input name="name" maxlength="70" value="' + esc(l.name || '') + '"></label>' +
-          '<fieldset class="field"><legend>' + esc(t('Type of place')) + '</legend>' + radios('place_type', PLACE_TYPES.map(function (x) { return [x, x]; }), l.place_type) + '</fieldset>' +
-          '<fieldset class="field"><legend>' + esc(t('Who can stay')) + '</legend>' + radios('gender', GENDERS, l.gender) + '</fieldset>' +
-          '<label class="field"><span>' + esc(t('Description')) + ' <small>' + esc(t('40 to 800 characters. What is it like to live here? What is nearby?')) + '</small></span><textarea name="description" maxlength="800" rows="6">' + esc(l.description || '') + '</textarea><small class="ed-count"></small></label>' +
+          '<label class="field" data-f="name"><span>' + esc(t('Listing name')) + ' <small>' + esc(t('what renters see first, e.g. Bajada Ladies\' Boarding House')) + '</small></span><input name="name" maxlength="70" value="' + esc(l.name || '') + '"></label>' +
+          '<fieldset class="field" data-f="place_type"><legend>' + esc(t('Type of place')) + '</legend>' + radios('place_type', PLACE_TYPES.map(function (x) { return [x, x]; }), l.place_type) + '</fieldset>' +
+          '<fieldset class="field" data-f="gender"><legend>' + esc(t('Who can stay')) + '</legend>' + radios('gender', GENDERS, l.gender) + '</fieldset>' +
+          '<label class="field" data-f="description"><span>' + esc(t('Description')) + ' <small>' + esc(t('at least 40 characters. What is it like to live here? What is nearby?')) + '</small></span><textarea name="description" class="ed-grow" maxlength="800" rows="5">' + esc(l.description || '') + '</textarea><small class="ed-count"></small></label>' +
           '<p class="field-err" role="alert" hidden></p>';
       },
       location: function () {
         return '<h1>' + esc(t('Where is it?')) + '</h1>' +
-          '<label class="field"><span>' + esc(t('Area or barangay')) + '</span><input name="area" list="ed-areas" value="' + esc(l.area || '') + '" placeholder="' + esc(t('e.g. Bajada')) + '"><datalist id="ed-areas">' + HAVN_AREAS.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist></label>' +
-          '<label class="field"><span>' + esc(t('Street address')) + ' <small>' + esc(t('shown to renters only after they contact you')) + '</small></span><input name="address" value="' + esc(l.address || '') + '" placeholder="' + esc(t('House number, street, barangay')) + '"></label>' +
-          '<div class="field"><span>' + esc(t('Pin the exact spot')) + ' <small>' + esc(t('tap the map on your house, or drag the pin')) + '</small></span>' +
+          '<label class="field" data-f="area"><span>' + esc(t('Area or barangay')) + '</span><input name="area" list="ed-areas" value="' + esc(l.area || '') + '" placeholder="' + esc(t('e.g. Bajada')) + '"><datalist id="ed-areas">' + HAVN_AREAS.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist></label>' +
+          '<label class="field" data-f="address"><span>' + esc(t('Street address')) + ' <small>' + esc(t('shown to renters only after they contact you')) + '</small></span><input name="address" value="' + esc(l.address || '') + '" placeholder="' + esc(t('House number, street, barangay')) + '"></label>' +
+          '<div class="field" data-f="pin"><span>' + esc(t('Pin the exact spot')) + ' <small>' + esc(t('tap the map on your house, or drag the pin')) + '</small></span>' +
             '<div class="ed-map"><div class="map-loading"></div></div>' +
             '<button type="button" class="btn btn-ghost btn-sm ed-locate">' + H.icon('pin') + '<span>' + esc(t('Use my current location')) + '</span></button>' +
             '<p class="ed-near"></p></div>' +
           '<p class="field-err" role="alert" hidden></p>';
       },
       rooms: function () {
-        var by = {}; (l.rooms || []).forEach(function (r) { by[r.type] = r; });
-        return '<h1>' + esc(t('Rooms and prices')) + '</h1><p class="ed-help">' + esc(t('Turn on each kind of room you rent out. Prices are per person per month for bedspaces, per room for the rest.')) + '</p>' +
-          '<div class="ed-rooms">' + HAVN_ROOM_TYPES.map(function (type) {
-            var r = by[type];
-            return '<div class="ed-room' + (r ? ' on' : '') + '" data-type="' + esc(type) + '">' +
-              '<label class="check"><input type="checkbox" data-room-on' + (r ? ' checked' : '') + '><span><b>' + esc(t(type)) + '</b></span></label>' +
-              '<div class="ed-room-f"><label class="field"><span>' + esc(t('Monthly price (₱)')) + '</span><input type="number" inputmode="numeric" min="500" step="100" data-room-price value="' + (r && r.price || '') + '"></label>' +
-              '<label class="field"><span>' + esc(t(type === 'Bedspace' ? 'Beds available' : 'Rooms available')) + '</span><input type="number" inputmode="numeric" min="1" max="200" data-room-count value="' + (r && r.count || '') + '"></label></div></div>';
-          }).join('') + '</div>' +
+        return '<h1>' + esc(t('Rooms and prices')) + '</h1>' +
+          '<p class="ed-help">' + esc(t('Pick the kinds of room you rent out. Each one gets its own price, advance and deposit, so rooms with different terms are fine.')) + '</p>' +
+          '<fieldset class="field" data-f="types"><legend>' + esc(t('What do you rent out?')) + ' <small>' + esc(t('pick all that you have')) + '</small></legend>' +
+            '<div class="ed-types">' + HAVN_ROOM_TYPES.map(function (type) {
+              return '<button type="button" class="ed-type" data-add-type="' + esc(type) + '" aria-pressed="false"><span class="ed-type-ic" aria-hidden="true">' + H.icon('plus') + H.icon('check') + '</span>' +
+                '<b>' + esc(t(type)) + '</b><small>' + esc(t(TYPE_HELP[type])) + '</small></button>';
+            }).join('') + '</div></fieldset>' +
+          '<div class="ed-rooms"></div>' +
+          '<h2 class="ed-sub">' + esc(t('Bills')) + ' <small>' + esc(t('for the whole place')) + '</small></h2>' +
           '<div class="ed-grid">' +
-            '<label class="field"><span>' + esc(t('Advance')) + '</span><select name="advance_months">' + [['', 'Choose'], [0, 'None'], [1, '1 month'], [2, '2 months'], [3, '3 months']].map(function (o) { return '<option value="' + o[0] + '"' + (String(l.advance_months) === String(o[0]) && o[0] !== '' ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
-            '<label class="field"><span>' + esc(t('Deposit')) + '</span><select name="deposit_months">' + [['', 'Choose'], [0, 'None'], [1, '1 month'], [2, '2 months'], [3, '3 months']].map(function (o) { return '<option value="' + o[0] + '"' + (String(l.deposit_months) === String(o[0]) && o[0] !== '' ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
             '<label class="field"><span>' + esc(t('Electricity')) + '</span><select name="bill_electric">' + BILLS.map(function (o) { return '<option value="' + o[0] + '"' + ((l.bills || {}).electric === o[0] ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
             '<label class="field"><span>' + esc(t('Water')) + '</span><select name="bill_water">' + BILLS.map(function (o) { return '<option value="' + o[0] + '"' + ((l.bills || {}).water === o[0] ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('') + '</select></label>' +
-            '<label class="field"><span>' + esc(t('Available from')) + '</span><select name="available_from">' + monthsAhead(7).map(function (m) { return '<option value="' + m.v + '"' + (l.available_from === m.v ? ' selected' : '') + '>' + esc(m.l) + '</option>'; }).join('') + '</select></label>' +
           '</div><p class="field-err" role="alert" hidden></p>';
       },
       amenities: function () {
         var rules = l.rules || {}, am = l.amenities || [];
         return '<h1>' + esc(t('Amenities and house rules')) + '</h1>' +
-          '<fieldset class="field"><legend>' + esc(t('What renters get')) + '</legend><div class="chip-wrap">' +
+          '<fieldset class="field" data-f="amenities"><legend>' + esc(t('What renters get')) + '</legend><div class="chip-wrap">' +
             Object.keys(HAVN_AMENITIES).map(function (k) { return chip('checkbox', 'amenities', k, t(HAVN_AMENITIES[k].label), am.indexOf(k) >= 0); }).join('') + '</div></fieldset>' +
           '<div class="ed-grid">' +
             '<label class="field"><span>' + esc(t('Curfew')) + '</span><select name="curfew">' + CURFEW.map(function (c) { return '<option value="' + c + '"' + ((rules.curfew || '') === c ? ' selected' : '') + '>' + esc(c ? t('Gate closes at {time}', { time: c === '00:00' ? '12:00 AM' : (parseInt(c, 10) - 12) + ':00 PM' }) : t('No curfew')) + '</option>'; }).join('') + '</select></label>' +
           '</div>' +
-          '<fieldset class="field"><legend>' + esc(t('Visitors')) + '</legend>' + radios('visitors', VISITORS, rules.visitors) + '</fieldset>' +
+          '<fieldset class="field" data-f="visitors"><legend>' + esc(t('Visitors')) + '</legend>' + radios('visitors', VISITORS, rules.visitors) + '</fieldset>' +
           '<fieldset class="field"><legend>' + esc(t('Cooking in the room')) + '</legend>' + radios('cooking', YESNO, rules.cooking) + '</fieldset>' +
           '<fieldset class="field"><legend>' + esc(t('Pets')) + '</legend>' + radios('pets', YESNO, rules.pets) + '</fieldset>' +
           '<fieldset class="field"><legend>' + esc(t('Smoking')) + '</legend>' + radios('smoking', [['no', 'Not allowed'], ['outside', 'Outside only']], rules.smoking) + '</fieldset>' +
@@ -846,13 +965,13 @@
       },
       photos: function () {
         return '<h1>' + esc(t('Photos')) + '</h1><p class="ed-help">' + esc(t('Add 5 to 10 recent photos in daylight: each room type, the bed, the CR, the study area and the outside of the house. The first photo is the cover.')) + '</p>' +
-          '<label class="ed-drop"><input type="file" accept="image/*" multiple hidden>' + H.icon('plus') + '<span>' + esc(t('Add photos')) + '</span><small>' + esc(t('JPG or PNG, we resize them for you')) + '</small></label>' +
-          '<ul class="ed-photos"></ul><p class="ed-photo-n"></p><p class="field-err" role="alert" hidden></p>';
+          '<div class="field ed-ph-field" data-f="photos"><label class="ed-drop"><input type="file" accept="image/*" multiple hidden>' + H.icon('plus') + '<span>' + esc(t('Add photos')) + '</span><small>' + esc(t('JPG or PNG, we resize them for you')) + '</small></label>' +
+          '<ul class="ed-photos"></ul><p class="ed-photo-n"></p></div><p class="field-err" role="alert" hidden></p>';
       },
       contact: function () {
         var price = ECS.priceFrom(l), cover = l.photos && l.photos[0];
         return '<h1>' + esc(t('Contact and review')) + '</h1>' +
-          '<label class="field"><span>' + esc(t('Mobile number for this listing')) + ' <small>' + esc(t('we send renters\' messages here by email too; it is not shown on the listing')) + '</small></span><input name="contact_mobile" type="tel" inputmode="tel" value="' + esc(ECS.showMobile(l.contact_mobile || '')) + '" placeholder="0917 123 4567"></label>' +
+          '<label class="field" data-f="mobile"><span>' + esc(t('Mobile number for this listing')) + ' <small>' + esc(t('we send renters\' messages here by email too; it is not shown on the listing')) + '</small></span><input name="contact_mobile" type="tel" inputmode="tel" value="' + esc(ECS.showMobile(l.contact_mobile || '')) + '" placeholder="0917 123 4567"></label>' +
           '<div class="ed-preview"><p class="ed-help">' + esc(t('How it will look')) + '</p>' +
             '<article class="card ed-card"><div class="card-media">' + (cover ? '<img src="' + esc(photoUrl(cover)) + '" alt="">' : '<span class="ed-noimg">' + H.icon('image') + '</span>') + '</div>' +
               '<div class="card-body"><h2 class="card-title"><span>' + esc(l.name || t('Untitled listing')) + '</span></h2>' +
@@ -860,7 +979,7 @@
               '<p class="card-meta">' + esc([(l.rooms || []).map(function (r) { return t(r.type); }).join(', '), l.gender ? H.genderLabel(l.gender) : ''].filter(Boolean).join(' · ')) + '</p>' +
               '<p class="card-price">' + (price ? '<b>' + H.peso(price) + '</b> ' + esc(t('/ month')) : '') + '</p></div></article></div>' +
           '<ul class="ed-check">' + ECS.STEPS.slice(0, 5).map(function (s, i) { return '<li class="' + (s.done(l) ? 'ok' : '') + '">' + H.icon(s.done(l) ? 'check' : 'info') + '<span>' + esc(t(s.label)) + '</span>' + (s.done(l) ? '' : '<button type="button" class="btn-link" data-step-go="' + i + '">' + esc(t('Finish')) + '</button>') + '</li>'; }).join('') + '</ul>' +
-          '<label class="check ed-confirm"><input type="checkbox" name="confirmed"' + (l.confirmed ? ' checked' : '') + '><span>' + t('These details are true, the photos are of this place, and I have the right to rent it out. I have read the {link}.', { link: '<a href="/listing-standards" target="_blank">' + esc(t('Keeper standards')) + '</a>' }) + '</span></label>' +
+          '<label class="check ed-confirm" data-f="confirmed"><input type="checkbox" name="confirmed"' + (l.confirmed ? ' checked' : '') + '><span>' + t('These details are true, the photos are of this place, and I have the right to rent it out. I have read the {link}.', { link: '<a href="/listing-standards" target="_blank">' + esc(t('Keeper standards')) + '</a>' }) + '</span></label>' +
           (l.status === 'changes' && l.review_note ? '<p class="ed-note">' + H.icon('info') + '<span><b>' + esc(t('Our note:')) + '</b> ' + esc(l.review_note) + '</span></p>' : '') +
           (l.status === 'live' || l.status === 'paused' ? '<p class="ed-help">' + esc(t('Changes to a live listing are checked again before they show.')) + '</p>' : '') +
           '<p class="field-err" role="alert" hidden></p>';
@@ -870,7 +989,7 @@
     var BIND = {
       place: function (f) {
         var cnt = $('.ed-count', f), ta = f.description;
-        var count = function () { cnt.textContent = t('{n} characters', { n: ta.value.trim().length }); };
+        var count = function () { cnt.textContent = t('{n} of 800 characters', { n: ta.value.length }); };
         count();
         f.addEventListener('input', function (e) {
           var n = e.target.name;
@@ -888,8 +1007,12 @@
         };
         paintNear();
         f.addEventListener('input', function (e) { if (e.target.name === 'area' || e.target.name === 'address') set(e.target.name, e.target.value); });
-        HavnMap.pick($('.ed-map', f), l, function (lat, lng) { set('lat', lat); set('lng', lng); paintNear(); })
-          .then(function (pk) { picker = pk; $('.ed-map .map-loading', f) && $('.ed-map .map-loading', f).remove(); })
+        var hint = null;
+        HavnMap.pick($('.ed-map', f), l, function (lat, lng) { set('lat', lat); set('lng', lng); paintNear(); if (hint) { hint.remove(); hint = null; } seen.pin = true; mark(); })
+          .then(function (pk) {
+            picker = pk; $('.ed-map .map-loading', f) && $('.ed-map .map-loading', f).remove();
+            if (typeof l.lat !== 'number') { hint = document.createElement('p'); hint.className = 'ed-map-hint'; hint.innerHTML = H.icon('pin') + '<span>' + esc(t('Tap the map on your house')) + '</span>'; $('.ed-map', f).appendChild(hint); }
+          })
           .catch(function () { $('.ed-map', f).innerHTML = '<p class="map-fail">' + esc(t('The map could not load. Check your connection and open this step again.')) + '</p>'; });
         $('.ed-locate', f).addEventListener('click', function () {
           if (!navigator.geolocation) { H.toast(t('Your browser cannot share your location.')); return; }
@@ -898,23 +1021,56 @@
         });
       },
       rooms: function (f) {
-        function read() {
-          var rooms = $$('.ed-room', f).filter(function (r) { return $('[data-room-on]', r).checked; }).map(function (r) {
-            return { type: r.getAttribute('data-type'), price: parseInt($('[data-room-price]', r).value, 10) || 0, count: parseInt($('[data-room-count]', r).value, 10) || 0 };
-          });
-          set('rooms', rooms);
+        var wrap = $('.ed-rooms', f);
+        var order = function (a, b) { return HAVN_ROOM_TYPES.indexOf(a.type) - HAVN_ROOM_TYPES.indexOf(b.type); };
+        function paintRooms() {
+          wrap.innerHTML = (l.rooms || []).map(roomCard).join('');
+          $$('[data-add-type]', f).forEach(function (b) { var on = !!roomOf(b.getAttribute('data-add-type')).type; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+          mark();
         }
+        // Rooms are saved as they are; the listing-wide advance and deposit follow the cheapest room (what search
+        // and the price box show first) and "available from" is the earliest month of any room.
+        function save(rooms) {
+          rooms.sort(order); set('rooms', rooms);
+          var base = rooms.filter(function (x) { return x.price; }).sort(function (a, b) { return a.price - b.price; })[0] || rooms[0];
+          if (base && base.advance != null) set('advance_months', base.advance);
+          if (base && base.deposit != null) set('deposit_months', base.deposit);
+          var froms = rooms.map(function (x) { return x.from; }).filter(Boolean).sort();
+          if (froms[0]) set('available_from', froms[0]);
+        }
+        function read() {
+          save($$('.ed-room', f).map(function (card) {
+            var g = function (k) { return card.querySelector('[data-k=' + k + ']').value; };
+            return { type: card.getAttribute('data-type'), price: parseInt(g('price'), 10) || 0, count: parseInt(g('count'), 10) || 0,
+              advance: g('advance') === '' ? null : +g('advance'), deposit: g('deposit') === '' ? null : +g('deposit'), from: g('from') };
+          }));
+          $$('.ed-room', f).forEach(function (card) { $('[data-sum]', card).textContent = moveIn(roomOf(card.getAttribute('data-type'))); });
+        }
+        function toggle(type) {
+          var rooms = (l.rooms || []).slice(), at = rooms.map(function (x) { return x.type; }).indexOf(type);
+          if (at >= 0) {
+            var r = rooms[at];
+            if ((r.price || r.count) && !window.confirm(t('Remove {type} and its price?', { type: t(type) }))) return;
+            rooms.splice(at, 1);
+          } else {
+            // A new room type starts with the terms of the first one, so the Keeper only changes what differs.
+            var like = rooms[0] || {};
+            rooms.push({ type: type, price: 0, count: 0, advance: like.advance != null ? like.advance : null, deposit: like.deposit != null ? like.deposit : null, from: like.from || monthsAhead(1)[0].v });
+          }
+          seen.types = true; save(rooms); paintRooms();
+          if (at < 0) { var card = f.querySelector('.ed-room[data-type="' + type + '"]'); if (card) { card.scrollIntoView({ block: 'nearest' }); card.querySelector('[data-k=price]').focus({ preventScroll: true }); } }
+        }
+        f.addEventListener('click', function (e) {
+          var b = e.target.closest('[data-add-type], [data-remove-type]');
+          if (b) toggle(b.getAttribute('data-add-type') || b.getAttribute('data-remove-type'));
+        });
         f.addEventListener('input', function (e) { if (e.target.closest('.ed-room')) read(); });
         f.addEventListener('change', function (e) {
-          var room = e.target.closest('.ed-room');
-          if (room && e.target.hasAttribute('data-room-on')) { room.classList.toggle('on', e.target.checked); read(); if (e.target.checked) $('[data-room-price]', room).focus(); return; }
-          var n = e.target.name;
-          if (n === 'advance_months' || n === 'deposit_months') set(n, e.target.value === '' ? null : +e.target.value);
-          if (n === 'available_from') set(n, e.target.value);
-          if (n === 'bill_electric' || n === 'bill_water') set('bills', { electric: f.bill_electric.value, water: f.bill_water.value });
+          if (e.target.closest('.ed-room')) { read(); return; }
+          if (e.target.name === 'bill_electric' || e.target.name === 'bill_water') set('bills', { electric: f.bill_electric.value, water: f.bill_water.value });
         });
+        paintRooms();
         if (!l.bills) set('bills', { electric: f.bill_electric.value, water: f.bill_water.value });
-        if (!l.available_from) set('available_from', f.available_from.value);
       },
       amenities: function (f) {
         function rules() { var r = Object.assign({}, l.rules || {}); ['visitors', 'cooking', 'pets', 'smoking'].forEach(function (k) { var c = f.querySelector('[name=' + k + ']:checked'); if (c) r[k] = c.value; }); r.curfew = f.curfew.value; r.other = f.rules_other.value; return r; }
@@ -946,12 +1102,12 @@
             return pr.then(function () {
               return ECS.uploadPhoto(l.id, file).then(function (ph) { set('photos', (l.photos || []).concat([ph])); }).catch(function (x) { err(e, x.message); }).then(function () { holder[i].remove(); });
             });
-          }, Promise.resolve()).then(function () { paint(); flush(); input.value = ''; });
+          }, Promise.resolve()).then(function () { paint(); flush(); input.value = ''; seen.photos = true; mark(); });
         });
         list.addEventListener('click', function (ev) {
           var b, ph = (l.photos || []).slice();
           if ((b = ev.target.closest('[data-cover]'))) { var k = +b.getAttribute('data-cover'); ph.unshift(ph.splice(k, 1)[0]); set('photos', ph); paint(); }
-          else if ((b = ev.target.closest('[data-remove]'))) { var j = +b.getAttribute('data-remove'), gone = ph.splice(j, 1)[0]; set('photos', ph); paint(); if (gone && gone.path) ECS.removePhoto(gone.path).catch(function () {}); }
+          else if ((b = ev.target.closest('[data-remove]'))) { var j = +b.getAttribute('data-remove'), gone = ph.splice(j, 1)[0]; set('photos', ph); paint(); seen.photos = true; mark(); if (gone && gone.path) ECS.removePhoto(gone.path).catch(function () {}); }
         });
       },
       contact: function (f) {
@@ -962,7 +1118,12 @@
     };
 
     function submit(btn) {
-      if (!ECS.ready(l)) { validate(true); return; }
+      if (!ECS.ready(l)) {
+        if (!steps[cur].done(l)) { validate(true); return; }
+        var left = steps.filter(function (s) { return !s.done(l); }).map(function (s) { return t(s.label); });
+        err($('.ed-form > .field-err', host), t('Finish these steps first: {steps}. They are marked in the list above.', { steps: left.join(', ') }));
+        return;
+      }
       busy(btn, true, t('Sending'));
       var fresh = !(l.status === 'live' || l.status === 'paused' || l.status === 'review');
       flush().then(function () {

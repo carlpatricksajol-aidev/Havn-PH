@@ -31,6 +31,18 @@
     if (window.ECS && ECS.count) ECS.count(l, 'view');
     var near = H.schoolsByDistance(l);
     var adv = l.advance == null ? 1 : l.advance, dep = l.deposit == null ? 1 : l.deposit;
+    var termText = function (n, what) { return n === 1 ? t('1 month ' + what) : t('{n} months ' + what, { n: n }); };
+    // Every room type with its own price and terms (cheapest first).
+    var nowM = new Date().toISOString().slice(0, 7);
+    var fromText = function (v) { return !v || v <= nowM ? t('Available now') : t('From {month}', { month: new Date(v + '-15').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }) }); };
+    var kinds = (l.rooms || []).filter(function (x) { return x.price; });
+    var roomsHtml = kinds.length ? '<section class="room-sec" id="rooms"><h2>' + H.esc(t('Rooms and prices')) + '</h2><ul class="rtypes">' + kinds.map(function (x) {
+      var a = x.advance != null ? x.advance : adv, d = x.deposit != null ? x.deposit : dep;
+      return '<li><div class="rt-main"><b>' + H.esc(t(x.type)) + '</b>' +
+        '<span>' + H.esc([x.count ? t(x.type === 'Bedspace' ? '{n} beds available' : x.type === 'Studio' ? '{n} units available' : '{n} rooms available', { n: x.count }) : '', fromText(x.from)].filter(Boolean).join(' · ')) + '</span>' +
+        '<small>' + H.esc([a ? termText(a, 'advance') : t('No advance'), d ? termText(d, 'deposit') : t('No deposit')].join(' · ')) + '</small></div>' +
+        '<div class="rt-price"><b>' + H.peso(x.price) + '</b><small>' + H.esc(t(x.type === 'Bedspace' ? 'per person a month' : 'a month')) + '</small></div></li>';
+    }).join('') + '</ul></section>' : '';
     var saved = H.saved.has(l.id);
     var bath = l.bath === 'own' ? t('Own CR') : t('Shared CR');
     var gmaps = 'https://www.google.com/maps/search/?api=1&query=' + l.lat + '%2C' + l.lng;
@@ -84,6 +96,7 @@
               '</ul>' +
             '</section>' +
             '<section class="room-sec"><h2>' + H.esc(t('About this room')) + '</h2><p class="room-desc">' + H.esc(l.desc) + '</p></section>' +
+            roomsHtml +
             '<section class="room-sec"><h2>' + H.esc(t('What\'s included')) + '</h2><ul class="amenities">' + amen + '</ul></section>' +
             '<section class="room-sec"><h2>' + H.esc(t('House rules')) + '</h2><dl class="rules">' +
               '<div>' + H.icon('clock') + '<dt>' + H.esc(t('Curfew')) + '</dt><dd>' + H.esc(l.rules.curfew || t('No curfew')) + '</dd></div>' +
@@ -101,12 +114,13 @@
               '<div><b>' + H.esc(t('Keeper')) + ': ' + H.esc(l.host.name) + '</b><span>' + H.esc(t('Renting out since {year}', { year: l.host.since })) + '</span></div></section>' +
           '</div>' +
           '<aside class="room-side"><div class="price-card">' +
-            '<p class="pc-price"><b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
+            '<p class="pc-price">' + (kinds.length > 1 ? '<small>' + H.esc(t('From')) + '</small> ' : '') + '<b>' + H.peso(l.price) + '</b> ' + H.esc(t('/ month')) + '</p>' +
+            (kinds.length > 1 ? '<p class="pc-for">' + H.esc(t('Move-in costs below are for the {type}.', { type: t(l.type).toLowerCase() })) + '</p>' : '') +
             '<p class="pc-status s-' + l.status + '"><i aria-hidden="true"></i>' + H.esc(H.statusLabel(l)) + '</p>' +
             '<dl class="pc-costs">' +
               '<div><dt>' + H.esc(t('Monthly rent')) + '</dt><dd>' + H.peso(l.price) + '</dd></div>' +
-              (adv ? '<div><dt>' + H.esc(t('1 month advance')) + '</dt><dd>' + H.peso(l.price * adv) + '</dd></div>' : '') +
-              (dep ? '<div><dt>' + H.esc(t('1 month deposit')) + '</dt><dd>' + H.peso(l.price * dep) + '</dd></div>' : '') +
+              (adv ? '<div><dt>' + H.esc(termText(adv, 'advance')) + '</dt><dd>' + H.peso(l.price * adv) + '</dd></div>' : '') +
+              (dep ? '<div><dt>' + H.esc(termText(dep, 'deposit')) + '</dt><dd>' + H.peso(l.price * dep) + '</dd></div>' : '') +
               '<div class="total"><dt>' + H.esc(t('Move-in total')) + '</dt><dd>' + H.peso(l.price * (adv + dep)) + '</dd></div>' +
             '</dl>' +
             '<p class="pc-bills">' + H.icon('zap') + '<span><b>' + H.esc(t('Bills')) + ':</b> ' + H.esc(l.bills) + '</span></p>' +

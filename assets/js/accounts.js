@@ -55,7 +55,8 @@
   ECS.STEPS = [
     { id: 'place', label: 'Your place', done: function (l) { return !!(l.name && l.name.trim().length >= 4 && l.place_type && l.gender && (l.description || '').trim().length >= 40); } },
     { id: 'location', label: 'Location', done: function (l) { return !!(l.area && l.address && typeof l.lat === 'number' && typeof l.lng === 'number'); } },
-    { id: 'rooms', label: 'Rooms and prices', done: function (l) { var r = l.rooms || []; return r.length > 0 && r.every(function (x) { return x.type && x.price >= 500 && x.count >= 1; }) && l.advance_months != null && l.deposit_months != null; } },
+    // Each room type carries its own advance and deposit (older listings: one pair for the whole place).
+    { id: 'rooms', label: 'Rooms and prices', done: function (l) { var r = l.rooms || []; return r.length > 0 && r.every(function (x) { return x.type && x.price >= 500 && x.count >= 1 && (x.advance != null ? x.advance : l.advance_months) != null && (x.deposit != null ? x.deposit : l.deposit_months) != null; }) && l.advance_months != null && l.deposit_months != null; } },
     { id: 'amenities', label: 'Amenities and rules', done: function (l) { return (l.amenities || []).length >= 1 && !!(l.rules && l.rules.visitors); } },
     { id: 'photos', label: 'Photos', done: function (l) { return (l.photos || []).length >= 5; } },
     { id: 'contact', label: 'Contact and review', done: function (l) { return !!(ECS.mobile(l.contact_mobile) && l.confirmed); } },
@@ -560,7 +561,7 @@
       status: 'available', slots: rooms.reduce(function (n, x) { return n + (x.count || 0); }, 0), size: null,
       bath: (r.amenities || []).indexOf('own-cr') >= 0 ? 'own' : 'shared',
       bills: 'Electricity: ' + (BILL_TXT[bills.electric] || 'ask the landlord') + ' · Water: ' + (BILL_TXT[bills.water] || 'ask the landlord'),
-      amenities: r.amenities || [], advance: r.advance_months, deposit: r.deposit_months,
+      amenities: r.amenities || [], advance: first.advance != null ? first.advance : r.advance_months, deposit: first.deposit != null ? first.deposit : r.deposit_months,
       rules: { curfew: curfew, visitors: RULE_TXT[rules.visitors] || '', cooking: RULE_TXT[rules.cooking] || '' },
       desc: r.description || '', host: { name: r.host_name || 'ECStay landlord', since: new Date(r.created_at || Date.now()).getFullYear() },
       photos: (r.photos || []).map(function (p) { return p.url; }).filter(Boolean),

@@ -83,7 +83,7 @@ function toSite(r) {
     id: r.id, live: true, sample: !!r.sample, name: r.name, type: first.type || 'Private room', rooms, gender: r.gender || 'mixed', area: r.area || '',
     lat: r.lat, lng: r.lng, price: first.price || 0, status: 'available', amenities: r.amenities || [],
     bills: 'Electricity: ' + (BILL[bills.electric] || 'ask the Keeper') + ' · Water: ' + (BILL[bills.water] || 'ask the Keeper'),
-    advance: r.advance_months, deposit: r.deposit_months,
+    advance: first.advance != null ? first.advance : r.advance_months, deposit: first.deposit != null ? first.deposit : r.deposit_months,
     rules: { curfew, visitors: RULE[rules.visitors] || '', cooking: RULE[rules.cooking] || '' },
     desc: r.description || '', host: { name: r.host_name || '' },
     photos: (r.photos || []).map((p) => p && (p.url || p)).filter(Boolean),

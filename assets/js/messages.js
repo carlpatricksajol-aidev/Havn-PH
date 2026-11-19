@@ -50,10 +50,12 @@
   /* `embed`: the inbox sits inside the Keeper home. It then stays on that page (the address does not change) and
    * leaves out its own way back. */
   var embed = false;
-  MV.render = function (host, id, inside) {
+  // `pre`: conversations the page already loaded (the Keeper home): drawn at once, so there is only one loading spinner.
+  MV.render = function (host, id, inside, pre) {
     clearInterval(timer); embed = !!inside;
     if (!ECS.enabled()) { App.go('/list'); return; }
     var known = state && state.list && ECS.user && state.uid === ECS.user.id;
+    if (!known && pre && ECS.user) { state = { host: host, list: pre, id: id || null, filter: 'all', uid: ECS.user.id }; known = true; }
     host.innerHTML = (window.HostView && !embed ? HostView.demoBar() : '') + '<div class="inbox">' + (known ? '' : '<div class="host-loading"><span class="spin"></span></div>') + '</div>';
     if (known) { state.host = host; state.id = id || null; paint(); }
     ECS.session().then(function (s) {
