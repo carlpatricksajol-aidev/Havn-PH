@@ -5,7 +5,9 @@
  *   peek   big, beside his note: walks in from the edge of the screen when the section comes into view, turns to you,
  *          waves, then talks with open hands, looks at the pointer and waves now and then (and when a place is picked)
  *   jump   in the bottom scene: happy hops, with a wave now and then
- * With "reduce motion" on, Kapi stands still. Model made for ECStay with Higgsfield (Meshy); clips Idle, Wave, Talk, Walk. */
+ * With "reduce motion" on, Kapi stands still. Model (19 Nov 2026) made for ECStay with Higgsfield from the painted
+ * Kapi (kapi.webp): Meshy 7 mesh, Meshy rig, clips Idle_02 / Wave_One_Hand / Talk_with_Hands_Open / Casual_Walk
+ * moved onto one skeleton and turned to face front (named Idle, Wave, Talk, Walk). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
