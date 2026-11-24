@@ -6,7 +6,12 @@
  * ?open=0 removes it. Only the key's SHA-256 fingerprint is in this file, never the key.
  * To reopen the site for everyone: set CLOSED to false and push. */
 const CLOSED = true;
-const KEY_SHA256 = '265f8e19b470e42df124a8f7ee7b65c64136f3ed3a54f77bbfe25f8226396897';
+// SHA-256 fingerprints of the private links: [0] the owner's, [1] the testers' (added 25 Nov; to cut testers off,
+// delete that line and push, the owner's link keeps working).
+const KEYS = [
+  '265f8e19b470e42df124a8f7ee7b65c64136f3ed3a54f77bbfe25f8226396897',
+  '0f99980f99e5353b50cc596ad6b35ca7d5b7806c3671e605af904baf813cbf64',
+];
 const COOKIE = 'ecs-open';
 
 export const config = { matcher: ['/((?!assets/|emails/|robots.txt).*)'] };
@@ -86,14 +91,14 @@ export default async function middleware(req) {
   const key = url.searchParams.get('open');
   if (key !== null) {
     url.searchParams.delete('open');
-    const ok = key !== '0' && (await sha256(key)) === KEY_SHA256;
+    const ok = key !== '0' && KEYS.includes(await sha256(key));
     const cookie = COOKIE + '=' + (ok ? encodeURIComponent(key) + '; Max-Age=31536000' : '; Max-Age=0') + '; Path=/; Secure; HttpOnly; SameSite=Lax';
     return new Response(null, { status: 302, headers: { Location: url.pathname + url.search, 'Set-Cookie': cookie, 'Cache-Control': 'no-store' } });
   }
   const m = (req.headers.get('cookie') || '').match(/(?:^|;\s*)ecs-open=([^;]+)/);
   if (m) {
     let v = ''; try { v = decodeURIComponent(m[1]); } catch (e) {}
-    if (v && (await sha256(v)) === KEY_SHA256) return pass();
+    if (v && KEYS.includes(await sha256(v))) return pass();
   }
 
   return new Response(PAGE, {
